@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from amulet.api.level import BaseLevel
     from amulet_map_editor.programs.edit.api.canvas import EditCanvas
 
-class SetLootTables(wx.Panel, DefaultOperationUI):
+class SetBlock(wx.Panel, DefaultOperationUI):
     def __init__(
         self,
         parent: wx.Window,
@@ -130,4 +130,4 @@ class SetLootTables(wx.Panel, DefaultOperationUI):
     pass
 
 #simple export options.
-export = dict(name="A Block editor", operation=SetLootTables)
+export = dict(name="A Block editor", operation=SetBlock)
