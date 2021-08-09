@@ -91,7 +91,7 @@ class SetBlock(wx.Panel, DefaultOperationUI):
 
 
 
-        self._run_getSData_button = wx.Button(self, label="Get Porta Data")
+        self._run_getSData_button = wx.Button(self, label="Get Portal Data")
         self._run_getSData_button.Bind(wx.EVT_BUTTON, self._run_get_sdata)
         side_sizer.Add(self._run_getSData_button, 25, wx.BOTTOM | wx.LEFT, 20)
 
@@ -176,7 +176,7 @@ class SetBlock(wx.Panel, DefaultOperationUI):
         # back to bytes
         data2 = data.save_to(compressed=False, little_endian=True)
 
-        
+
         # for p in player:
         #     print(p)
 
