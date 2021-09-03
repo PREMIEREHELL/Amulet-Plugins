@@ -599,7 +599,7 @@ class SetFrames(wx.Panel, DefaultOperationUI):
                 self.bottomImage_sizer.Hide(x)
                 self._sizer.Fit(self)
                 self._sizer.Layout()
-                self._Final_operations.SetValue("")
+
                 self.mapveiwing = 0
         getintUUID = self._run_text.GetValue().split('_')
         uuid = int(getintUUID[1])
