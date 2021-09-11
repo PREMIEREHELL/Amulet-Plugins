@@ -37,6 +37,10 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
         self.YL.SetLabel("Y:")
         self.ZL = wx.StaticText(self, wx.LEFT)
         self.ZL.SetLabel("Z:")
+        self.facingL = wx.StaticText(self, wx.LEFT)
+        self.facingL.SetLabel("Facing:")
+        self.lookingL = wx.StaticText(self, wx.LEFT)
+        self.lookingL.SetLabel("Looking:")
         self.X = wx.TextCtrl(
             self, style=wx.TE_LEFT | wx.TE_BESTWRAP, size=(150, 20),
         )
@@ -44,6 +48,12 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
             self, style=wx.TE_LEFT | wx.TE_BESTWRAP, size=(150, 20),
         )
         self.Z= wx.TextCtrl(
+            self, style=wx.TE_LEFT | wx.TE_BESTWRAP, size=(150, 20),
+        )
+        self.facing = wx.TextCtrl(
+            self, style=wx.TE_LEFT | wx.TE_BESTWRAP, size=(150, 20),
+        )
+        self.looking = wx.TextCtrl(
             self, style=wx.TE_LEFT | wx.TE_BESTWRAP, size=(150, 20),
         )
         self.dimDict = {
@@ -57,7 +67,7 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
 
         self.apply = wx.Button(self, size=(50, 30),label="Apply")
         self.apply.Bind(wx.EVT_BUTTON, self.savePosData)
-        self.getSet = wx.Button(self, size=(120, 20), label="Set Current Position")
+        self.getSet = wx.Button(self, size=(120, 20), label="Get Current Position")
         self.getSet.Bind(wx.EVT_BUTTON, self.getsetCurrentPos)
 
         self.achieve = wx.Button(self, size=(160, 20), label="Re-enable achievements")
@@ -83,13 +93,18 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
         self._sizer.Add(self.info, 0, wx.LEFT, 10)
         self._sizer.Add(self.playerlist, 0, wx.LEFT, 10)
         self._sizer.Add(self.getSet, 0, wx.LEFT, 40)
-        self.Grid = wx.GridSizer(3,2,0,0)
+        self.Grid = wx.GridSizer(5,2,0,0)
         self.Grid.Add(self.XL, 0, wx.LEFT, 5)
         self.Grid.Add(self.X,0,wx.LEFT,-60)
         self.Grid.Add(self.YL, 0, wx.LEFT, 5)
         self.Grid.Add(self.Y, 0, wx.LEFT, -60)
         self.Grid.Add(self.ZL, 0, wx.LEFT, 5)
         self.Grid.Add(self.Z, 0, wx.LEFT, -60)
+
+        self.Grid.Add(self.facingL, 0, wx.LEFT, 5)
+        self.Grid.Add(self.facing, 0, wx.LEFT, -50)
+        self.Grid.Add(self.lookingL, 0, wx.LEFT, 5)
+        self.Grid.Add(self.looking, 0, wx.LEFT, -50)
 
         self._sizer.Add(self.Grid)
         self.Grid.Fit(self)
@@ -118,17 +133,23 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
         player = self.playerlist.GetString(self.playerlist.GetSelection())
         pdata = self.getPlayerData(player)
         X,Y,Z = pdata.get("Pos")
+        facing,looking = pdata.get("Rotation")
         self.X.SetValue(str(X))
         self.Y.SetValue(str(Y))
         self.Z.SetValue(str(Z))
+        self.facing.SetValue(str(facing))
+        self.looking.SetValue(str(looking))
         self.dim.SetSelection(pdata.get("DimensionId"))
 
     def getsetCurrentPos(self, _):
 
         X, Y, Z = self.canvas.camera.location
+        facing,looking = self.canvas.camera.rotation
         self.X.SetValue(str(X))
         self.Y.SetValue(str(Y))
         self.Z.SetValue(str(Z))
+        self.facing.SetValue(str(facing))
+        self.looking.SetValue(str(looking))
         dim = {
             'minecraft:overworld':0,
             'minecraft:the_nether':1,
@@ -146,9 +167,12 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
             1:"Nether",
             2: "The End"
         }
-
+        facing, looking = pdata.get("Rotation")
         pdata["PlayerGameMode"] = TAG_Int(int(self.listRadio.get(mode)))
         pdata["DimensionId"] = TAG_Int(int(self.dim.GetSelection()))
+        pdata["Rotation"] = TAG_List()
+        pdata['Rotation'].append(TAG_Float(float(self.facing.GetValue().replace("f", ""))))
+        pdata['Rotation'].append(TAG_Float(float(self.looking.GetValue().replace("f", ""))))
         pdata['Pos'] = TAG_List()
         pdata['Pos'].append(TAG_Float(float(self.X.GetValue().replace("f",""))))
         pdata['Pos'].append(TAG_Float(float(self.Y.GetValue().replace("f",""))))
@@ -157,6 +181,8 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
         self.world.level_wrapper._level_manager._db.put(player.encode("utf-8"), save)
         wx.MessageBox(player +"\nPersonal Mode: "+ mode +"\nLocation is set to\n"+dim.get(int(self.dim.GetSelection()))+" \nX: "
                       +self.X.GetValue().replace("f","")+"\nY: "+ self.Y.GetValue().replace("f","") +"\nZ: "+self.Z.GetValue().replace("f","") +
+                      "\nFacing: " + self.facing.GetValue().replace("f", "") +
+                      "\nLooking: " + self.looking.GetValue().replace("f", "") +
                       "\nNOTE: You MUST CLOSE This world Before Opening in MineCraft",
                       "INFO", wx.OK | wx.ICON_INFORMATION)
 
@@ -172,7 +198,6 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
         data1 = s.replace(b'hasBeenLoadedInCreative\x01', b'hasBeenLoadedInCreative\x00')
         data2 = data1.replace(b'commandsEnabled\x01', b'commandsEnabled\x00')
         data3 = data2.replace(b'GameType\x01', b'GameType\x00')
-        #print(data2)
         self.saveData(data3)
     pass
 
