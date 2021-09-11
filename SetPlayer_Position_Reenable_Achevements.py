@@ -112,10 +112,6 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
         enS = pl.encode("utf-8")
         player = self.world.level_wrapper._level_manager._db.get(enS)
         data = amulet_nbt.load(player, little_endian=True)
-        data2 = []
-        currentIMAPS = []
-        dic = {}
-
         return data
 
     def playerlistrun(self, _):
