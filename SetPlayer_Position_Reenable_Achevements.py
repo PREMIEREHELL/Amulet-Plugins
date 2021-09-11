@@ -57,6 +57,9 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
 
         self.apply = wx.Button(self, size=(50, 30),label="Apply")
         self.apply.Bind(wx.EVT_BUTTON, self.savePosData)
+        self.getSet = wx.Button(self, size=(120, 20), label="Set Current Position")
+        self.getSet.Bind(wx.EVT_BUTTON, self.getsetCurrentPos)
+
         self.achieve = wx.Button(self, size=(160, 20), label="Re-enable achievements")
         self.achieve.Bind(wx.EVT_BUTTON, self.loadData)
 
@@ -79,6 +82,7 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
         self._sizer.Add(self.achieve, 0, wx.LEFT, 20)
         self._sizer.Add(self.info, 0, wx.LEFT, 10)
         self._sizer.Add(self.playerlist, 0, wx.LEFT, 10)
+        self._sizer.Add(self.getSet, 0, wx.LEFT, 40)
         self.Grid = wx.GridSizer(3,2,0,0)
         self.Grid.Add(self.XL, 0, wx.LEFT, 5)
         self.Grid.Add(self.X,0,wx.LEFT,-60)
@@ -93,6 +97,7 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
         self._sizer.Add(self.dim, 0, wx.LEFT, 0)
         self._sizer.Add(self.infoRai, 0, wx.LEFT, 0)
         self._sizer.Add(self.gm_mode, 0, wx.LEFT, 0)
+
         self._sizer.Add(self.apply, 0, wx.LEFT, 160)
         self._sizer.Fit(self)
 
@@ -121,6 +126,20 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
         self.Y.SetValue(str(Y))
         self.Z.SetValue(str(Z))
         self.dim.SetSelection(pdata.get("DimensionId"))
+
+    def getsetCurrentPos(self, _):
+
+        X, Y, Z = self.canvas.camera.location
+        self.X.SetValue(str(X))
+        self.Y.SetValue(str(Y))
+        self.Z.SetValue(str(Z))
+        dim = {
+            'minecraft:overworld':0,
+            'minecraft:the_nether':1,
+            'minecraft:the_end':2
+        }
+        print(dim[self.canvas.dimension])
+        self.dim.SetSelection(dim[self.canvas.dimension])
 
     def savePosData(self, _):
         player = self.playerlist.GetString(self.playerlist.GetSelection())
@@ -162,4 +181,4 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
     pass
 
 
-export = dict(name="SetPlayer Position/Re-enable achievements V1.1", operation=SetPlayer)  # by PremiereHell
+export = dict(name="SetPlayer Position/Re-enable achievements V1.2", operation=SetPlayer)  # by PremiereHell
