@@ -16,8 +16,9 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
 
     ):
 
-        platform = world.level_wrapper.platform
+        self.platform = world.level_wrapper.platform
         world_version = world.level_wrapper.version
+
 
         wx.Panel.__init__(self, parent)
         DefaultOperationUI.__init__(self, parent, canvas, world, options_path)
@@ -84,6 +85,7 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
             if "server_" in x or "~" in x:
                 if "server_" in x:
                     player.append("player_"+x)
+                    print(x)
                 else:
                     player.append(x)
         self.playerlist = wx.ListBox(self, size=(160, 95), choices=player)
@@ -137,6 +139,10 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
         return data
 
     def playerlistrun(self, _):
+        if self.platform != "bedrock":
+            wx.MessageBox("Java is not currently suported",
+                          "INFO", wx.OK | wx.ICON_INFORMATION)
+            return
         player = self.playerlist.GetString(self.playerlist.GetSelection())
         pdata = self.getPlayerData(player)
         if pdata != "None":
@@ -169,6 +175,10 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
         self.dim.SetSelection(dim[self.canvas.dimension])
 
     def savePosData(self, _):
+        if self.platform != "bedrock":
+            wx.MessageBox("Java is not  suported",
+                          "INFO", wx.OK | wx.ICON_INFORMATION)
+            return
         player = self.playerlist.GetString(self.playerlist.GetSelection())
         pdata = self.getPlayerData(player)
         mode = self.gm_mode.GetString(self.gm_mode.GetSelection())
@@ -203,6 +213,10 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
                           "INFO", wx.OK | wx.ICON_INFORMATION)
 
     def loadData(self, _):
+        if self.platform != "bedrock":
+            wx.MessageBox("Java is not  suported",
+                          "INFO", wx.OK | wx.ICON_INFORMATION)
+            return
         with open(self.world.level_path + "\\" + "level.dat", "rb") as f:
             s = f.read()
         data1 = s.replace(b'hasBeenLoadedInCreative\x01', b'hasBeenLoadedInCreative\x00')
