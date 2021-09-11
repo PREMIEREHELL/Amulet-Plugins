@@ -162,4 +162,4 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
     pass
 
 
-export = dict(name="SetPlayer Position/Re-enable achievements V1.1", operation=SetPlayer)  # by PreimereHell
+export = dict(name="SetPlayer Position/Re-enable achievements V1.1", operation=SetPlayer)  # by PremiereHell
