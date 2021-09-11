@@ -81,8 +81,11 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
         player = []
 
         for x in self.world.players.all_player_ids():
-            player.append(x)
-
+            if "server_" in x or "~" in x:
+                if "server_" in x:
+                    player.append("player_"+x)
+                else:
+                    player.append(x)
         self.playerlist = wx.ListBox(self, size=(160, 95), choices=player)
         self.playerlist.SetSelection(0)
         self.playerlistrun(None)
@@ -125,21 +128,28 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
 
     def getPlayerData(self, pl):
         enS = pl.encode("utf-8")
-        player = self.world.level_wrapper._level_manager._db.get(enS)
-        data = amulet_nbt.load(player, little_endian=True)
+        try:
+            player = self.world.level_wrapper._level_manager._db.get(enS)
+            data = amulet_nbt.load(player, little_endian=True)
+
+        except:
+            data = "None"
         return data
 
     def playerlistrun(self, _):
         player = self.playerlist.GetString(self.playerlist.GetSelection())
         pdata = self.getPlayerData(player)
-        X,Y,Z = pdata.get("Pos")
-        facing,looking = pdata.get("Rotation")
-        self.X.SetValue(str(X))
-        self.Y.SetValue(str(Y))
-        self.Z.SetValue(str(Z))
-        self.facing.SetValue(str(facing))
-        self.looking.SetValue(str(looking))
-        self.dim.SetSelection(pdata.get("DimensionId"))
+        if pdata != "None":
+            X,Y,Z = pdata.get("Pos")
+            facing,looking = pdata.get("Rotation")
+            self.canvas.camera.location = [float(str(X).replace('f','')),float(str(Y).replace('f','')),float(str(Z).replace('f',''))]
+            self.canvas.camera.rotation = [float(str(facing).replace('f','')),float(str(looking).replace('f',''))]
+            self.X.SetValue(str(X))
+            self.Y.SetValue(str(Y))
+            self.Z.SetValue(str(Z))
+            self.facing.SetValue(str(facing))
+            self.looking.SetValue(str(looking))
+            self.dim.SetSelection(pdata.get("DimensionId"))
 
     def getsetCurrentPos(self, _):
 
@@ -202,4 +212,4 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
     pass
 
 
-export = dict(name="SetPlayer Position/Re-enable achievements V1.2", operation=SetPlayer)  # by PremiereHell
+export = dict(name="SetPlayer Position/Re-enable achievements V1.3", operation=SetPlayer)  # by PremiereHell
