@@ -140,7 +140,7 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
 
     def playerlistrun(self, _):
         if self.platform != "bedrock":
-            wx.MessageBox("Java is not currently suported",
+            wx.MessageBox("Java is not currently supported",
                           "INFO", wx.OK | wx.ICON_INFORMATION)
             return
         player = self.playerlist.GetString(self.playerlist.GetSelection())
@@ -176,7 +176,7 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
 
     def savePosData(self, _):
         if self.platform != "bedrock":
-            wx.MessageBox("Java is not  suported",
+            wx.MessageBox("Java is not supported",
                           "INFO", wx.OK | wx.ICON_INFORMATION)
             return
         player = self.playerlist.GetString(self.playerlist.GetSelection())
@@ -214,7 +214,7 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
 
     def loadData(self, _):
         if self.platform != "bedrock":
-            wx.MessageBox("Java is not  suported",
+            wx.MessageBox("Java is not supported",
                           "INFO", wx.OK | wx.ICON_INFORMATION)
             return
         with open(self.world.level_path + "\\" + "level.dat", "rb") as f:
