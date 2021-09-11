@@ -29,6 +29,8 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
         self.info.SetLabel("Select player:")
         self.infoRe = wx.StaticText(self, wx.LEFT)
         self.infoRe.SetLabel("Remove any Behavior Packs!")
+        self.infoRai = wx.StaticText(self, wx.LEFT)
+        self.infoRai.SetLabel(".. Personal GameMode?")
         self.XL = wx.StaticText(self, wx.LEFT)
         self.XL.SetLabel("X:")
         self.YL = wx.StaticText(self, wx.LEFT)
@@ -56,7 +58,13 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
         self.achieve = wx.Button(self, size=(160, 20), label="Re-enable achievements")
         self.achieve.Bind(wx.EVT_BUTTON, self.loadData)
 
+        self.listRadio = {
+            "Survival": 5,
+            "Creative": 1
+        }
+        self.gm_mode = wx.RadioBox(self, label='Both Do NOT disable achievements', choices=list(self.listRadio.keys()))
         player = []
+
         for x in self.world.players.all_player_ids():
             player.append(x)
 
@@ -76,6 +84,8 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
         self._sizer.Add(self.Z, 0, wx.LEFT, 20)
         self._sizer.Add(self.dimL, 0, wx.LEFT, 20)
         self._sizer.Add(self.dim, 0, wx.LEFT, 20)
+        self._sizer.Add(self.infoRai, 0, wx.LEFT, 20)
+        self._sizer.Add(self.gm_mode, 0, wx.LEFT, 20)
         self._sizer.Add(self.apply, 0, wx.LEFT, 10)
         self._sizer.Fit(self)
 
@@ -108,6 +118,10 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
     def savePosData(self, _):
         player = self.playerlist.GetString(self.playerlist.GetSelection())
         pdata = self.getPlayerData(player)
+        mode = self.gm_mode.GetString(self.gm_mode.GetSelection())
+
+
+        pdata["PlayerGameMode"] = TAG_Int(int(self.listRadio.get(mode)))
         pdata["DimensionId"] = TAG_Int(int(self.dim.GetValue()))
         pdata['Pos'] = TAG_List()
         pdata['Pos'].append(TAG_Float(float(self.X.GetValue().replace("f",""))))
@@ -125,8 +139,9 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
             s = f.read()
         data1 = s.replace(b'hasBeenLoadedInCreative\x01', b'hasBeenLoadedInCreative\x00')
         data2 = data1.replace(b'commandsEnabled\x01', b'commandsEnabled\x00')
+        data3 = data2.replace(b'GameType\x01', b'GameType\x00')
         #print(data2)
-        self.saveData(data2)
+        self.saveData(data3)
     pass
 
 
