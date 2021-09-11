@@ -141,7 +141,8 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
         save = pdata.save_to(compressed=False, little_endian=True)
         self.world.level_wrapper._level_manager._db.put(player.encode("utf-8"), save)
         wx.MessageBox(player +"\nPersonal Mode: "+ mode +"\nLocation is set to\n"+dim.get(int(self.dim.GetSelection()))+" \nX: "
-                      +self.X.GetValue().replace("f","")+"\nY: "+ self.Y.GetValue().replace("f","") +"\nZ: "+self.Z.GetValue().replace("f",""),
+                      +self.X.GetValue().replace("f","")+"\nY: "+ self.Y.GetValue().replace("f","") +"\nZ: "+self.Z.GetValue().replace("f","") +
+                      "\nNOTE: You MUST CLOSE This world Before Opening in MineCraft",
                       "INFO", wx.OK | wx.ICON_INFORMATION)
 
     def saveData(self, data):
