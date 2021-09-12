@@ -232,7 +232,7 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
             2: "The End"
         }
         facing, looking = pdata.get("Rotation")
-        if self.platform != "bedrock":
+        if self.platform == "bedrock":
             pdata["PlayerGameMode"] = TAG_Int(int(self.listRadio.get(mode)))
 
         pdata["DimensionId"] = TAG_Int(int(self.dim.GetSelection()))
