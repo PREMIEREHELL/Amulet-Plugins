@@ -1,4 +1,3 @@
-import amulet.api.player
 import wx
 from typing import TYPE_CHECKING, Tuple
 from amulet_map_editor.programs.edit.api.operations import DefaultOperationUI
