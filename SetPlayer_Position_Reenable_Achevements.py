@@ -1,3 +1,4 @@
+import amulet.api.player
 import wx
 from typing import TYPE_CHECKING, Tuple
 from amulet_map_editor.programs.edit.api.operations import DefaultOperationUI
@@ -23,15 +24,16 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
         wx.Panel.__init__(self, parent)
         DefaultOperationUI.__init__(self, parent, canvas, world, options_path)
         self.Freeze()
-
+        self.data = None
         self._sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self._sizer)
         self.info = wx.StaticText(self, wx.LEFT)
         self.info.SetLabel("Select player:")
-        self.infoRe = wx.StaticText(self, wx.LEFT)
-        self.infoRe.SetLabel("Remove any Behavior Packs!")
-        self.infoRai = wx.StaticText(self, wx.LEFT)
-        self.infoRai.SetLabel(".. Personal GameMode?")
+        if self.platform == "bedrock":
+            self.infoRe = wx.StaticText(self, wx.LEFT)
+            self.infoRe.SetLabel("Remove any Behavior Packs!")
+            self.infoRai = wx.StaticText(self, wx.LEFT)
+            self.infoRai.SetLabel(".. Personal GameMode?")
         self.XL = wx.StaticText(self, wx.LEFT)
         self.XL.SetLabel("X:")
         self.YL = wx.StaticText(self, wx.LEFT)
@@ -63,38 +65,44 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
             "End":2
         }
         self.dim = wx.RadioBox(self, size=(200,50),label='Select Dimension', choices=list(self.dimDict.keys()))
-
-
-
-        self.apply = wx.Button(self, size=(50, 30),label="Apply")
-        self.apply.Bind(wx.EVT_BUTTON, self.savePosData)
+        self.apply = wx.Button(self, size=(50, 30), label="Apply")
+        if self.platform == "bedrock":
+            self.apply.Bind(wx.EVT_BUTTON, self.savePosData)
+        else:
+            self.apply.Bind(wx.EVT_BUTTON, self.savePosDataJava)
         self.getSet = wx.Button(self, size=(120, 20), label="Get Current Position")
         self.getSet.Bind(wx.EVT_BUTTON, self.getsetCurrentPos)
-
-        self.achieve = wx.Button(self, size=(160, 20), label="Re-enable achievements")
-        self.achieve.Bind(wx.EVT_BUTTON, self.loadData)
+        if self.platform == "bedrock":
+            self.achieve = wx.Button(self, size=(160, 20), label="Re-enable achievements")
+            self.achieve.Bind(wx.EVT_BUTTON, self.loadData)
 
         self.listRadio = {
             "Survival": 5,
             "Creative": 1
         }
-        self.gm_mode = wx.RadioBox(self, label='Both Do NOT disable achievements', choices=list(self.listRadio.keys()))
+        if self.platform == "bedrock":
+            self.gm_mode = wx.RadioBox(self, label='Both Do NOT disable achievements', choices=list(self.listRadio.keys()))
         player = []
+        if self.platform == "bedrock":
+            for x in self.world.players.all_player_ids():
+                if "server_" in x or "~" in x:
+                    if "server_" in x:
+                        player.append("player_"+x)
+                    else:
+                        player.append(x)
+        else:
+            for x in self.world.players.all_player_ids():
+                player.append(x)
 
-        for x in self.world.players.all_player_ids():
-            if "server_" in x or "~" in x:
-                if "server_" in x:
-                    player.append("player_"+x)
-                    print(x)
-                else:
-                    player.append(x)
+
         self.playerlist = wx.ListBox(self, size=(160, 95), choices=player)
         self.playerlist.SetSelection(0)
         self.playerlistrun(None)
         self.playerlist.Bind(wx.EVT_LISTBOX, self.playerlistrun)
 
-        self._sizer.Add(self.infoRe, 0, wx.LEFT, 10)
-        self._sizer.Add(self.achieve, 0, wx.LEFT, 20)
+        if self.platform == "bedrock":
+            self._sizer.Add(self.infoRe, 0, wx.LEFT, 10)
+            self._sizer.Add(self.achieve, 0, wx.LEFT, 20)
         self._sizer.Add(self.info, 0, wx.LEFT, 10)
         self._sizer.Add(self.playerlist, 0, wx.LEFT, 10)
         self._sizer.Add(self.getSet, 0, wx.LEFT, 40)
@@ -115,8 +123,10 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
         self.Grid.Fit(self)
 
         self._sizer.Add(self.dim, 0, wx.LEFT, 0)
-        self._sizer.Add(self.infoRai, 0, wx.LEFT, 0)
-        self._sizer.Add(self.gm_mode, 0, wx.LEFT, 0)
+
+        if self.platform == "bedrock":
+            self._sizer.Add(self.infoRai, 0, wx.LEFT, 0)
+            self._sizer.Add(self.gm_mode, 0, wx.LEFT, 0)
 
         self._sizer.Add(self.apply, 0, wx.LEFT, 160)
         self._sizer.Fit(self)
@@ -129,33 +139,73 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
         return (0,)
 
     def getPlayerData(self, pl):
-        enS = pl.encode("utf-8")
-        try:
-            player = self.world.level_wrapper._level_manager._db.get(enS)
-            data = amulet_nbt.load(player, little_endian=True)
+        data = "None"
+        if self.platform == "bedrock":
 
-        except:
-            data = "None"
+            try:
+                enS = pl.encode("utf-8")
+
+                player = self.world.level_wrapper._level_manager._db.get(enS)
+                data = amulet_nbt.load(player, little_endian=True)
+            except:
+                data = "None"
+        else:
+
+            try:
+                path = self.world.level_path + "\\level.dat"
+                if pl != "~local_player":
+                     path = self.world.level_path + "\\playerdata\\" + pl + ".dat"
+                with open(path, "rb") as f:
+                    r = f.read()
+                if pl != "~local_player":
+                    data = amulet_nbt.load(r, compressed=True, little_endian=False)
+                else:
+                    self.data = amulet_nbt.load(r, compressed=True, little_endian=False)
+                    data = self.data["Data"]["Player"]
+
+            except:
+                data = "None"
+
         return data
 
     def playerlistrun(self, _):
-        if self.platform != "bedrock":
-            wx.MessageBox("Java is not currently supported",
-                          "INFO", wx.OK | wx.ICON_INFORMATION)
-            return
-        player = self.playerlist.GetString(self.playerlist.GetSelection())
-        pdata = self.getPlayerData(player)
-        if pdata != "None":
-            X,Y,Z = pdata.get("Pos")
-            facing,looking = pdata.get("Rotation")
-            self.canvas.camera.location = [float(str(X).replace('f','')),float(str(Y).replace('f','')),float(str(Z).replace('f',''))]
-            self.canvas.camera.rotation = [float(str(facing).replace('f','')),float(str(looking).replace('f',''))]
-            self.X.SetValue(str(X))
-            self.Y.SetValue(str(Y))
-            self.Z.SetValue(str(Z))
-            self.facing.SetValue(str(facing))
-            self.looking.SetValue(str(looking))
-            self.dim.SetSelection(pdata.get("DimensionId"))
+
+        if self.platform == "bedrock":
+            player = self.playerlist.GetString(self.playerlist.GetSelection())
+            pdata = self.getPlayerData(player)
+            if pdata != "None":
+                X,Y,Z = pdata.get("Pos")
+                facing,looking = pdata.get("Rotation")
+                self.canvas.camera.location = [float(str(X).replace('f','')),float(str(Y).replace('f','')),float(str(Z).replace('f',''))]
+                self.canvas.camera.rotation = [float(str(facing).replace('f','')),float(str(looking).replace('f',''))]
+                self.X.SetValue(str(X))
+                self.Y.SetValue(str(Y))
+                self.Z.SetValue(str(Z))
+                self.facing.SetValue(str(facing))
+                self.looking.SetValue(str(looking))
+                self.dim.SetSelection(pdata.get("DimensionId"))
+        else:
+            player = self.playerlist.GetString(self.playerlist.GetSelection())
+            pdata = self.getPlayerData(player)
+            if pdata != "None":
+                X, Y, Z = pdata.get("Pos")
+                facing, looking = pdata.get("Rotation")
+                self.canvas.camera.location = [float(str(X).replace('d', '')), float(str(Y).replace('d', '')),
+                                               float(str(Z).replace('d', ''))]
+                self.canvas.camera.rotation = [float(str(facing).replace('f', '')),
+                                               float(str(looking).replace('f', ''))]
+                self.X.SetValue(str(X))
+                self.Y.SetValue(str(Y))
+                self.Z.SetValue(str(Z))
+                self.facing.SetValue(str(facing))
+                self.looking.SetValue(str(looking))
+                dim = {
+                    'minecraft:overworld': 0,
+                    'minecraft:the_nether': 1,
+                    'minecraft:the_end': 2
+                }
+                self.canvas.dimension = str(pdata.get("Dimension"))
+                self.dim.SetSelection(dim[str(pdata.get("Dimension"))])
 
     def getsetCurrentPos(self, _):
 
@@ -171,14 +221,9 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
             'minecraft:the_nether':1,
             'minecraft:the_end':2
         }
-        print(dim[self.canvas.dimension])
         self.dim.SetSelection(dim[self.canvas.dimension])
 
     def savePosData(self, _):
-        if self.platform != "bedrock":
-            wx.MessageBox("Java is not supported",
-                          "INFO", wx.OK | wx.ICON_INFORMATION)
-            return
         player = self.playerlist.GetString(self.playerlist.GetSelection())
         pdata = self.getPlayerData(player)
         mode = self.gm_mode.GetString(self.gm_mode.GetSelection())
@@ -188,7 +233,9 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
             2: "The End"
         }
         facing, looking = pdata.get("Rotation")
-        pdata["PlayerGameMode"] = TAG_Int(int(self.listRadio.get(mode)))
+        if self.platform != "bedrock":
+            pdata["PlayerGameMode"] = TAG_Int(int(self.listRadio.get(mode)))
+
         pdata["DimensionId"] = TAG_Int(int(self.dim.GetSelection()))
         pdata["Rotation"] = TAG_List()
         pdata['Rotation'].append(TAG_Float(float(self.facing.GetValue().replace("f", ""))))
@@ -206,6 +253,48 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
                       "\nNOTE: You MUST CLOSE This world Before Opening in MineCraft",
                       "INFO", wx.OK | wx.ICON_INFORMATION)
 
+    def savePosDataJava(self, _):
+        player = self.playerlist.GetString(self.playerlist.GetSelection())
+        pdata = self.getPlayerData(player)
+        dim = {
+            0:'minecraft:overworld',
+            1:'minecraft:the_nether',
+            2:'minecraft:the_end'
+        }
+        facing, looking = pdata.get("Rotation")
+
+
+        pdata["Dimension"] = TAG_String(dim[int(self.dim.GetSelection())])
+        pdata["Rotation"] = TAG_List()
+        pdata['Rotation'].append(TAG_Float(float(self.facing.GetValue().replace("f", ""))))
+        pdata['Rotation'].append(TAG_Float(float(self.looking.GetValue().replace("f", ""))))
+        pdata['Pos'] = TAG_List()
+        pdata['Pos'].append(TAG_Double(float(self.X.GetValue().replace("d", ""))))
+        pdata['Pos'].append(TAG_Double(float(self.Y.GetValue().replace("d", ""))))
+        pdata['Pos'].append(TAG_Double(float(self.Z.GetValue().replace("d", ""))))
+        if player != "~local_player":
+            save = pdata.save_to(compressed=True, little_endian=False)
+            with open(self.world.level_path + "\\playerdata\\" + player + ".dat", "wb") as f:
+                f.write(save)
+        else:
+            self.data["Data"]["Player"] = pdata
+
+
+            save = self.data.save_to(compressed=True, little_endian=False)
+
+            with open(self.world.level_path + "\\level.dat", "wb") as f:
+                 f.write(save)
+
+
+        wx.MessageBox(player + "\nLocation is set to\n" + dim.get(
+            int(self.dim.GetSelection())) + " \nX: "
+                      + self.X.GetValue().replace("f", "") + "\nY: " + self.Y.GetValue().replace("f","") + "\nZ: " + self.Z.GetValue().replace(
+            "f", "") +
+                      "\nFacing: " + self.facing.GetValue().replace("f", "") +
+                      "\nLooking: " + self.looking.GetValue().replace("f", "") +
+                      "\nNOTE: You MUST CLOSE This world Before Opening in MineCraft",
+                      "INFO", wx.OK | wx.ICON_INFORMATION)
+
     def saveData(self, data):
         with open(self.world.level_path + "\\" + "level.dat", "wb") as f:
             f.write(data)
@@ -214,7 +303,7 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
 
     def loadData(self, _):
         if self.platform != "bedrock":
-            wx.MessageBox("Java is not supported",
+            wx.MessageBox("Java is not  suported",
                           "INFO", wx.OK | wx.ICON_INFORMATION)
             return
         with open(self.world.level_path + "\\" + "level.dat", "rb") as f:
@@ -226,4 +315,4 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
     pass
 
 
-export = dict(name="SetPlayer Position/Re-enable achievements V1.3", operation=SetPlayer)  # by PremiereHell
+export = dict(name="SetPlayer Position/Re-enable achievements V1.5", operation=SetPlayer)  # by PremiereHell
