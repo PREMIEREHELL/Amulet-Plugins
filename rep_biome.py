@@ -159,6 +159,6 @@ class SetBiome(SimpleOperationPanel):
             yield (count + 1) / iter_count
 
 export = {
-    "name": "Replace Biome",  #Simple conversion of original Amulet set biomes to Replace biome,  by PremereHell
+    "name": "Replace Biome",  #Simple conversion of original Amulet set biomes to Replace biome,  by PremiereHell
     "operation": SetBiome,
 }
