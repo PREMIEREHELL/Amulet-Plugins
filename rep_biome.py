@@ -21,9 +21,8 @@ if TYPE_CHECKING:
 
 
 options = {}
-
 MODE = {
-    'RepMode': "Replace Biomes Top selected (A) to Bottom selected (B) within selection box (ColumnMode(java))",
+    'RepMode': "This Replace's The Bottom selected biome With the Top selected biome within the selection box (ColumnMode for (java))",
 }
 
 Border = wx.TOP | wx.LEFT | wx.RIGHT | wx.EXPAND
@@ -108,23 +107,25 @@ class SetBiome(SimpleOperationPanel):
                 x, z, sub_chunk_size=self.world.sub_chunk_size
             )
             offset_x, offset_z = x - 16 * cx, z - 16 * cz
-            chunk = self.world.get_chunk(cx, cz, self.canvas.dimension)
+            try:
+                chunk = self.world.get_chunk(cx, cz, self.canvas.dimension)
+                if chunk.biomes.dimension == BiomesShape.Shape3D:
+                    biome = chunk.biomes[offset_x // 4, y // 4, offset_z // 4]
+                elif chunk.biomes.dimension == BiomesShape.Shape2D:
+                    biome = chunk.biomes[offset_x, offset_z]
+                else:
+                    return
+                if not rep:
+                    self._biome_choice.universal_biome = chunk.biome_palette[biome]
+                elif rep:
+                    self._biome_rep_choice.universal_biome = chunk.biome_palette[biome]
+                    rep = False
+                else:
+                    return
 
-            if chunk.biomes.dimension == BiomesShape.Shape3D:
-                biome = chunk.biomes[offset_x // 4, y // 4, offset_z // 4]
-            elif chunk.biomes.dimension == BiomesShape.Shape2D:
-                biome = chunk.biomes[offset_x, offset_z]
-            else:
-                return
-            if not rep:
-                self._biome_choice.universal_biome = chunk.biome_palette[biome]
-            else:
-                self._biome_rep_choice.universal_biome = chunk.biome_palette[biome]
-                rep = False
-            cx, cz = block_coords_to_chunk_coords(
-                x, z, sub_chunk_size=self.world.sub_chunk_size
-            )
-#npaa = np.array(str(chunk.biomes.to_raw()).replace("[1,","[2,"))
+            except:
+                print("no biome chunk data found")
+
     def _operation(
         self, world: "BaseLevel", dimension: "Dimension", selection: "SelectionGroup"
     ) -> "OperationReturnType":
