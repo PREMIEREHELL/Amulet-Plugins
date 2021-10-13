@@ -1,3 +1,4 @@
+import amulet.utils.format_utils
 import wx
 from typing import TYPE_CHECKING, Tuple
 from amulet_map_editor.programs.edit.api.operations import DefaultOperationUI
@@ -76,7 +77,7 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
             self.achieve.Bind(wx.EVT_BUTTON, self.loadData)
 
         self.listRadio = {
-            "Survival": 5,
+            "Survival": 0,
             "Creative": 1
         }
         if self.platform == "bedrock":
@@ -272,13 +273,15 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
         pdata['Pos'].append(TAG_Double(float(self.Y.GetValue().replace("d", ""))))
         pdata['Pos'].append(TAG_Double(float(self.Z.GetValue().replace("d", ""))))
         if player != "~local_player":
+            print("ok")
             save = pdata.save_to(compressed=True, little_endian=False)
             with open(self.world.level_path + "\\playerdata\\" + player + ".dat", "wb") as f:
                 f.write(save)
         else:
+            print("ok")
             self.data["Data"]["Player"] = pdata
 
-
+            print(self.data)
             save = self.data.save_to(compressed=True, little_endian=False)
 
             with open(self.world.level_path + "\\level.dat", "wb") as f:
@@ -294,9 +297,9 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
                       "\nNOTE: You MUST CLOSE This world Before Opening in MineCraft",
                       "INFO", wx.OK | wx.ICON_INFORMATION)
 
-    def saveData(self, data):
+    def saveData(self, head, data):
         with open(self.world.level_path + "\\" + "level.dat", "wb") as f:
-            f.write(data)
+            f.write(head + data)
             wx.MessageBox("Achievements are Re-enable",
                           "INFO", wx.OK | wx.ICON_INFORMATION)
 
@@ -307,11 +310,22 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
             return
         with open(self.world.level_path + "\\" + "level.dat", "rb") as f:
             s = f.read()
-        data1 = s.replace(b'hasBeenLoadedInCreative\x01', b'hasBeenLoadedInCreative\x00')
-        data2 = data1.replace(b'commandsEnabled\x01', b'commandsEnabled\x00')
-        data3 = data2.replace(b'GameType\x01', b'GameType\x00')
-        self.saveData(data3)
+        print(s)
+        nbt = amulet_nbt.load(s[8:], compressed=False,little_endian=True)
+        head = s[0:8]
+
+        #print(head + saveit)
+
+        # data1 = s.replace(b'hasBeenLoadedInCreative\x01', b'hasBeenLoadedInCreative\x00')
+        # data2 = data1.replace(b'commandsEnabled\x01', b'commandsEnabled\x00')
+        # data3 = data2.replace(b'GameType\x01', b'GameType\x00')
+        nbt['hasBeenLoadedInCreative'] = TAG_Byte(0)
+        nbt['commandsEnabled'] = TAG_Byte(0)
+        nbt['GameType'] = TAG_Int(0)
+
+        saveit = nbt.save_to(compressed=False, little_endian=True)
+        self.saveData(head, saveit)
     pass
 
 
-export = dict(name="SetPlayer Position/Re-enable achievements V1.5", operation=SetPlayer)  # by PremiereHell
+export = dict(name="SetPlayer Position/Re-enable achievements V1.6", operation=SetPlayer)  # by PremiereHell
