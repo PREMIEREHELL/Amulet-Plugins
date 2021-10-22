@@ -64,10 +64,10 @@ def create_all_items_in_boxes(
     world: BaseLevel, dimension: Dimension, selection: SelectionGroup, options: dict
 ):
 
-    # lPathN = -(len(str(os.path.realpath(__file__).split("\\")[-1:])) - 3)
-    # fileP = os.path.realpath(__file__)[:lPathN] + "\\itemdef.json"
-    fileP =  os.path.join(os.path.dirname(os.path.abspath(__file__))) + os.path.join("/itemdef.json")
-
+    fileP = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "itemdef.json"
+    )
     with open(fileP, "r") as fj:
         jdata = json.load(fj)
 
@@ -110,13 +110,13 @@ def create_all_items_in_boxes(
             if cntslot > 26 or int(k) == len(jdata['Items']) - 1:
                 blockEntity = BlockEntity("", "ShulkerBox", 0, 0, 0, NBTFile(theNBT))
                 cnt_boxs += 1
-                if 16 <= cnt_boxs <= 20:
+                if  cnt_boxs <= 20:
                     block = Block("minecraft", RandomShulkerBoxColorJava(), {"facing": TAG_String("east"),})
-                if 11 <= cnt_boxs <= 15:
+                elif cnt_boxs <= 15:
                     block = Block("minecraft", RandomShulkerBoxColorJava(), {"facing": TAG_String("north")})
-                if  6 <= cnt_boxs <= 10:
+                elif  cnt_boxs <= 10:
                     block = Block("minecraft", RandomShulkerBoxColorJava(), {"facing": TAG_String("west")})
-                if cnt_boxs <= 5:
+                elif cnt_boxs <= 5:
                     block = Block("minecraft", RandomShulkerBoxColorJava(), {"facing": TAG_String("south")})
 
                 world.set_version_block(
@@ -127,19 +127,22 @@ def create_all_items_in_boxes(
                 )
 
                 cntslot = 0
+                if cnt_boxs == 5:
+                    pzz += 1
+                if cnt_boxs == 10:
+                    pxx -= 1
+                if cnt_boxs == 15:
+                    pzz -= 1
+                if cnt_boxs == 16:  # LEAVE A GAP
+                    pxx -= 1
+
                 if cnt_boxs <= 5:
                     pxx += 1
-                # if cnt_boxs == 5:
-                #     pzz += 1
-                if cnt_boxs == 10:  # LEAVE A GAP
+                elif cnt_boxs < 11:
                     pzz += 1
-                # if cnt_boxs == 15:
-                #     pxx -= 1
-                if 5 <= cnt_boxs < 11:
-                    pzz += 1
-                if  10 <= cnt_boxs < 16:
+                elif cnt_boxs < 16:
                     pxx -= 1
-                if  15 <= cnt_boxs <= 20:
+                elif cnt_boxs <= 20:
                     pzz -= 1
                 if cnt_boxs >= 20:
                     pzz = 0
@@ -167,7 +170,7 @@ def create_all_items_in_boxes(
                     "Slot": TAG_Byte(cntslot)
 
                 })
-                 
+
                 if v.get('bsnbt') != None:
                     data = v.get('bsnbt').replace("'", "\"")
                     nbt = amulet_nbt.from_snbt("{" + data + "}")
@@ -205,19 +208,22 @@ def create_all_items_in_boxes(
                 )
 
                 cntslot = 0
+                if cnt_boxs == 5:
+                    pzz += 1
+                if cnt_boxs == 10:
+                    pxx -= 1
+                if cnt_boxs == 15:
+                    pzz -= 1
+                if cnt_boxs == 16:  # LEAVE A GAP
+                    pxx -= 1
+
                 if cnt_boxs <= 5:
                     pxx += 1
-                    # if cnt_boxs == 5:
-                    #     pzz += 1
-                if cnt_boxs == 10:  # LEAVE A GAP
+                elif cnt_boxs < 11:
                     pzz += 1
-                    # if cnt_boxs == 15:
-                    #     pxx -= 1
-                if 5 <= cnt_boxs < 11:
-                    pzz += 1
-                if 10 <= cnt_boxs < 16:
+                elif cnt_boxs < 16:
                     pxx -= 1
-                if 15 <= cnt_boxs <= 20:
+                elif cnt_boxs <= 20:
                     pzz -= 1
                 if cnt_boxs >= 20:
                     pzz = 0
