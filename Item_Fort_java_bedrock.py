@@ -64,7 +64,7 @@ def create_all_items_in_boxes(
             if cntslot > 26 or int(k) == len(jdata['Items']) - 1:
                 blockEntity = BlockEntity("", "ShulkerBox", 0, 0, 0, NBTFile(theNBT))
                 cnt_boxs += 1
-                if  cnt_boxs > 25:
+                if  cnt_boxs > 15:
                     block = Block("minecraft", "shulker_box", {"facing": TAG_String("east")})
                 elif cnt_boxs > 10:
                     block = Block("minecraft", "shulker_box", {"facing": TAG_String("north")})
