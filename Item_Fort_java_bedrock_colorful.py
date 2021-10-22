@@ -191,13 +191,13 @@ def create_all_items_in_boxes(
                 blockEntity = BlockEntity("", "ShulkerBox", 0, 0, 0, NBTFile(theNBT))
                 cnt_boxs += 1
 
-                if  16 <= cnt_boxs <= 20:
+                if  cnt_boxs <= 20:
                     theNBT['facing'] = TAG_Byte(5)
-                if  11 <= cnt_boxs <= 15:
+                elif cnt_boxs <= 15:
                     theNBT['facing'] = TAG_Byte(2)
-                if  6 <= cnt_boxs <= 10:
+                elif cnt_boxs <= 10:
                     theNBT['facing'] = TAG_Byte(4)
-                if cnt_boxs <= 5:
+                elif cnt_boxs <= 5:
                     theNBT['facing'] = TAG_Byte(3)
 
                 world.set_version_block(
