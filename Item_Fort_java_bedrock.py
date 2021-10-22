@@ -17,8 +17,6 @@ def create_all_items_in_boxes(
     world: BaseLevel, dimension: Dimension, selection: SelectionGroup, options: dict
 ):
 
-    # lPathN = -(len(str(os.path.realpath(__file__).split("\\")[-1:])) - 3)
-    # fileP = os.path.realpath(__file__)[:lPathN] + "\\itemdef.json"
     fileP = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
         "itemdef.json"
