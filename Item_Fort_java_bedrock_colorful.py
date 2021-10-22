@@ -110,11 +110,11 @@ def create_all_items_in_boxes(
             if cntslot > 26 or int(k) == len(jdata['Items']) - 1:
                 blockEntity = BlockEntity("", "ShulkerBox", 0, 0, 0, NBTFile(theNBT))
                 cnt_boxs += 1
-                if  cnt_boxs <= 20:
+                if  cnt_boxs > 15:
                     block = Block("minecraft", RandomShulkerBoxColorJava(), {"facing": TAG_String("east"),})
-                elif cnt_boxs <= 15:
+                elif cnt_boxs > 10:
                     block = Block("minecraft", RandomShulkerBoxColorJava(), {"facing": TAG_String("north")})
-                elif  cnt_boxs <= 10:
+                elif  cnt_boxs > 5:
                     block = Block("minecraft", RandomShulkerBoxColorJava(), {"facing": TAG_String("west")})
                 elif cnt_boxs <= 5:
                     block = Block("minecraft", RandomShulkerBoxColorJava(), {"facing": TAG_String("south")})
@@ -191,11 +191,11 @@ def create_all_items_in_boxes(
                 blockEntity = BlockEntity("", "ShulkerBox", 0, 0, 0, NBTFile(theNBT))
                 cnt_boxs += 1
 
-                if  cnt_boxs <= 20:
+                if  cnt_boxs > 15:
                     theNBT['facing'] = TAG_Byte(5)
-                elif cnt_boxs <= 15:
+                elif cnt_boxs > 10:
                     theNBT['facing'] = TAG_Byte(2)
-                elif cnt_boxs <= 10:
+                elif cnt_boxs > 5:
                     theNBT['facing'] = TAG_Byte(4)
                 elif cnt_boxs <= 5:
                     theNBT['facing'] = TAG_Byte(3)
