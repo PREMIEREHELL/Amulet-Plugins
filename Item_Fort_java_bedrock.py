@@ -17,11 +17,12 @@ def create_all_items_in_boxes(
     world: BaseLevel, dimension: Dimension, selection: SelectionGroup, options: dict
 ):
 
-    lPathN = -(len(str(os.path.realpath(__file__).split("\\")[-1:])) - 3)
-    fileP = os.path.realpath(__file__)[:lPathN] + "\\itemdef.json"
+    # lPathN = -(len(str(os.path.realpath(__file__).split("\\")[-1:])) - 3)
+    # fileP = os.path.realpath(__file__)[:lPathN] + "\\itemdef.json"
+    fileP = os.path.join(os.path.dirname(os.path.abspath(__file__))) + os.path.join("/itemdef.json")
     with open(fileP, "r") as fj:
         jdata = json.load(fj)
-    print(jdata)
+
     pos = px, py, pz = selection.min_x, selection.min_y, selection.min_z
     cntslot = 0
     pxx = 0
@@ -46,26 +47,26 @@ def create_all_items_in_boxes(
                     "Count": TAG_Byte(64),
                     "Slot": TAG_Byte(cntslot)
                 })
-                print(v.get('jsnbt'))
+
                 if v.get('jsnbt') != None:
                     data = v.get('jsnbt').replace("'", "\"")
                     nbt = amulet_nbt.from_snbt("{" + data + "}")
-                    print(nbt, "nbt")
+
                     try:
                         Slots['tag'] = nbt['tag']
                     except:
                         Slots['Block'] = nbt['Block']
-                    print(Slots)
+
                 cntslot += 1
                 theNBT["Items"].append(Slots)
             if cntslot > 26 or int(k) == len(jdata['Items']) - 1:
                 blockEntity = BlockEntity("", "ShulkerBox", 0, 0, 0, NBTFile(theNBT))
                 cnt_boxs += 1
-                if cnt_boxs >= 16 and cnt_boxs <= 20:
+                if  16 <= cnt_boxs <= 20:
                     block = Block("minecraft", "shulker_box", {"facing": TAG_String("east")})
-                if cnt_boxs >= 11 and cnt_boxs <= 15:
+                if  11 <= cnt_boxs <= 15:
                     block = Block("minecraft", "shulker_box", {"facing": TAG_String("north")})
-                if cnt_boxs >= 6 and cnt_boxs <= 10:
+                if  6 <= cnt_boxs <= 10:
                     block = Block("minecraft", "shulker_box", {"facing": TAG_String("west")})
                 if cnt_boxs <= 5:
                     block = Block("minecraft", "shulker_box", {"facing": TAG_String("south")})
@@ -86,11 +87,11 @@ def create_all_items_in_boxes(
                     pzz += 1
                 # if cnt_boxs == 15:
                 #     pxx -= 1
-                if cnt_boxs >= 5 and cnt_boxs < 11:
+                if  5 <= cnt_boxs < 11:
                     pzz += 1
-                if cnt_boxs >= 10 and cnt_boxs < 16:
+                if  10 <= cnt_boxs < 16:
                     pxx -= 1
-                if cnt_boxs >= 15 and cnt_boxs <= 20:
+                if  15 <= cnt_boxs <= 20:
                     pzz -= 1
                 if cnt_boxs >= 20:
                     pzz = 0
@@ -118,16 +119,16 @@ def create_all_items_in_boxes(
                     "Slot": TAG_Byte(cntslot)
 
                 })
-                print(v.get('bsnbt'))
+
                 if v.get('bsnbt') != None:
                     data = v.get('bsnbt').replace("'", "\"")
                     nbt = amulet_nbt.from_snbt("{" + data + "}")
-                    print(nbt, "nbt")
+
                     try:
                         Slots['tag'] = nbt['tag']
                     except:
                         Slots['Block'] = nbt['Block']
-                    print(Slots)
+
                 cntslot += 1
 
                 theNBT["Items"].append(Slots)
@@ -138,11 +139,11 @@ def create_all_items_in_boxes(
                 blockEntity = BlockEntity("", "ShulkerBox", 0, 0, 0, NBTFile(theNBT))
                 cnt_boxs += 1
 
-                if cnt_boxs >= 16 and cnt_boxs <= 20:
+                if  16 <= cnt_boxs <= 20:
                     theNBT['facing'] = TAG_Byte(5)
-                if cnt_boxs >= 11 and cnt_boxs <= 15:
+                if  11 <= cnt_boxs <= 15:
                     theNBT['facing'] = TAG_Byte(2)
-                if cnt_boxs >= 6 and cnt_boxs <= 10:
+                if  6 <= cnt_boxs <= 10:
                     theNBT['facing'] = TAG_Byte(4)
                 if cnt_boxs <= 5:
                     theNBT['facing'] = TAG_Byte(3)
@@ -163,11 +164,11 @@ def create_all_items_in_boxes(
                     pzz += 1
                 # if cnt_boxs == 15:
                 #     pxx -= 1
-                if cnt_boxs >= 5 and cnt_boxs < 11:
+                if 5 <= cnt_boxs < 11:
                     pzz += 1
-                if cnt_boxs >= 10 and cnt_boxs < 16:
+                if 10 <= cnt_boxs < 16:
                     pxx -= 1
-                if cnt_boxs >= 15 and cnt_boxs <= 20:
+                if 15 <= cnt_boxs <= 20:
                     pzz -= 1
                 if cnt_boxs >= 20:
                     pzz = 0
