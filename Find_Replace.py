@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Tuple
 import amulet_nbt
 from amulet.api.wrapper import Interface, EntityIDType, EntityCoordType
 import wx
+from wx import grid
 import os
 import os.path
 from os import path
