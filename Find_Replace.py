@@ -600,47 +600,48 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
                                         if ((x * 16 + dx), (cy * 16 + dy), (z * 16 + dz)) == ent_nbt:
                                             found[int(chunk.blocks.get_sub_chunk(cy)[dx, dy, dz])] = \
                                                 int(chunk.blocks.get_sub_chunk(cy)[dx, dy, dz])
-                                    for k in found:
-                                        if chunk.blocks.get_sub_chunk(cy)[dx, dy, dz] == k:
-                                            foundcnt += 1
-                                            o_block_name = chunk.block_palette[
-                                                chunk.blocks.get_sub_chunk(cy)[dx, dy, dz]].base_name
-                                            o_block_main = chunk.block_palette[
-                                                chunk.blocks.get_sub_chunk(cy)[dx, dy, dz]].base_block
-                                            o_extra_block = chunk.block_palette[
-                                                chunk.blocks.get_sub_chunk(cy)[dx, dy, dz]].extra_blocks
-                                            c_extra_block = []
-                                            if len(o_extra_block) > 0:
-                                                for ex_blk in o_extra_block:
-                                                    c_extra_block += self.world.translation_manager.get_version(
-                                                        self.world.level_wrapper.platform,
-                                                        self.world.level_wrapper.version).block.from_universal(ex_blk)[
-                                                        0]
-                                            if ((x * 16 + dx), (cy * 16 + dy),
-                                                (z * 16 + dz)) in chunk.block_entities.keys():
-                                                entitiy_main = chunk.block_entities[
-                                                    ((x * 16 + dx), (cy * 16 + dy), (z * 16 + dz))]
-                                            else:
-                                                entitiy_main = None
-                                            c_block_main_entitiy = self.world.translation_manager.get_version(
-                                                self.world.level_wrapper.platform,
-                                                self.world.level_wrapper.version).block.from_universal(o_block_main,
-                                                                                                       entitiy_main)
-                                            if c_block_main_entitiy[1] != None:
-                                                Entity_data = c_block_main_entitiy[1].nbt.to_snbt(0)
-                                            else:
-                                                Entity_data = None
-                                            self.blocks_entity_dic[
-                                                str(((x * 16 + dx), (cy * 16 + dy), (z * 16 + dz)))] = \
-                                                {
-                                                    c_block_main_entitiy[0].base_name:
-                                                        {
-                                                            c_block_main_entitiy[0].full_blockstate.replace("]", "") +
-                                                            str(c_extra_block).replace("Block(",
-                                                                                       "extra_block=").replace("\n}",
-                                                                                                               "").replace(
-                                                                "])]", "").replace("]", "")
-                                                            : Entity_data}}
+                                for k in found:
+                                    if chunk.blocks.get_sub_chunk(cy)[dx, dy, dz] == k:
+                                        foundcnt += 1
+                                        o_block_name = chunk.block_palette[
+                                            chunk.blocks.get_sub_chunk(cy)[dx, dy, dz]].base_name
+                                        o_block_main = chunk.block_palette[
+                                            chunk.blocks.get_sub_chunk(cy)[dx, dy, dz]].base_block
+                                        o_extra_block = chunk.block_palette[
+                                            chunk.blocks.get_sub_chunk(cy)[dx, dy, dz]].extra_blocks
+                                        c_extra_block = []
+                                        if len(o_extra_block) > 0:
+                                            for ex_blk in o_extra_block:
+                                                c_extra_block += self.world.translation_manager.get_version(
+                                                    self.world.level_wrapper.platform,
+                                                    self.world.level_wrapper.version).block.from_universal(ex_blk)[
+                                                    0]
+                                        if ((x * 16 + dx), (cy * 16 + dy),
+                                            (z * 16 + dz)) in chunk.block_entities.keys():
+                                            entitiy_main = chunk.block_entities[
+                                                ((x * 16 + dx), (cy * 16 + dy), (z * 16 + dz))]
+                                        else:
+                                            entitiy_main = None
+                                        c_block_main_entitiy = self.world.translation_manager.get_version(
+                                            self.world.level_wrapper.platform,
+                                            self.world.level_wrapper.version).block.from_universal(o_block_main,
+                                                                                                   entitiy_main)
+                                        if c_block_main_entitiy[1] != None:
+                                            Entity_data = c_block_main_entitiy[1].nbt.to_snbt(0)
+                                        else:
+                                            Entity_data = None
+                                        self.blocks_entity_dic[
+                                            str(((x * 16 + dx), (cy * 16 + dy), (z * 16 + dz)))] = \
+                                            {
+                                                c_block_main_entitiy[0].base_name:
+                                                    {
+                                                        c_block_main_entitiy[0].full_blockstate.replace("]", "") +
+                                                        str(c_extra_block).replace("Block(",
+                                                                                   "extra_block=").replace("\n}",
+                                                                                                           "").replace(
+                                                            "])]", "").replace("]", "")
+                                                        : Entity_data}}
+
 
                     self.prog.Update(prg, "Searching Blocks: " + str(prg) + " / " + str(total) + " Results Found: " + str(foundcnt))
         self.setdata(None)
