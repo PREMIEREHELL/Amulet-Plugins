@@ -672,6 +672,9 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
                         only_be +=  (blocks[blocks.index(eb)],)
                     except:
                         pass
+                if len(only_be) == 0:
+                    wx.MessageBox("Sorry No entities Found", "INFO", wx.OK | wx.ICON_INFORMATION)
+                    return
                 self.finder(only_be, True)
             else:
                 self.finder(blocks, True)
@@ -685,6 +688,9 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
                     chunk = self.world.get_chunk(c[0], c[1], self.canvas.dimension)
                     for ee in chunk.block_entities.items():
                         ent_Only += (ee[0],)
+                if len(ent_Only) == 0:
+                    wx.MessageBox("Sorry No entities Found", "INFO", wx.OK | wx.ICON_INFORMATION)
+                    return
                 self.finder(ent_Only, True)
             else:
                 for c in self.canvas.selection.selection_group.chunk_locations(16):
@@ -696,7 +702,10 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
                 for c in self.world.level_wrapper.all_chunk_coords(self.canvas.dimension):
                     chunk = self.world.get_chunk(c[0], c[1], self.canvas.dimension)
                     for ee in chunk.block_entities.items():
-                        ent_Only += (ee[0], )
+                        ent_Only += (ee[0],)
+                if len(ent_Only) == 0:
+                    wx.MessageBox("Sorry No entities Found", "INFO", wx.OK | wx.ICON_INFORMATION)
+                    return
                 self.finder(ent_Only, True)
             else:
                 for c in self.world.level_wrapper.all_chunk_coords(self.canvas.dimension):
