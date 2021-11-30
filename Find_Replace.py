@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Tuple
 import amulet_nbt
 from amulet.api.wrapper import Interface, EntityIDType, EntityCoordType
 import wx
-from wx import grid
+import wx.grid
 import os
 import os.path
 from os import path
@@ -415,7 +415,7 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
                 self.canvas.renderer.fake_levels.active_transform = ()
         evt.Skip()
 
-    def _apply_changes(self, _):
+    def _apply_changes(self, _): #TODO Add Progess indicator
         try:
             changedData = self.findChanges()
         except:
@@ -534,8 +534,9 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
         if block:
 
             cnt = len(look)
-            self.prog = wx.ProgressDialog("Finding: " + str(self.textSearch.GetValue()),
-                                          "Searching " + str(cnt) + " Blocks", cnt, style=wx.PD_AUTO_HIDE | wx.PD_CAN_ABORT)
+            self.prog = wx.ProgressDialog("Searching for : " + str(self.textSearch.GetValue()),
+                                          "Searched: " + str(cnt) + " Current Block: ", cnt,
+                                          style=wx.PD_AUTO_HIDE | wx.PD_CAN_ABORT | wx.PD_ELAPSED_TIME | wx.PD_REMAINING_TIME)
 
             self.prog.Show(True)
             for x,y,z in look:
@@ -544,7 +545,8 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
                     self.prog.Destroy()
                     break
                 prg += 1
-                self.prog.Update(prg, str(prg) + " / " + str(cnt) + " Block: " + str(x) + " "+str(y)+" "+str(z))
+                self.prog.Update(prg, "\n" + str(prg) + " / " + str(cnt) + " Current Block: " + str(x) + " "+str(y)+" "+str(z) +
+                                 " Results Found: " + str(foundcnt))
                 blockdata = self.world.get_version_block(x,y,z,self.canvas.dimension,(self.world.level_wrapper.platform,self.world.level_wrapper.version))
                 extra_blk = self.world.get_block(x, y, z, self.canvas.dimension).extra_blocks
                 c_extra_block = []
@@ -562,6 +564,7 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
                         blockE = blockdata[1].nbt.to_snbt(0)
                     else:
                         blockE = None
+                    foundcnt +=1
                     self.blocks_entity_dic[str((x,y,z))] = {
                         blockdata[0].base_name: {blockdata[0].full_blockstate.replace("]","")+
                                                 str(c_extra_block).replace("Block(","extra_block=").replace("\n}","").replace("])]","").replace("]","")
@@ -573,7 +576,7 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
                 chunk = self.world.get_chunk(x,z, self.canvas.dimension)
                 total += len(chunk.blocks.sub_chunks)*16*16*16
             self.prog = wx.ProgressDialog("Finding: " + str(self.textSearch.GetValue()),
-                                          "Searching " + str(total) + " Block: ", total, style=wx.PD_AUTO_HIDE | wx.PD_CAN_ABORT)
+                                          "Searching " + str(total) + " Block: ", total, style=wx.PD_AUTO_HIDE | wx.PD_CAN_ABORT | wx.PD_ELAPSED_TIME | wx.PD_REMAINING_TIME)
 
             self.prog.Show(True)
             ent_found = ()
@@ -653,6 +656,14 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
         blocks =[]
         search_only_for_e = self.cb_search_only_entities.GetValue()
         only_be = ()
+        prg = 0
+        if self.lst_mode.GetSelection() != 2:
+            for sc in self.canvas.selection.selection_group.chunk_locations(16):
+                if sc not in self.world.level_wrapper.all_chunk_coords(self.canvas.dimension):
+                    wx.MessageBox("Please Make sure your selection does Not have any Empty Chunks",
+                                  "INFO", wx.OK | wx.ICON_INFORMATION)
+                    return
+
 
         if str(self.canvas.selection.selection_group) in "[]" and self.lst_mode.GetSelection() != 2:
             wx.MessageBox("This mode requries a selection, Please make a selection and try agian.",
@@ -664,7 +675,20 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
             for x in self.canvas.selection.selection_group.blocks:
                 blocks.append(x)
             if search_only_for_e:
+                self.prog = wx.ProgressDialog("Gathering List of Entitiies (Strict Selection) ", "Searching: " +
+                                              str(len(self.canvas.selection.selection_group.chunk_locations(16))) +
+                                              " / Chunks Selected ", len(self.canvas.selection.selection_group.chunk_locations(16)),
+                                              style=wx.PD_AUTO_HIDE | wx.PD_CAN_ABORT| wx.PD_ELAPSED_TIME | wx.PD_REMAINING_TIME)
+                self.prog.Show(True)
                 for c in self.canvas.selection.selection_group.chunk_locations(16):
+                    if self.prog.WasCancelled():
+                        self.prog.Hide()
+                        self.prog.Destroy()
+                        break
+                    prg += 1
+
+                    self.prog.Update(prg,
+                                     "Searching: "+str(prg) + " / Chunks Selected" + str(len(self.canvas.selection.selection_group.chunk_locations(16))))
                     chunk = self.world.get_chunk(c[0], c[1], self.canvas.dimension)
                     for ee in chunk.block_entities.items():
                         tmp += (ee[0],)
@@ -679,13 +703,23 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
                 self.finder(only_be, True)
             else:
                 self.finder(blocks, True)
-
-
         elif self.lst_mode.GetSelection() == 1:
             ent_Only = ()
-
             if search_only_for_e:
+                self.prog = wx.ProgressDialog("Finding: Entitiy within selected chunks ", "Searching: " +
+                                              str(len(self.canvas.selection.selection_group.chunk_locations(16))) +
+                                              " / Chunks Selected: ", len(self.canvas.selection.selection_group.chunk_locations(16)),
+                                              style=wx.PD_AUTO_HIDE | wx.PD_CAN_ABORT | wx.PD_ELAPSED_TIME | wx.PD_REMAINING_TIME)
+                self.prog.Show(True)
                 for c in self.canvas.selection.selection_group.chunk_locations(16):
+                    if self.prog.WasCancelled():
+                        self.prog.Hide()
+                        self.prog.Destroy()
+                        break
+                    prg += 1
+                    self.prog.Update(prg,
+                                     "Searching: " + str(prg) + " / Chunks Selected: " + str(
+                                         len(self.canvas.selection.selection_group.chunk_locations(16))))
                     chunk = self.world.get_chunk(c[0], c[1], self.canvas.dimension)
                     for ee in chunk.block_entities.items():
                         ent_Only += (ee[0],)
@@ -700,7 +734,25 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
         elif  self.lst_mode.GetSelection() == 2:
             ent_Only = ()
             if search_only_for_e:
+                tot = 0
                 for c in self.world.level_wrapper.all_chunk_coords(self.canvas.dimension):
+                    tot += 1 # Get Total Chunks in world
+                self.prog = wx.ProgressDialog("Gathering List of Entitiies ", "Searching: " +
+                                              str(tot) +
+                                              " Chunks", tot,
+                                              style=wx.PD_AUTO_HIDE | wx.PD_CAN_ABORT | wx.PD_ELAPSED_TIME | wx.PD_REMAINING_TIME)
+                self.prog.Show(True)
+                for c in self.world.level_wrapper.all_chunk_coords(self.canvas.dimension):
+                    if self.prog.WasCancelled():
+                        self.prog.Hide()
+                        self.prog.Destroy()
+                        break
+
+                    prg += 1
+                    self.prog.Update(prg,
+                                     "Searching: " + str(prg) + " /of Chunks" + str(
+                                         len(self.canvas.selection.selection_group.chunk_locations(16))))
+
                     chunk = self.world.get_chunk(c[0], c[1], self.canvas.dimension)
                     for ee in chunk.block_entities.items():
                         ent_Only += (ee[0],)
@@ -769,7 +821,7 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
         self.frame = wx.Frame(self.parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=(400, 700),
                               style=(
                                       wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN | wx.FRAME_FLOAT_ON_PARENT),
-                              name="PaneL",
+                              name="Panel",
                               title="Cell (Row: " + str(event.GetRow()) + " Col: " + str(event.GetCol()) + ")")
         sizer_P = wx.BoxSizer(wx.VERTICAL)
         self.frame.SetSizer(sizer_P)
@@ -853,4 +905,4 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
 
     pass
 
-export = dict(name="Finder_Replacer v.1.0", operation=Finder_Replacer) #By PremiereHell
+export = dict(name="Finder_Replacer v.1.1", operation=Finder_Replacer) #By PremiereHell
