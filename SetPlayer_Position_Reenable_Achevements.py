@@ -72,6 +72,9 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
             self.apply.Bind(wx.EVT_BUTTON, self.savePosDataJava)
         self.getSet = wx.Button(self, size=(120, 20), label="Get Current Position")
         self.getSet.Bind(wx.EVT_BUTTON, self.getsetCurrentPos)
+        self.tpUser = wx.CheckBox(self, size=(150, 20), label="Enable TP for select")
+        self.fcords = wx.CheckBox(self, size=(150, 20), label="lock Cord Values")
+
         if self.platform == "bedrock":
             self.achieve = wx.Button(self, size=(160, 20), label="Re-enable achievements")
             self.achieve.Bind(wx.EVT_BUTTON, self.loadData)
@@ -105,6 +108,11 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
             self._sizer.Add(self.achieve, 0, wx.LEFT, 20)
         self._sizer.Add(self.info, 0, wx.LEFT, 10)
         self._sizer.Add(self.playerlist, 0, wx.LEFT, 10)
+
+
+        self._sizer.Add(self.tpUser, 0, wx.LEFT, 20)
+
+        self._sizer.Add(self.fcords, 0, wx.LEFT, 20)
         self._sizer.Add(self.getSet, 0, wx.LEFT, 40)
         self.Grid = wx.GridSizer(5,2,0,0)
         self.Grid.Add(self.XL, 0, wx.LEFT, 5)
@@ -176,8 +184,12 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
             if pdata != "None":
                 X,Y,Z = pdata.get("Pos")
                 facing,looking = pdata.get("Rotation")
-                self.canvas.camera.location = [float(str(X).replace('f','')),float(str(Y).replace('f','')),float(str(Z).replace('f',''))]
-                self.canvas.camera.rotation = [float(str(facing).replace('f','')),float(str(looking).replace('f',''))]
+
+                if self.tpUser.GetValue() == True:
+                    self.canvas.camera.location = [float(str(X).replace('f','')),float(str(Y).replace('f','')),float(str(Z).replace('f',''))]
+                    self.canvas.camera.rotation = [float(str(facing).replace('f','')),float(str(looking).replace('f',''))]
+                if self.fcords.GetValue() == True:
+                    return
                 self.X.SetValue(str(X))
                 self.Y.SetValue(str(Y))
                 self.Z.SetValue(str(Z))
@@ -190,10 +202,14 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
             if pdata != "None":
                 X, Y, Z = pdata.get("Pos")
                 facing, looking = pdata.get("Rotation")
-                self.canvas.camera.location = [float(str(X).replace('d', '')), float(str(Y).replace('d', '')),
+
+                if self.tpUser.GetValue() == True:
+                    self.canvas.camera.location = [float(str(X).replace('d', '')), float(str(Y).replace('d', '')),
                                                float(str(Z).replace('d', ''))]
-                self.canvas.camera.rotation = [float(str(facing).replace('f', '')),
+                    self.canvas.camera.rotation = [float(str(facing).replace('f', '')),
                                                float(str(looking).replace('f', ''))]
+                if self.fcords.GetValue() == True:
+                    return
                 self.X.SetValue(str(X))
                 self.Y.SetValue(str(Y))
                 self.Z.SetValue(str(Z))
@@ -328,4 +344,4 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
     pass
 
 
-export = dict(name="SetPlayer Position/Re-enable achievements V1.6", operation=SetPlayer)  # by PremiereHell
+export = dict(name="SetPlayer Position/Re-enable achievements V1.601", operation=SetPlayer)  # by PremiereHell
