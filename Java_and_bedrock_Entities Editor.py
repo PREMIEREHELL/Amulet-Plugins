@@ -6,7 +6,6 @@ import amulet_nbt
 from amulet.api.wrapper import Interface, EntityIDType, EntityCoordType
 
 import numpy
-import urllib.request
 import wx
 import ast
 import os
@@ -35,7 +34,6 @@ from amulet.api.block import Block
 import PyMCTranslate
 from amulet.level.formats.anvil_world.region import AnvilRegion
 from amulet_map_editor.api.wx.ui.base_select import BaseSelect
-from amulet.libs.leveldb.leveldb import LevelDB
 import datetime
 from pathlib import Path
 from amulet_map_editor.programs.edit.api.behaviour import StaticSelectionBehaviour
@@ -50,7 +48,7 @@ from amulet_map_editor.programs.edit.api.events import (
     InputPressEvent,
     EVT_INPUT_PRESS,
 )
-# from amulet.level.formats.leveldb_world import  format
+
 
 if TYPE_CHECKING:
     from amulet.api.level import BaseLevel
@@ -119,9 +117,19 @@ class EditEntities(wx.Panel, DefaultOperationUI):
     def _cls(self):
         print("\033c\033[3J", end='')
 
-    def Onmsgbox(self): # message
-        wx.MessageBox(".\n Saved.",
-                      "All should have went well if you see this", wx.OK | wx.ICON_INFORMATION)
+    def ConFbox(self, caption, message): # message, yes Know
+        r = wx.MessageDialog(
+            self, message,
+            caption,
+            wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION
+        ).ShowModal()
+        if r != wx.ID_YES:
+            return True
+        else:
+            return False
+
+    def Onmsgbox(self, caption, message): # message
+        wx.MessageBox(message, caption , wx.OK | wx.ICON_INFORMATION)
 
     def onFocus(self, evt): #ui_entitie_choice_list event control
         setdata = self.EntyData[self.ui_entitie_choice_list.GetSelection()]
@@ -167,30 +175,44 @@ class EditEntities(wx.Panel, DefaultOperationUI):
         evt.Skip()
 
     def _save_data_to_world(self, _):
+        responce = self.ConFbox("!! IMPORTANT !!",  "This Pluging: Should be used Solo, Until a better saving system is in place"
+                                                   "\n if no errors are in the SNBT syntax:"
+                                                   "\n  A force save will take place on the world, no undo"
+                                                   "\n  "
+                                                   "\n  DO YOU HAVE A BACKUP OF YOUR WORLD ? "
+                                "\n Do you wish to continue?")
         # maybe should change this or check if the same as loaded entities
         cx, cz = block_coords_to_chunk_coords(self.canvas.selection.selection_group.min_x,
                                               self.canvas.selection.selection_group.min_z)
-        
-        if "bedrock" in self.world.level_wrapper.platform: # Check if bedrock
-            newBytes = b''
-            selection = self.ui_entitie_choice_list.GetSelection()
-            newData = self._snbt_edit_data.GetValue()
-            self.EntyData[selection] = from_snbt(newData)
-            for TNewData in self.EntyData:
-                NewRawB = b''
-                NewRawB = NBTFile(from_snbt(TNewData.to_snbt())).save_to(compressed=False, little_endian=True)
-                newBytes += NewRawB
-            chunk = self.world.level_wrapper.get_raw_chunk_data(cx, cz, self.canvas.dimension)
-            chunk[b'2'] = newBytes
-            self.world.level_wrapper.put_raw_chunk_data(cx, cz, chunk, self.canvas.dimension)
-            self.world.save()
-        else: # else its java
-            newData = self._snbt_edit_data.GetValue() # get new data
-            data = from_snbt(newData) # convert to nbt
-            self.nbt_data['Entities'][self.ui_entitie_choice_list.GetSelection()] = data # overwrite current data
-            self.Entities_region.put_chunk_data(cx % 32, cz % 32, self.nbt_data) # put data back where it goes
-            self.Entities_region.save() # save file operation
-            self.world.save() # save world
+        if responce == True:
+            return
+        try:
+            if "bedrock" in self.world.level_wrapper.platform:  # Check if bedrock
+
+                newBytes = b''
+                selection = self.ui_entitie_choice_list.GetSelection()
+                newData = self._snbt_edit_data.GetValue()
+                self.EntyData[selection] = from_snbt(newData)
+                for TNewData in self.EntyData:
+                    NewRawB = b''
+                    NewRawB = NBTFile(from_snbt(TNewData.to_snbt())).save_to(compressed=False, little_endian=True)
+                    newBytes += NewRawB
+                chunk = self.world.level_wrapper.get_raw_chunk_data(cx, cz, self.canvas.dimension)
+                chunk[b'2'] = newBytes
+                self.world.level_wrapper.put_raw_chunk_data(cx, cz, chunk, self.canvas.dimension)
+                self.world.save()
+                self.Onmsgbox("SAVED", "The operation has completed without error")
+            else:  # else its java
+                newData = self._snbt_edit_data.GetValue()  # get new data
+                data = from_snbt(newData)  # convert to nbt
+                self.nbt_data['Entities'][self.ui_entitie_choice_list.GetSelection()] = data  # overwrite current data
+                self.Entities_region.put_chunk_data(cx % 32, cz % 32, self.nbt_data)  # put data back where it goes
+                self.Entities_region.save()  # save file operation
+                self.world.save()  # save world
+                self.Onmsgbox("SAVED", "The operation has completed without error")
+        except amulet_nbt.amulet_cy_nbt.SNBTParseError as e:
+            self.Onmsgbox("SNBT Syntax Error: ", str(e))
+
 
     def _refresh_chunk(self, dimension, world, x, z):
         cx, cz = block_coords_to_chunk_coords(x, z)
@@ -198,6 +220,9 @@ class EditEntities(wx.Panel, DefaultOperationUI):
         chunk.changed = True
 
     def _load_entitie_data(self, _):
+        if self.canvas.selection.selection_group.selection_boxes == ():
+            self.Onmsgbox("No Selection","Need to select one chunk or one block to convert to chunk cords")
+            return 
         self.EntyData.clear() # make sure to start fresh
         self.ui_entitie_choice_list.Clear()
         self.ui_entitie_choice_list.Hide()
@@ -205,56 +230,70 @@ class EditEntities(wx.Panel, DefaultOperationUI):
         #need the chunk from the selection 
         cx, cz = block_coords_to_chunk_coords(self.canvas.selection.selection_group.min_x, self.canvas.selection.selection_group.min_z)
         # raw chunk
-        chunk = self.world.level_wrapper.get_raw_chunk_data( cx, cz, self.canvas.dimension)
-        
-        if "bedrock" in self.world.level_wrapper.platform: # bedrock
+        if "bedrock" in self.world.level_wrapper.platform:  # bedrock
+            try:
+                chunk = self.world.level_wrapper.get_raw_chunk_data(cx, cz, self.canvas.dimension)
+            except amulet.api.errors.ChunkDoesNotExist:
+                self.Onmsgbox("Chuck Error", "Empty chunk selected")
+                return
 
-            # find the start position of Entitiy data
+                # find the start position of Entitiy data
             posStart = [air.start() for air in re.finditer(b'\x00Air', chunk[b'2'])]
+            if len(posStart) == 0:
+                self.Onmsgbox("No Entities", "No Entities were found in this chunk")
+                return
             # find the end position of Entitiy data
             posEnd = [identifier.start() for identifier in re.finditer(b'\x00identifier', chunk[b'2'])]
-            
+
             newEnd = []
             newStart = []
             startCnt = 1
             endCnt = 1
-            
-            for enp in posEnd: # Find the exact end starting from the already found positions
+
+            for enp in posEnd:  # Find the exact end starting from the already found positions
                 endCnt = 1
                 while not (chunk[b'2'][enp + endCnt:enp + (endCnt + 1)] == b'\n' or chunk[b'2'][enp + endCnt:enp + (
                         endCnt + 1)] == b''):
                     endCnt += 1
 
-                newEnd.append(endCnt + enp) # new end
+                newEnd.append(endCnt + enp)  # new end
 
-            for stp in posStart: # Find the exact start starting from the already found positions
+            for stp in posStart:  # Find the exact start starting from the already found positions
                 startCnt = 1
                 while not (chunk[b'2'][stp - (startCnt + 1):stp - startCnt] == b'\n' or chunk[b'2'][stp - (
                         startCnt + 1):stp - startCnt] == b''):
                     startCnt += 1
-                newStart.append(stp - startCnt) # new sart
+                newStart.append(stp - startCnt)  # new sart
 
-            for s, e in zip(newStart, newEnd): # grab the data from the chunks from the found offsets
+            for s, e in zip(newStart, newEnd):  # grab the data from the chunks from the found offsets
                 snb = amulet_nbt.load(chunk[b'2'][s - 1:e], little_endian=True)
                 self.EntyData.append(snb)
-            for enty in self.EntyData: # add data to ui entity list
+            for enty in self.EntyData:  # add data to ui entity list
                 lstOfE.append(str(enty['identifier']) + " x(" + str(enty['Pos'][0]).split('.')[0] + ") y(" +
                               str(enty['Pos'][1]).split('.')[0] + ") z(" +
-                              str(enty['Pos'][2]).split('.')[0]+")")
+                              str(enty['Pos'][2]).split('.')[0] + ")")
 
-        else: # java
 
- 
-            rx, rz = world_utils.chunk_coords_to_region_coords(cx,cz) #need region cords for file
-            path = self.world.level_wrapper.path # need path for file
-            entitiesPath =  os.path.join(path, "entities","r."+str(rx)+"."+str(rz)+".mca") #full path for file
-            self.Entities_region = AnvilRegion(entitiesPath) #create instance for region data
-            # the " % 32 " calulates the location of the chunk in the header,  
-            self.nbt_data = self.Entities_region.get_chunk_data(cx % 32, cz % 32) # get chunk nbt data  
-            for nbt in self.nbt_data['Entities']: # loop over entities
+
+        else:  # java
+
+            rx, rz = world_utils.chunk_coords_to_region_coords(cx, cz)  # need region cords for file
+            path = self.world.level_wrapper.path  # need path for file
+            entitiesPath = os.path.join(path, "entities",
+                                        "r." + str(rx) + "." + str(rz) + ".mca")  # full path for file
+            self.Entities_region = AnvilRegion(entitiesPath)  # create instance for region data
+            # the " % 32 " calulates the location of the chunk in the header,
+            try:
+                self.nbt_data = self.Entities_region.get_chunk_data(cx % 32, cz % 32)  # get chunk nbt data
+            except amulet.api.errors.ChunkDoesNotExist:
+                self.Onmsgbox("No Entities", "No Entities were found in this chunk or the chunk does not exist")
+                return
+            for nbt in self.nbt_data['Entities']:  # loop over entities
                 self.EntyData.append(nbt)
-                lstOfE.append(str(nbt['id']+" x("+str(nbt['Pos'][0]).split(".")[0]+") y(" #add ids and position data to list
-                              +str(nbt['Pos'][1]).split(".")[0]+") z("+str(nbt['Pos'][2]).split(".")[0])+")") 
+                lstOfE.append(str(nbt['id'] + " x(" + str(nbt['Pos'][0]).split(".")[
+                    0] + ") y("  # add ids and position data to list
+                                  + str(nbt['Pos'][1]).split(".")[0] + ") z(" + str(nbt['Pos'][2]).split(".")[
+                                      0]) + ")")
 
         # fix up the UI needs work, adds data to ui
 
@@ -268,4 +307,4 @@ class EditEntities(wx.Panel, DefaultOperationUI):
 
 
 # simple export options.
-export = dict(name="A Chunk Entities Editor v1.0 ", operation=EditEntities) #By PremiereHell
+export = dict(name="A Chunk Entities Editor v1.01 ", operation=EditEntities) #By PremiereHell
