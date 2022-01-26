@@ -205,8 +205,11 @@ class EditEntities(wx.Panel, DefaultOperationUI):
             else:  # else its java
                 newData = self._snbt_edit_data.GetValue()  # get new data
                 data = from_snbt(newData)  # convert to nbt
-                self.nbt_data['Entities'][self.ui_entitie_choice_list.GetSelection()] = data  # overwrite current data
-                self.Entities_region.put_chunk_data(cx % 32, cz % 32, self.nbt_data)  # put data back where it goes
+                if self.version_path == "region":
+                    self.nbt_data_full["Level"]['Entities'][self.ui_entitie_choice_list.GetSelection()] = data  # overwrite current data
+                else:
+                    self.nbt_data_full['Entities'][self.ui_entitie_choice_list.GetSelection()] = data
+                self.Entities_region.put_chunk_data(cx % 32, cz % 32, self.nbt_data_full)  # put data back where it goes
                 self.Entities_region.save()  # save file operation
                 self.world.save()  # save world
                 self.Onmsgbox("SAVED", "The operation has completed without error")
@@ -279,16 +282,30 @@ class EditEntities(wx.Panel, DefaultOperationUI):
 
             rx, rz = world_utils.chunk_coords_to_region_coords(cx, cz)  # need region cords for file
             path = self.world.level_wrapper.path  # need path for file
-            entitiesPath = os.path.join(path, "entities",
+            self.version_path = ""
+            if self.world.level_wrapper.version >= 2730 :
+                self.version_path = "entities"
+            else:
+                self.version_path = "region"
+            print(self.version_path)
+            entitiesPath = os.path.join(path, self.version_path ,
                                         "r." + str(rx) + "." + str(rz) + ".mca")  # full path for file
             self.Entities_region = AnvilRegion(entitiesPath)  # create instance for region data
             # the " % 32 " calulates the location of the chunk in the header,
             try:
-                self.nbt_data = self.Entities_region.get_chunk_data(cx % 32, cz % 32)  # get chunk nbt data
+                self.nbt_data_full = self.Entities_region.get_chunk_data(cx % 32, cz % 32)
+                if self.version_path == "region":
+                    self.nbt_data = self.nbt_data_full["Level"]['Entities']
+                else:
+                    self.nbt_data = self.nbt_data_full['Entities']
+                if len(self.nbt_data) == 0:
+                    self.Onmsgbox("No Entities", "No Entities were found in this chunk or the chunk does not exist")
+                    return
             except amulet.api.errors.ChunkDoesNotExist:
                 self.Onmsgbox("No Entities", "No Entities were found in this chunk or the chunk does not exist")
                 return
-            for nbt in self.nbt_data['Entities']:  # loop over entities
+           
+            for nbt in self.nbt_data:  # loop over entities
                 self.EntyData.append(nbt)
                 lstOfE.append(str(nbt['id'] + " x(" + str(nbt['Pos'][0]).split(".")[
                     0] + ") y("  # add ids and position data to list
@@ -307,4 +324,4 @@ class EditEntities(wx.Panel, DefaultOperationUI):
 
 
 # simple export options.
-export = dict(name="A Chunk Entities Editor v1.01 ", operation=EditEntities) #By PremiereHell
+export = dict(name="A Chunk Entities Editor v1.02 ", operation=EditEntities) #By PremiereHell
