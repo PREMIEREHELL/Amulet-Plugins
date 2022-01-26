@@ -177,10 +177,8 @@ class EditEntities(wx.Panel, DefaultOperationUI):
     def _save_data_to_world(self, _):
         responce = self.ConFbox("!! IMPORTANT !!",  "This Pluging: Should be used Solo, Until a better saving system is in place"
                                                    "\n if no errors are in the SNBT syntax:"
-                                                   "\n  A force save will take place on the world, no undo"
-                                                   "\n  "
-                                                   "\n  DO YOU HAVE A BACKUP OF YOUR WORLD ? "
-                                "\n Do you wish to continue?")
+                                                   "\n  DO YOU BACKUP OF YOUR WORLD ? "
+                                                    "\n Continue?")
         # maybe should change this or check if the same as loaded entities
         cx, cz = block_coords_to_chunk_coords(self.canvas.selection.selection_group.min_x,
                                               self.canvas.selection.selection_group.min_z)
