@@ -236,45 +236,19 @@ class EditEntities(wx.Panel, DefaultOperationUI):
             except amulet.api.errors.ChunkDoesNotExist:
                 self.Onmsgbox("Chuck Error", "Empty chunk selected")
                 return
-
                 # find the start position of Entitiy data
-            posStart = [air.start() for air in re.finditer(b'\x00Air', chunk[b'2'])]
-            if len(posStart) == 0:
-                self.Onmsgbox("No Entities", "No Entities were found in this chunk")
-                return
-            # find the end position of Entitiy data
-            posEnd = [identifier.start() for identifier in re.finditer(b'\x00identifier', chunk[b'2'])]
+            posStart = [air.start() for air in re.finditer(b'\n\x00\x00', chunk[b'2'])]
 
-            newEnd = []
-            newStart = []
-            startCnt = 1
-            endCnt = 1
-
-            for enp in posEnd:  # Find the exact end starting from the already found positions
-                endCnt = 1
-                while not (chunk[b'2'][enp + endCnt:enp + (endCnt + 1)] == b'\n' or chunk[b'2'][enp + endCnt:enp + (
-                        endCnt + 1)] == b''):
-                    endCnt += 1
-
-                newEnd.append(endCnt + enp)  # new end
-
-            for stp in posStart:  # Find the exact start starting from the already found positions
-                startCnt = 1
-                while not (chunk[b'2'][stp - (startCnt + 1):stp - startCnt] == b'\n' or chunk[b'2'][stp - (
-                        startCnt + 1):stp - startCnt] == b''):
-                    startCnt += 1
-                newStart.append(stp - startCnt)  # new sart
-
-            for s, e in zip(newStart, newEnd):  # grab the data from the chunks from the found offsets
-                snb = amulet_nbt.load(chunk[b'2'][s - 1:e], little_endian=True)
-                self.EntyData.append(snb)
+            for s in posStart:  # grab the data from the chunks from the found offsets
+                snb = amulet_nbt.load(chunk[b'2'][s:], little_endian=True) # let amulet find the end offset
+                print(snb)
+                if snb.get('identifier') != None: #make sure it not empty
+                    self.EntyData.append(snb)
             for enty in self.EntyData:  # add data to ui entity list
                 lstOfE.append(str(enty['identifier']) + " x(" + str(enty['Pos'][0]).split('.')[0] + ") y(" +
                               str(enty['Pos'][1]).split('.')[0] + ") z(" +
                               str(enty['Pos'][2]).split('.')[0] + ")")
-
-
-
+                
         else:  # java
 
             rx, rz = world_utils.chunk_coords_to_region_coords(cx, cz)  # need region cords for file
