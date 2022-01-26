@@ -175,9 +175,8 @@ class EditEntities(wx.Panel, DefaultOperationUI):
         evt.Skip()
 
     def _save_data_to_world(self, _):
-        responce = self.ConFbox("!! IMPORTANT !!",  "This Pluging: Should be used Solo, Until a better saving system is in place"
-                                                   "\n if no errors are in the SNBT syntax:"
-                                                   "\n  DO YOU BACKUP OF YOUR WORLD ? "
+        responce = self.ConFbox("!! IMPORTANT !!",  "This Pluging: May cause a conflict with other chunk operation."
+                                                   "\n  DID YOU BACKUP YOUR WORLD ? "
                                                     "\n Continue?")
         # maybe should change this or check if the same as loaded entities
         cx, cz = block_coords_to_chunk_coords(self.canvas.selection.selection_group.min_x,
