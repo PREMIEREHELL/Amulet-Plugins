@@ -201,7 +201,7 @@ class EditEntities(wx.Panel, DefaultOperationUI):
                 chunk[b'2'] = newBytes
                 self.world.level_wrapper.put_raw_chunk_data(cx, cz, chunk, self.canvas.dimension)
                 #self.world.save()
-                self.Onmsgbox("SAVED", "The operation has completed without error")
+                self.Onmsgbox("Operation complete", "The operation has completed without error:\n Save world to see the changes")
             else:  # else its java
                 newData = self._snbt_edit_data.GetValue()  # get new data
                 data = from_snbt(newData)  # convert to nbt
@@ -212,7 +212,7 @@ class EditEntities(wx.Panel, DefaultOperationUI):
                 self.Entities_region.put_chunk_data(cx % 32, cz % 32, self.nbt_data_full)  # put data back where it goes
                 self.Entities_region.save()  # save file operation
                 #self.world.save()  # save world
-                self.Onmsgbox("SAVED", "The operation has completed without error")
+                self.Onmsgbox("Operation complete", "The operation has completed without error:\n Save world to see the changes")
         except amulet_nbt.amulet_cy_nbt.SNBTParseError as e:
             self.Onmsgbox("SNBT Syntax Error: ", str(e))
 
