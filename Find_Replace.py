@@ -184,7 +184,7 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
             "Every Chunk": 2
         }
 
-        self.lst_mode = wx.RadioBox(self, label='Select Search Mode', choices=list(self.listSearchType.keys()),majorDimension=1)
+        self.lst_mode = wx.RadioBox(self, label='Select Search Mode', choices=[*self.listSearchType] ,majorDimension=1)
         self.grid_and_text = wx.GridSizer(2, 0,0, 0)
         self.sel = wx.Button(self, label="Un/Select")
         self.sel.Bind(wx.EVT_BUTTON, self._sel)
