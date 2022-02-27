@@ -10,7 +10,7 @@ from os import path
 from amulet.api.data_types import Dimension
 from amulet.api.selection import SelectionGroup
 from amulet.api.selection import SelectionBox
-from amulet_nbt import *
+import amulet_nbt as nbt
 from amulet.api.block_entity import BlockEntity
 from amulet_map_editor.api.wx.ui.simple import SimpleDialog
 from amulet_map_editor.api.wx.ui.block_select import BlockDefine
@@ -459,13 +459,13 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
             ex_block_name = ""
             enty = str(changedData[x + 4]).split("\n")
             if enty[0] != 'null':
-                snb = "{"+str(changedData[x + 4]).replace("DIR_B\n","{").replace("DIR_E","}") +"}"
+                snb = "{"+str(changedData[x + 4]).replace("DIR_B\n","{").replace("DIR_E","}") +" }"
                 try:
 
-                    the_Ent = BlockEntity("minecraft", row_three[0].replace(",",""), 0, 0, 0, NBTFile(from_snbt(snb)))
-                except:
-                    wx.MessageBox("Syntax Error in: \n" + snb + " \nMake Sure you have not removed a comma or somthing important \n Use null for None.",
-                                      "Error Applying snbt, please try agian", wx.OK | wx.ICON_INFORMATION)
+                    the_Ent = BlockEntity("minecraft", row_three[0].replace(",",""), 0, 0, 0, nbt.NBTFile(nbt.from_snbt(snb)))
+                except Exception as err:
+                    wx.MessageBox("error:" + str(err) + " : maybe a Syntax Error in: \n" + snb + " \nMake Sure you have not removed a comma or somthing important \n Use null for None.",
+                                      "Error Applying snbt, please try agian error messase:",  wx.OK | wx.ICON_INFORMATION)
                     return
             if len(row_three) > 1:
                 org_blk_data = ""
@@ -778,7 +778,7 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
         except:
             pass
 
-        tableCount = math.floor(len(data) / 5)
+        tableCount = int(len(data) / 5)
         self._the_data.CreateGrid(tableCount, 5)
         self._the_data.SetRowLabelSize(0)
         self._the_data.SetColLabelValue(0, "x")
@@ -896,7 +896,7 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
                  for kkk,vvv in vv.items():
                     Block = str(kkk).replace("[","\n").replace(",","\n").replace("universal_","").replace("minecraft:","").replace("]\n","")
                     if "None" != str(vvv):
-                        Enty = from_snbt(str(vvv).replace(";B",";")).to_snbt(0).replace("}","DIR_E").replace("{\n","DIR_B\n")\
+                        Enty = nbt.from_snbt(str(vvv).replace(";B",";")).to_snbt(0).replace("}","DIR_E").replace("{\n","DIR_B\n")\
                         .replace("\"utags\": ","").replace("DIR_B\nDIR_B\n","").replace("DIR_E\nDIR_E\n","")[::-1].replace("E_RID\n","",1).replace("E_RID\n]\n","]",1)[::-1].replace("DIR_B\n","",1)
                     else:
                         Enty = str("null")
@@ -905,4 +905,4 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
 
     pass
 
-export = dict(name="Finder_Replacer v.1.1", operation=Finder_Replacer) #By PremiereHell
+export = dict(name="Finder_Replacer v.1.2", operation=Finder_Replacer) #By PremiereHell
