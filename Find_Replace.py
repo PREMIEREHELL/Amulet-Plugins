@@ -1,12 +1,8 @@
 import json
 from typing import TYPE_CHECKING, Tuple
-import amulet_nbt
 from amulet.api.wrapper import Interface, EntityIDType, EntityCoordType
 import wx
 import wx.grid
-import os
-import os.path
-from os import path
 from amulet.api.data_types import Dimension
 from amulet.api.selection import SelectionGroup
 from amulet.api.selection import SelectionBox
@@ -22,7 +18,6 @@ from amulet.utils import block_coords_to_chunk_coords
 from amulet.api.block import Block
 import PyMCTranslate
 from amulet.libs.leveldb.leveldb import LevelDB
-from pathlib import Path
 from amulet_map_editor.programs.edit.api.behaviour import StaticSelectionBehaviour
 from amulet_map_editor.programs.edit.api.events import EVT_SELECTION_CHANGE
 from amulet_map_editor.programs.edit.api.behaviour import BlockSelectionBehaviour
