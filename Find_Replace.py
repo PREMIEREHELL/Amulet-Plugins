@@ -216,7 +216,7 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
         self.Thaw()
 
     @property
-    def wx_add_options(self) -> Tuple[int, ...]:
+    def wx_add_options(self): # -> Tuple[int, ...]:
         return (0,)
 
     def _cls(self):
@@ -778,7 +778,7 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
         except:
             pass
 
-        tableCount = int(int(len(data) / 5))
+        tableCount = math.floor(len(data) / 5)
         self._the_data.CreateGrid(tableCount, 5)
         self._the_data.SetRowLabelSize(0)
         self._the_data.SetColLabelValue(0, "x")
@@ -866,7 +866,7 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
             if Pages[-1][1] < Max:
                 Pages.append((Pages[-1][1], Max))
             self.pg = {"Page: " + str(i): x for i, x in enumerate(Pages)}
-            self.lpage = wx.Choice(self, choices=list(self.pg))
+            self.lpage = wx.Choice(self, choices=[*self.pg])
             self.lpage.Bind(wx.EVT_CHOICE, self.pageContol)
             self.lpage.SetSelection(0)
             self.saveload.Add(self.lpage, 0 ,wx.LEFT,-70)
