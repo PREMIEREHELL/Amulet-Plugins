@@ -210,7 +210,7 @@ class SetBlock(wx.Panel, DefaultOperationUI):
         try:
             nbt = from_snbt(data.replace("[B;B]", "[B;]"))
             nbtf = NBTFile(nbt)
-        except e:
+        except Exception as e:
             self.Onmsgbox("Snbt Error", f"Check the syntax? error was : {e}")
         try:
             if self.storage_key.get('EntityStorageKeyComponent'):
@@ -224,8 +224,8 @@ class SetBlock(wx.Panel, DefaultOperationUI):
             data2 = nbtf.save_to(compressed=False, little_endian=True)
             self.world.level_wrapper._level_manager._db.put(theKey, data2)
             self.Onmsgbox("Saved", f"All went well")
-        except e:
-            self.Onmsgbox("Error", f"Something went wrong{e}")
+        except Exception as e:
+            self.Onmsgbox("Error", f"Something went wrong: {e}")
         self._structlist.Clear()
         self._structlist.Append(self._run_get_slist())
         self._structlist.SetSelection(0)
