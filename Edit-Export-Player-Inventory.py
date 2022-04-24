@@ -64,7 +64,7 @@ class SetBlock(wx.Panel, DefaultOperationUI):
 
         plat = (platform, world_version)
         hbox = wx.wxEVT_VLBOX
-
+        self.storage_key = amulet_nbt.TAG_Compound()
 
         wx.Panel.__init__(self, parent)
         DefaultOperationUI.__init__(self, parent, canvas, world, options_path)
@@ -185,7 +185,9 @@ class SetBlock(wx.Panel, DefaultOperationUI):
 
         player = self.world.level_wrapper._level_manager._db.get(enS)
         print(player)
+
         data = amulet_nbt.load(player, little_endian=True)
+        self.storage_key = data.pop('internalComponents')
         data2 = []
         self._mode_description.SetValue(data.to_snbt(2))
         # back to bytes
@@ -195,6 +197,9 @@ class SetBlock(wx.Panel, DefaultOperationUI):
         # for p in player:
         #     print(p)
 
+    def Onmsgbox(self, caption, message):  # message
+        wx.MessageBox(message, caption, wx.OK | wx.ICON_INFORMATION)
+
     def _run_set_sdata(self, _):
 
         theKey = self._run_text.GetValue().encode("utf-8")
@@ -202,12 +207,25 @@ class SetBlock(wx.Panel, DefaultOperationUI):
         data = self._mode_description.GetValue()
         test_b_arr = amulet_nbt.TAG_Byte_Array()
         print(test_b_arr.to_snbt())
-        nbt = from_snbt(data.replace("[B;B]", "[B;]"))
-        nbtf = NBTFile(nbt)
+        try:
+            nbt = from_snbt(data.replace("[B;B]", "[B;]"))
+            nbtf = NBTFile(nbt)
+        except e:
+            self.Onmsgbox("Snbt Error", f"Check the syntax? error was : {e}")
+        try:
+            if self.storage_key.get('EntityStorageKeyComponent'):
+                nbtf['internalComponents'] = self.storage_key
+        except:
+            pass
         # back to bytes
-        data2 = nbtf.save_to(compressed=False, little_endian=True)
-        print(data2)
-        self.world.level_wrapper._level_manager._db.put(theKey, data2)
+
+            print(data2)
+        try:
+            data2 = nbtf.save_to(compressed=False, little_endian=True)
+            self.world.level_wrapper._level_manager._db.put(theKey, data2)
+            self.Onmsgbox("Saved", f"All went well")
+        except e:
+            self.Onmsgbox("Error", f"Something went wrong{e}")
         self._structlist.Clear()
         self._structlist.Append(self._run_get_slist())
         self._structlist.SetSelection(0)
