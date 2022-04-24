@@ -187,7 +187,7 @@ class SetBlock(wx.Panel, DefaultOperationUI):
         print(player)
         data = amulet_nbt.load(player, little_endian=True)
         data2 = []
-        self._mode_description.SetValue(str(data))
+        self._mode_description.SetValue(data.to_snbt(2))
         # back to bytes
         data2 = data.save_to(compressed=False, little_endian=True)
 
@@ -200,7 +200,9 @@ class SetBlock(wx.Panel, DefaultOperationUI):
         theKey = self._run_text.GetValue().encode("utf-8")
         print(theKey)
         data = self._mode_description.GetValue()
-        nbt = from_snbt(data.replace('NBTFile("":', ''))
+        test_b_arr = amulet_nbt.TAG_Byte_Array()
+        print(test_b_arr.to_snbt())
+        nbt = from_snbt(data.replace("[B;B]", "[B;]"))
         nbtf = NBTFile(nbt)
         # back to bytes
         data2 = nbtf.save_to(compressed=False, little_endian=True)
