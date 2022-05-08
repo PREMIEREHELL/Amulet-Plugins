@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Type, Any, Callable, Tuple,  BinaryIO, Optiona
 from amulet_map_editor.programs.edit.api.operations import DefaultOperationUI
 from amulet_map_editor.programs.edit.api.behaviour import BlockSelectionBehaviour
 import wx
+import re
 from amulet_map_editor.api.wx.ui.base_select import BaseSelect
 if TYPE_CHECKING:
     from amulet.api.level import BaseLevel
@@ -37,14 +38,17 @@ class PluginClassName(wx.Panel, DefaultOperationUI):
         for g in selection:
             for b in g:
                 name = str(self.world.get_block(b[0],b[1],b[2],self.canvas.dimension)).split(":")[1]
-                clean_name = name.replace("[material=\""," ").replace('",type="bottom"]','').replace('",type="top"]','')\
+                clean_name_t = name.replace("[material=\""," ").replace('",type="bottom"]','').replace('",type="top"]','')\
                     .replace('[color="',' ').replace('"]', '').replace("[",' ').replace('"','').replace('east','')\
                                  .replace('north','').replace('south','').replace('west','').replace('=','')\
-                                 .replace('true','').replace('false','').replace(',','') +": "
-                matrials[clean_name].append(clean_name)
+                                 .replace('true','').replace('false','').replace(',','').replace('universal_minecraft','')\
+                                   .replace('{','').replace('age','').replace('halflower','').replace('halfupper','').replace(' ','')\
+                               .replace('fallingflowinglevel','')+": "
+                clean_name = re.sub(r'[0-9]+', '', clean_name_t)
                 print(name)
+                matrials[clean_name].append(clean_name)
         for x in matrials.keys():
-            text += str(x)  +" " + str(len(x)) + "\n"
+            text += str(x)  +" " + str(len(matrials[x])) + "\n"
 
         self.text.SetValue(text)
 
