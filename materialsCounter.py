@@ -36,8 +36,12 @@ class PluginClassName(wx.Panel, DefaultOperationUI):
         print('ok')
         for g in selection:
             for b in g:
-                name = str(self.world.get_block(b[0],b[1],b[2],self.canvas.dimension)).split(":")[1].split("[")[0]
-                matrials[name].append(name)
+                name = str(self.world.get_block(b[0],b[1],b[2],self.canvas.dimension)).split(":")[1]
+                clean_name = name.replace("[material=\""," ").replace('",type="bottom"]','').replace('",type="top"]','')\
+                    .replace('[color="',' ').replace('"]', '').replace("[",' ').replace('"','').replace('east','')\
+                                 .replace('north','').replace('south','').replace('west','').replace('=','')\
+                                 .replace('true','').replace('false','').replace(',','') +": "
+                matrials[clean_name].append(clean_name)
                 print(name)
         for x in matrials.keys():
             text += str(x)  +" " + str(len(x)) + "\n"
