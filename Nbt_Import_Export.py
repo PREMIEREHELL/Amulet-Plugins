@@ -65,10 +65,9 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
             for y in range(0, (y_m)):
                 for z in range(0, (z_m)):
                     block_pos.append((x, y, z))
-        for x in block_pos:
-            mx = x[0] + 1
-            my = x[1] + 1
-            mz = x[2] + 1
+        mx = block_pos[-1][0] 
+        my = block_pos[-1][1]
+        mz = block_pos[-1][2]
 
         for i, (s, b) in enumerate(zip(selection, block_pos)):
 
