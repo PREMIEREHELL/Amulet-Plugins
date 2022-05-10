@@ -42,8 +42,6 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
         self._selection = BlockSelectionBehaviour(self.canvas)
 
     def _export_nbt(self, _):
-
-
         entities = amulet_nbt.TAG_List()
         blocks = amulet_nbt.TAG_List()
         palette = amulet_nbt.TAG_List()
@@ -67,8 +65,7 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
           mx =x[0]+1
           my =x[1]+1
           mz =x[2]+1
-                          #mx, my, mz = block_pos[0], block_pos[1], block_pos[2]
-        print(mx,my,mz)
+     
         for i, (s,b) in enumerate(zip(selection, block_pos)):
 
             block, blockEntity = self.world.get_version_block(s[0], s[1], s[2], self.canvas.dimension,
@@ -85,14 +82,15 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
                 print(block.namespaced_name)
                 indx += 1
             print(pallet_key_map[(block.namespaced_name ,str(block.properties))][0])
-            nbt_state_map[(block.namespaced_name ,str(block.properties))].append((blockEntity, (b[0], b[1], b[2]), pallet_key_map[(block.namespaced_name ,str(block.properties))][0]))
+            nbt_state_map[(block.namespaced_name ,str(block.properties))].append((blockEntity, (b[0], b[1], b[2]), 
+                                                                                  pallet_key_map[(block.namespaced_name ,
+                                                                                                  str(block.properties))][0]))
         size = amulet_nbt.TAG_List([amulet_nbt.TAG_Int(mx), amulet_nbt.TAG_Int(my), amulet_nbt.TAG_Int(mx)])
         print(nbt_state_map)
         for i, (pal,v) in enumerate(pallet_key_map.items()):
             palette_Properties = amulet_nbt.TAG_Compound(
                 {'Properties': amulet_nbt.from_snbt(pal[1]), 'Name': amulet_nbt.TAG_String(pal[0])})
             palette.append(palette_Properties)
-            print(pal,i)
 
         for name, datal in nbt_state_map.items():
             for data in datal:
@@ -102,13 +100,12 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
                          amulet_nbt.TAG_Int(data[1][2])]), 'state': amulet_nbt.TAG_Int(data[2])})
                     blocks.append(blocks_pos)
                 else:
-                    blocks_pos = amulet_nbt.TAG_Compound({'nbt': amulet_nbt.from_snbt(data[0].nbt.to_snbt()) ,'pos': amulet_nbt.TAG_List(
+                    blocks_pos = amulet_nbt.TAG_Compound({'nbt': amulet_nbt.from_snbt(data[0].nbt.to_snbt()) ,
+                                                          'pos': amulet_nbt.TAG_List(
                         [amulet_nbt.TAG_Int(data[1][0]), amulet_nbt.TAG_Int(data[1][1]),
                          amulet_nbt.TAG_Int(data[1][2])]), 'state': amulet_nbt.TAG_Int(data[2])})
                     blocks.append(blocks_pos)
-
-
-
+                    
         save_it= amulet_nbt.NBTFile()
         save_it['size'] = size
         save_it['entities'] = entities
@@ -128,8 +125,6 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
             tfile.write(raw_data)
             tfile.close()
         wx.MessageBox("Save Complete", "No Issues", wx.OK | wx.ICON_INFORMATION)
-
-
     def _import_nbt(self, _):
 
         fdlg = wx.FileDialog(self, "Load .nbt", "", "", "nbt files(*.nbt)|*.*", wx.FD_OPEN)
