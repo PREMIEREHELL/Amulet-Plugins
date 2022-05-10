@@ -1,9 +1,8 @@
-import re
+import wx
 import struct
-from typing import TYPE_CHECKING, Type, Any, Callable, Tuple,  BinaryIO, Optional
+from typing import TYPE_CHECKING
 from amulet_map_editor.programs.edit.api.operations import DefaultOperationUI
 import amulet_nbt
-import wx
 from amulet_map_editor.api.wx.ui.base_select import BaseSelect
 from amulet.api.block_entity import BlockEntity
 from amulet.api.block import Block
@@ -13,6 +12,8 @@ from amulet_map_editor.programs.edit.api.behaviour import BlockSelectionBehaviou
 if TYPE_CHECKING:
     from amulet.api.level import BaseLevel
     from amulet_map_editor.programs.edit.api.canvas import EditCanvas
+
+
 class NbtImportExport(wx.Panel, DefaultOperationUI):
     def __init__(
             self,
@@ -29,9 +30,9 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
         DefaultOperationUI.__init__(self, parent, canvas, world, options_path)
         self._sizer = wx.BoxSizer(wx.VERTICAL)
         self.export_nbt = wx.Button(self, label="Export")
-        self.import_nbt = wx.Button(self, label="Import", pos=(70,0))
+        self.import_nbt = wx.Button(self, label="Import", pos=(70, 0))
         self.import_nbt.Bind(wx.EVT_BUTTON, self._import_nbt)
-        self.export_nbt.Bind(wx.EVT_BUTTON, self._export_nbt)## YOUR UI SETUP
+        self.export_nbt.Bind(wx.EVT_BUTTON, self._export_nbt)  ## YOUR UI SETUP
         self._sizer.Add(self.import_nbt)
 
     def bind_events(self):
@@ -52,42 +53,39 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
         indx = 0
         sx, sy, sz = 0, 0, 0
 
-        maxX, maxY, MaxZ = self.canvas.selection.selection_group.max_x,self.canvas.selection.selection_group.max_y,self.canvas.selection.selection_group.max_z
-        minX, minY, minZ = self.canvas.selection.selection_group.min_x,self.canvas.selection.selection_group.min_y,self.canvas.selection.selection_group.min_z
-        x_m, y_m,z_m = maxX-minX,maxY-minY,MaxZ-minZ
+        maxX, maxY, MaxZ = self.canvas.selection.selection_group.max_x, \
+                           self.canvas.selection.selection_group.max_y, \
+                           self.canvas.selection.selection_group.max_z
+        minX, minY, minZ = self.canvas.selection.selection_group.min_x, \
+                           self.canvas.selection.selection_group.min_y, \
+                           self.canvas.selection.selection_group.min_z
+        x_m, y_m, z_m = maxX - minX, maxY - minY, MaxZ - minZ
         block_pos = []
-        for x in range(0,(x_m)):
+        for x in range(0, (x_m)):
             for y in range(0, (y_m)):
                 for z in range(0, (z_m)):
-                   block_pos.append((x,y,z))
+                    block_pos.append((x, y, z))
         for x in block_pos:
-          print(x)
-          mx =x[0]+1
-          my =x[1]+1
-          mz =x[2]+1
-     
-        for i, (s,b) in enumerate(zip(selection, block_pos)):
+            mx = x[0] + 1
+            my = x[1] + 1
+            mz = x[2] + 1
+
+        for i, (s, b) in enumerate(zip(selection, block_pos)):
 
             block, blockEntity = self.world.get_version_block(s[0], s[1], s[2], self.canvas.dimension,
                                                               ("java", (1, 18, 0)))
             bbb = self.world.get_block(s[0], s[1], s[2], self.canvas.dimension)
-            #pallet_key_map[(block.namespaced_name, str(block.properties))] = (indx, blockEntity)
-
             block, blockEntity = self.world.get_version_block(s[0], s[1], s[2], self.canvas.dimension,
-                                                          ("java", (1,18,0)))
-
+                                                              ("java", (1, 18, 0)))
             bbb = self.world.get_block(s[0], s[1], s[2], self.canvas.dimension)
-            if pallet_key_map.get((block.namespaced_name ,str(block.properties))) == None:
-                pallet_key_map[(block.namespaced_name ,str(block.properties))] = (indx, blockEntity)
-                print(block.namespaced_name)
+            if pallet_key_map.get((block.namespaced_name, str(block.properties))) == None:
+                pallet_key_map[(block.namespaced_name, str(block.properties))] = (indx, blockEntity)
                 indx += 1
-            print(pallet_key_map[(block.namespaced_name ,str(block.properties))][0])
-            nbt_state_map[(block.namespaced_name ,str(block.properties))].append((blockEntity, (b[0], b[1], b[2]), 
-                                                                                  pallet_key_map[(block.namespaced_name ,
-                                                                                                  str(block.properties))][0]))
+            nbt_state_map[(block.namespaced_name, str(block.properties))].append((blockEntity, (b[0], b[1], b[2]),
+                                                                        pallet_key_map[(block.namespaced_name,
+                                                                        str(block.properties))][0]))
         size = amulet_nbt.TAG_List([amulet_nbt.TAG_Int(mx), amulet_nbt.TAG_Int(my), amulet_nbt.TAG_Int(mx)])
-        print(nbt_state_map)
-        for i, (pal,v) in enumerate(pallet_key_map.items()):
+        for i, (pal, v) in enumerate(pallet_key_map.items()):
             palette_Properties = amulet_nbt.TAG_Compound(
                 {'Properties': amulet_nbt.from_snbt(pal[1]), 'Name': amulet_nbt.TAG_String(pal[0])})
             palette.append(palette_Properties)
@@ -100,13 +98,15 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
                          amulet_nbt.TAG_Int(data[1][2])]), 'state': amulet_nbt.TAG_Int(data[2])})
                     blocks.append(blocks_pos)
                 else:
-                    blocks_pos = amulet_nbt.TAG_Compound({'nbt': amulet_nbt.from_snbt(data[0].nbt.to_snbt()) ,
+                    blocks_pos = amulet_nbt.TAG_Compound({'nbt': amulet_nbt.from_snbt(data[0].nbt.to_snbt()),
                                                           'pos': amulet_nbt.TAG_List(
-                        [amulet_nbt.TAG_Int(data[1][0]), amulet_nbt.TAG_Int(data[1][1]),
-                         amulet_nbt.TAG_Int(data[1][2])]), 'state': amulet_nbt.TAG_Int(data[2])})
+                                                              [amulet_nbt.TAG_Int(data[1][0]),
+                                                               amulet_nbt.TAG_Int(data[1][1]),
+                                                               amulet_nbt.TAG_Int(data[1][2])]),
+                                                          'state': amulet_nbt.TAG_Int(data[2])})
                     blocks.append(blocks_pos)
-                    
-        save_it= amulet_nbt.NBTFile()
+
+        save_it = amulet_nbt.NBTFile()
         save_it['size'] = size
         save_it['entities'] = entities
         save_it['blocks'] = blocks
@@ -125,6 +125,7 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
             tfile.write(raw_data)
             tfile.close()
         wx.MessageBox("Save Complete", "No Issues", wx.OK | wx.ICON_INFORMATION)
+
     def _import_nbt(self, _):
 
         fdlg = wx.FileDialog(self, "Load .nbt", "", "", "nbt files(*.nbt)|*.*", wx.FD_OPEN)
@@ -143,7 +144,8 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
 
             for x in nbt.get('blocks'):
                 if nbt['palette'][int(x.get('state'))].get('Properties') != None:
-                    palette.append(dict(amulet_nbt.from_snbt(nbt['palette'][int(x.get('state'))]['Properties'].to_snbt())))
+                    palette.append(
+                        dict(amulet_nbt.from_snbt(nbt['palette'][int(x.get('state'))]['Properties'].to_snbt())))
                 else:
                     palette.append(None)
                 b_pos.append(x.get('pos'))
@@ -151,7 +153,8 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
                 if x.get('nbt') != None:
                     name = str(nbt['palette'][int(x.get('state'))]['Name']).split(':')
 
-                    blockEntity = BlockEntity(name[0], name[1].replace('_','').capitalize(), 0, 0, 0, amulet_nbt.NBTFile(x.get('nbt')))
+                    blockEntity = BlockEntity(name[0], name[1].replace('_', '').capitalize(), 0, 0, 0,
+                                              amulet_nbt.NBTFile(x.get('nbt')))
                     enbt.append(blockEntity)
                 else:
                     enbt.append(None)
@@ -168,6 +171,9 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
         cx, cz = block_coords_to_chunk_coords(x, z)
         chunk = world.get_chunk(cx, cz, dimension)
         chunk.changed = True
+
     pass
+
+
 # simple export options.
-export = dict(name="#Nbt Import Export v1.0", operation=NbtImportExport) # by PremiereHell
+export = dict(name="#Nbt Import Export v1.0", operation=NbtImportExport)  # by PremiereHell
