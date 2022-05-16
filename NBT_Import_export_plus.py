@@ -12,6 +12,7 @@ from amulet.api.block import Block
 from amulet.utils import block_coords_to_chunk_coords
 from amulet.utils import world_utils
 from amulet.level.formats.anvil_world.region import AnvilRegion
+
 import collections
 from amulet_map_editor.programs.edit.api.behaviour import BlockSelectionBehaviour
 from amulet.api.errors import ChunkDoesNotExist
@@ -57,6 +58,7 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
          self._selection = BlockSelectionBehaviour(self.canvas)
          self._selection.enable()
 
+
     def _export_nbt(self, _):
         entities = amulet_nbt.TAG_List()
         blocks = amulet_nbt.TAG_List()
@@ -76,6 +78,7 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
                 for z in range(0, (mz)):
                     block_pos.append((x, y, z))
 
+        print(self.entitie_check.GetValue())
         if self.entitie_check.GetValue() == False:
             entities = amulet_nbt.TAG_List()
         else:
@@ -351,6 +354,7 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
         elif self.world.level_wrapper.platform == "java":
             cl  = self.canvas.selection.selection_group.chunk_locations()
             self.found_entities = amulet_nbt.TAG_List()
+            self.nbt_data = []
             for cx , cz in cl:
 
                 rx, rz = world_utils.chunk_coords_to_region_coords(cx, cz)  # need region cords for file
@@ -365,55 +369,62 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
                                             "r." + str(rx) + "." + str(rz) + ".mca")  # full path for file
                 self.Entities_region = AnvilRegion(entitiesPath)  # create instance for region data
                 # the " % 32 " calulates the location of the chunk in the header,
-                self.Entities_region.has_chunk(cx,cz)
-                try:
-                    self.nbt_data_full = self.Entities_region.get_chunk_data(cx % 32, cz % 32)
-                    if self.version_path == "region":
-                        self.nbt_data = self.nbt_data_full["Level"]['Entities']
-                    else:
-                        try:
-                            self.nbt_data = self.nbt_data_full['Entities']
-                        except:
-                            print("no data")
-                    if len(self.nbt_data) == 0:
+                print( self.Entities_region.has_chunk(cx % 32, cz % 32))
+                if self.Entities_region.has_chunk(cx % 32, cz % 32):
+                    try:
+                        self.nbt_data_full = self.Entities_region.get_chunk_data(cx % 32, cz % 32)
+                        if self.version_path == "region":
+                            self.nbt_data = self.nbt_data_full["Level"]['Entities']
+                        else:
+                            try:
+                                self.nbt_data = self.nbt_data_full['Entities']
+                            except:
+                                print("no data")
+                        if len(self.nbt_data) > 0:
+                            for x in self.nbt_data:
+                                print(x)
+                                self.found_entities.append(x)
+                    except ChunkDoesNotExist:
+                        print("No Chunk Data")
+                        pass
+                if len(self.found_entities) == 0:
+                    return amulet_nbt.TAG_List()
+                entities = amulet_nbt.TAG_List()
+                for nbt_data in self.nbt_data:
+                    print(nbt_data.get('Pos'))
+                    x, y, z = math.floor(nbt_data.get('Pos')[0].value), math.floor(
+                        nbt_data.get('Pos')[1].value), math.floor(nbt_data.get('Pos')[2].value)
 
-                       pass
-                    else:
-                        for x in self.nbt_data:
-                            print(x)
-                            self.found_entities.append(x)
-                except ChunkDoesNotExist:
-                    print("No Chunk Data")
-                    pass
-            if len(self.found_entities) ==  0:
-                return amulet_nbt.TAG_List()
-            entities = amulet_nbt.TAG_List()
-            for nbt_data in self.nbt_data:
-                print(nbt_data.get('Pos'))
-                x, y, z = math.floor(nbt_data.get('Pos')[0].value), math.floor(
-                    nbt_data.get('Pos')[1].value), math.floor(nbt_data.get('Pos')[2].value)
+                    if (x, y, z) in selection:
+                        new_pos = mapdic[(x, y, z)]
+                        nbt_pos = amulet_nbt.TAG_List([amulet_nbt.TAG_Double(sum([new_pos[0],
+                                                                                  math.modf(abs(
+                                                                                      nbt_data.get("Pos")[0].value))[
+                                                                                      0]])),
+                                                       amulet_nbt.TAG_Double(sum([new_pos[1],
+                                                                                  math.modf(abs(
+                                                                                      nbt_data.get("Pos")[1].value))[
+                                                                                      0]])),
+                                                       amulet_nbt.TAG_Double(sum([new_pos[2],
+                                                                                  math.modf(abs(
+                                                                                      nbt_data.get("Pos")[2].value))[
+                                                                                      0]]))])
+                        nbt_block_pos = amulet_nbt.TAG_List([amulet_nbt.TAG_Int(new_pos[0]),
+                                                             amulet_nbt.TAG_Int(new_pos[1]),
+                                                             amulet_nbt.TAG_Int(new_pos[2])])
+                        # if nbt_data.get('UUID'):
+                        #     popped = nbt_data.pop('UUID')
+                        print(nbt_data.get('UUID'))
+                        nbt_nbt = amulet_nbt.from_snbt(nbt_data.to_snbt())
+                        main_entry = amulet_nbt.TAG_Compound()
+                        main_entry['nbt'] = nbt_nbt
+                        main_entry['blockPos'] = nbt_block_pos
+                        main_entry['pos'] = nbt_pos
+                        entities.append(main_entry)
 
-                if (x, y, z) in selection:
-                    new_pos = mapdic[(x, y, z)]
-                    nbt_pos = amulet_nbt.TAG_List([amulet_nbt.TAG_Double(sum([new_pos[0],
-                              math.modf(abs(nbt_data.get("Pos")[0].value))[0]])),
-                              amulet_nbt.TAG_Double(sum([new_pos[1],
-                              math.modf(abs(nbt_data.get("Pos")[1].value))[0]])),
-                              amulet_nbt.TAG_Double(sum([new_pos[2],
-                              math.modf(abs(nbt_data.get("Pos")[2].value))[0]]))])
-                    nbt_block_pos = amulet_nbt.TAG_List([amulet_nbt.TAG_Int(new_pos[0]),
-                                                         amulet_nbt.TAG_Int(new_pos[1]),
-                                                         amulet_nbt.TAG_Int(new_pos[2])])
-                    if nbt_data.get('UUID'):
-                        popped = nbt_data.pop('UUID')
-                    nbt_nbt = amulet_nbt.from_snbt(nbt_data.to_snbt())
-                    main_entry = amulet_nbt.TAG_Compound()
-                    main_entry['nbt'] = nbt_nbt
-                    main_entry['blockPos'] = nbt_block_pos
-                    main_entry['pos'] = nbt_pos
-                    entities.append(main_entry)
-
-            return entities
+                return entities
+            else:
+                print("no data")
 
     def set_entities(self, entities_list):
         entcnt = 0
@@ -465,6 +476,10 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
             else:
                 self.version_path = "region"
             for nbt_data in entities_list:
+                import uuid
+                uu_id = uuid.uuid4()
+                q,w,e,r = struct.unpack('>iiii', uu_id.bytes)
+                nbt_data['UUID'] = amulet_nbt.TAG_Int_Array([amulet_nbt.TAG_Int(q),amulet_nbt.TAG_Int(w),amulet_nbt.TAG_Int(e),amulet_nbt.TAG_Int(r)])
                 x, y, z = math.floor(nbt_data.get('Pos')[0].value), math.floor(
                     nbt_data.get('Pos')[1].value), math.floor(nbt_data.get('Pos')[2].value)
                 cx, cz = block_coords_to_chunk_coords(x,z)
@@ -476,14 +491,20 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
                 print(file_exists, str(rx) + "." + str(rz), "chunk: ", cx,cz)
                 if file_exists:
                     self.Entities_region = AnvilRegion(entitiesPath)
-                    if self.Entities_region.has_chunk(cx, cz):
+                    if self.Entities_region.has_chunk(cx % 32, cz % 32):
                         self.chunk_raw = self.Entities_region.get_chunk_data(cx % 32, cz % 32)
                         if self.world.level_wrapper.version >= 2730:
+                            if not self.chunk_raw.get('Entities'):
+                                self.chunk_raw['Entities'] = amulet_nbt.TAG_List()
+
                             self.chunk_raw['Entities'].append(nbt_data)
+
                             self.Entities_region.put_chunk_data(cx % 32, cz % 32, self.chunk_raw)
                             self.Entities_region.save()
                             print(f'SAVED CHUNK NEW FILE file r.{rx}, {rz} Chunk: {cx}, {cz}')
                         else:
+                            if not self.chunk_raw.get('Level').get('Entities'):
+                                self.chunk_raw["Level"]['Entities'] = amulet_nbt.TAG_List()
                             self.chunk_raw["Level"]['Entities'].append(nbt_data)
                             self.Entities_region.put_chunk_data(cx % 32, cz % 32, self.chunk_raw)
                             self.Entities_region.save()
@@ -517,4 +538,4 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
                         # can not store entities without leaving hole
             self.world.save()
     pass
-export = dict(name="##Nbt Import Export v2.0", operation=NbtImportExport)  # by PremiereHell
+export = dict(name="##Nbt Import Export v2.01", operation=NbtImportExport)  # by PremiereHell
