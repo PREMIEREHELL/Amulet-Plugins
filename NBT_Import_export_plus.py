@@ -370,6 +370,7 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
                             try:
                                 self.nbt_data = self.nbt_data_full['Entities']
                             except:
+                                pass
                         if len(self.nbt_data) > 0:
                             for x in self.nbt_data:
                                 self.found_entities.append(x)
