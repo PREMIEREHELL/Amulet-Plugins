@@ -248,7 +248,14 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
             dim = b''#int(0).to_bytes(4, 'little', signed=True)
         return dim
 
-
+    def get_dim_java_dir(self):
+        if 'minecraft:the_end' in self.canvas.dimension:
+            dim = 'DIM1'
+        elif 'minecraft:the_nether' in self.canvas.dimension:
+            dim = 'DIM-1'
+        elif 'minecraft:overworld' in self.canvas.dimension:
+            dim = ''
+        return dim
 
     def get_entities_nbt(self, rpos):
         mapdic = collections.defaultdict()
@@ -357,7 +364,7 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
                     self.version_path = "entities"
                 else:
                     self.version_path = "region"
-                entitiesPath = os.path.join(path, self.version_path,
+                entitiesPath = os.path.join(path, self.get_dim_java_dir(), self.version_path,
                                             "r." + str(rx) + "." + str(rz) + ".mca")  # full path for file
                 self.Entities_region = AnvilRegion(entitiesPath)  # create instance for region data
                 # the " % 32 " calulates the location of the chunk in the header,
@@ -461,7 +468,7 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
                     nbt_data.get('Pos')[1].value), math.floor(nbt_data.get('Pos')[2].value)
                 cx, cz = block_coords_to_chunk_coords(x,z)
                 rx, rz = world_utils.chunk_coords_to_region_coords(cx, cz)
-                entitiesPath = os.path.join(path, self.version_path,
+                entitiesPath = os.path.join(path, self.get_dim_java_dir(), self.version_path,
                                             "r." + str(rx) + "." + str(rz) + ".mca")  # full path for file
                 file_exists = exists(entitiesPath)
                 if file_exists:
