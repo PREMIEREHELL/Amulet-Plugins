@@ -70,7 +70,6 @@ class BedRock(wx.Panel):
                             name = str(nbt['identifier']).replace("minecraft:", "")
                             if exclude_filter != [''] or include_filter != ['']:
                                 if name not in exclude_filter:
-                                    print("SSS")
                                     self.lstOfE.append(name)
                                     self.EntyData.append(nbt.to_snbt(1))
                                     self.Key_tracker.append(x)
@@ -141,7 +140,6 @@ class BedRock(wx.Panel):
                     elif 'minecraft:the_nether' in self.canvas.dimension:
                         d = int(1).to_bytes(4, 'little', signed=True)
                     key = b'digp' + cx + cz + d  # build the digp key for the chunk
-                    print(key, "KEY")
                     try:
                         if self.world.level_wrapper._level_manager._db.get(key):
                             data = self.world.level_wrapper._level_manager._db.get(key)
@@ -152,10 +150,8 @@ class BedRock(wx.Panel):
                         print(e)
 
             for pkey in prefixList:
-                print(pkey, "Deleted")
                 self.world.level_wrapper._level_manager._db.delete(pkey)
             for pdig_d in pdig_to_delete:
-                print(pdig_d, "Deleted_")
                 self.world.level_wrapper._level_manager._db.delete(pdig_d)
         else:
             for x, z in all_chunks:
@@ -333,7 +329,6 @@ class BedRock(wx.Panel):
 
         fdlg = wx.FileDialog(self, "Load .nbt File", "", "", "nbt files(*.nbt)|*.*", wx.FD_OPEN)
         the_id = fdlg.ShowModal()
-        print(the_id)
         if int(the_id) == 5101:
             return False
         if the_id == wx.ID_OK:
@@ -545,7 +540,6 @@ class BedRock(wx.Panel):
 
             elif self.world.level_wrapper.version < (1, 18, 30, 4, 0):
                 for x in entities_list:
-                    print(type(x))
                     xc, zc = block_coords_to_chunk_coords(x.get('Pos')[0], x.get('Pos')[2])
                     chunk = self.world.level_wrapper.get_raw_chunk_data(xc, zc, self.canvas.dimension)
                     try:
@@ -608,7 +602,6 @@ class BedRock(wx.Panel):
             if res == False:
                 return
             snbt_loaded_list = EntitiePlugin.load_entities_export(self)
-            print(len(snbt_loaded_list))
             chunk_dict = collections.defaultdict(list)
             NewRawB = b''
 
@@ -1089,8 +1082,7 @@ class BedRock(wx.Panel):
             try:
                 px, py, pz = v[0].get('Pos').value
             except:
-                print(k, v, name, "wtf")
-            print(name, filter, custom_filter)
+                print(k, v, name, "wtf went wrong")
             if name not in filter and custom_filter == ['']:
                 self.EntyData.append(v[0].to_snbt(1))
                 self.lstOfE.append(
@@ -1940,17 +1932,12 @@ class EntitiePlugin(wx.Panel, DefaultOperationUI):
             self.operation.canvas = self.canvas
             self.operation.EntyData = self.EntyData
 
-            print("BedRock")
         else:
-            print("java")
             self.operation = Java()
             self.operation.world = self.world
             self.operation.canvas = self.canvas
             self.operation.EntyData = self.EntyData
             self.operation.lstOfE =self.lstOfE
-            print("java")
-
-        # self.actorpre_fixs, self.dig_p = \
 
         self.operation.select_tracer = collections.defaultdict(list)
         self.get_all_flag = False
@@ -2144,8 +2131,6 @@ class EntitiePlugin(wx.Panel, DefaultOperationUI):
 
         selection = self.operation.ui_entitie_choice_list.GetSelection()
         newData = self.operation._snbt_edit_data.GetValue()
-        print(newData)
-
         try:
             self.operation.EntyData[selection] = Nbt.NBTFile(Nbt.from_snbt(newData))
         except:
@@ -2162,14 +2147,10 @@ class EntitiePlugin(wx.Panel, DefaultOperationUI):
         setdata = Nbt.from_snbt(self.operation.EntyData[self.ui_entitie_choice_list.GetSelection()])
 
         self.operation._snbt_edit_data.SetValue(setdata.to_snbt(1))
-        print(setdata.get('Pos'))
         (x, y, z) = setdata.get('Pos')[0], setdata.get('Pos')[1], setdata.get('Pos')[2]
-        print((str(x), str(y), str(z)))
         self.operation._X.SetLabel(str(x).replace("f", " X").replace("d", " X"))
         self.operation._Y.SetLabel(str(y).replace("f", " Y").replace("d", " Y"))
         self.operation._Z.SetLabel(str(z).replace("f", " Z").replace("d", " Z"))
-        #self.operation.select_tracer[]
-        print("ok")
         X = int(str(self.operation._X.GetValue()).replace(" X", "").split(".")[0])
         Y = int(str(self.operation._Y.GetValue()).replace(" Y", "").split(".")[0])
         Z = int(str(self.operation._Z.GetValue()).replace(" Z", "").split(".")[0])
@@ -2182,8 +2163,6 @@ class EntitiePlugin(wx.Panel, DefaultOperationUI):
         vv = (X,
               Y,
               Z)
-        print(v,vv)
-
         group.append(SelectionBox(v, vv))
         sel = SelectionGroup(group)
         self.canvas.selection.set_selection_group(sel)
@@ -2193,8 +2172,6 @@ class EntitiePlugin(wx.Panel, DefaultOperationUI):
             self.canvas.camera.set_location((x, 320, z))
             self.canvas.camera.set_rotation((34.720000000000006, 90))
             self.canvas.camera._notify_moved()
-
-
     def _refresh_chunk(self, dimension, world, x, z):
         self.world.level_wrapper.load_chunk(x, z, dimension).changed = True
         self.world.create_undo_point()
@@ -2203,8 +2180,6 @@ class EntitiePlugin(wx.Panel, DefaultOperationUI):
         cx, cz = block_coords_to_chunk_coords(self.canvas.selection.selection_group.selection_boxes[0].min_x,
                                               self.canvas.selection.selection_group.selection_boxes[0].min_z)
         enty = self.canvas.world.get_native_entities(cx, cz, self.canvas.dimension)
-        print(cx, cz, enty)
-
     def _set_new_block(self, _):
         if self.canvas.selection.selection_group:
             if 'Y of Selected' not in self.operation._Y.GetValue():
