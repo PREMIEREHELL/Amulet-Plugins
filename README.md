@@ -1,4 +1,6 @@
 # Amulet-Plugins
-Will Post Plugins for Amulet Here for now!!!!!!!!!!!!!!!!!!!!!!!!
-REMOVE . from version NUMBER !! before loading, Need to rename lots of files here,,,,
-You Tube Videos Soon.... It on my list of todo.
+Posting Plugins for Amulet Here At this time
+Some C# code coming the future
+
+You Tube Videos SOME DAY. The easiest is always the hardest to get to.
+Hope you all enjoy!
