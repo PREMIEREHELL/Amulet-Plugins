@@ -166,7 +166,7 @@ class SetBlocks(wx.Panel, DefaultOperationUI):
                 extra = block._extra_blocks[0]
                 extra_property = amulet_nbt.from_snbt(str(extra.properties))
                 extra_block = f"<ExtraBlockName>\n{extra._namespaced_name}\n<ExtraBlockProperties>\n" \
-                              f"{extra_property.to_snbt(1)}\n"
+                              f"{extra_property.to_snbt(1)}"
 
             block_property = amulet_nbt.from_snbt(str(block.properties))
             string_data += f"<Block_Location>\n{x,y,z}\n<Block_name>\n{block._namespaced_name}\n<Block_properties>" \
