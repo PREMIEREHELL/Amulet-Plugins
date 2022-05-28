@@ -608,6 +608,7 @@ class BedRock(wx.Panel):
             if self.world.level_wrapper.version >= (1, 18, 30, 4, 0):
                 ent_cnt = 2
                 print("Importing...")
+                self._set_list_of_actors_digp
                 for snbt_line in snbt_loaded_list:
                     nbt_from_snbt = Nbt.from_snbt(snbt_line)
                     cx, cz = block_coords_to_chunk_coords(nbt_from_snbt.get('Pos')[0], nbt_from_snbt.get('Pos')[2])
@@ -615,7 +616,8 @@ class BedRock(wx.Panel):
 
                 d = 0
                 for lk_data in chunk_dict.keys():
-                    key = self.build_digp_chunk_key(lk_data[0], lk_data[1], d)  # build the digp key for the chunk
+                    print(lk_data)
+                    key = self.build_digp_chunk_key(lk_data[0], lk_data[1])  # build the digp key for the chunk
                     dig_p_dic = {}
                     dig_byte_list = b''
 
@@ -623,8 +625,11 @@ class BedRock(wx.Panel):
                         new_prefix = self.build_actor_key(1, ent_cnt)
                         ent_cnt += 1
                         ent_data["UniqueID"] = self._genorate_uid(ent_cnt)
-                        ent_data['internalComponents']['EntityStorageKeyComponent']['StorageKey'] = amulet_nbt.TAG_String(
-                            new_prefix[len(b'actorprefix'):])
+                        try:
+                            ent_data['internalComponents']['EntityStorageKeyComponent']['StorageKey'] = \
+                                amulet_nbt.TAG_String(new_prefix[len(b'actorprefix'):])
+                        except:
+                            pass
                         dig_byte_list += new_prefix[len(b'actorprefix'):]
                         final_data = amulet_nbt.NBTFile(ent_data).save_to(compressed=False, little_endian=True)
                         print(new_prefix, final_data)
@@ -2167,11 +2172,11 @@ class EntitiePlugin(wx.Panel, DefaultOperationUI):
         sel = SelectionGroup(group)
         self.canvas.selection.set_selection_group(sel)
         if self._teleport_check.GetValue():
-
             x, y, z = (x, y, z)
             self.canvas.camera.set_location((x, 320, z))
             self.canvas.camera.set_rotation((34.720000000000006, 90))
             self.canvas.camera._notify_moved()
+
     def _refresh_chunk(self, dimension, world, x, z):
         self.world.level_wrapper.load_chunk(x, z, dimension).changed = True
         self.world.create_undo_point()
@@ -2365,4 +2370,4 @@ class ExportImportCostomDialog(wx.Dialog):
         self.nbt_file_option.SetValue(False)
         self.Destroy()
 
-export = dict(name="The Entitie's Plugin v1.00", operation=EntitiePlugin) #PremiereHell
+export = dict(name="# The Entitie's Plugin v1.01", operation=EntitiePlugin) #PremiereHell
