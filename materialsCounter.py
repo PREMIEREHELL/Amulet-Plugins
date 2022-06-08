@@ -31,21 +31,24 @@ class PluginClassName(wx.Panel, DefaultOperationUI):
         self._sizer.Add(self.text)
 
     def _run_count(self, _):
+
+        block_version = self.world.level_wrapper.version
+
+        block_platform = "universal"
+
         matrials = collections.defaultdict(list)
         selection = self.canvas.selection.selection_group.selection_boxes
         text = ''
         print('ok')
         for g in selection:
             for b in g:
-                name = self.world.get_block(b[0],b[1],b[2],self.canvas.dimension)
-
+                name, ent = self.world.get_version_block(b[0],b[1],b[2],self.canvas.dimension, (block_platform, block_version))
                 clean_name = str(name.properties.get('material')).replace('None', '')
-                clean_name = str(name.properties.get('plant_type')).replace('None', '')
+                clean_name += str(name.properties.get('plant_type')).replace('None', '')
                 if clean_name != '':
                     clean_name += ' '
                 clean_name +=  name.base_name
-                if name.base_name == 'sand':
-                    print(name.properties)
+                print(name.properties)
                 # clean_name_t = name.replace("[material=\""," ").replace('",type="bottom"]','').replace('",type="top"]','')\
                 #     .replace('[color="',' ').replace('"]', '').replace("[",' ').replace('"','').replace('east','')\
                 #                  .replace('north','').replace('south','').replace('west','').replace('=','')\
