@@ -40,9 +40,12 @@ class PluginClassName(wx.Panel, DefaultOperationUI):
                 name = self.world.get_block(b[0],b[1],b[2],self.canvas.dimension)
 
                 clean_name = str(name.properties.get('material')).replace('None', '')
+                clean_name = str(name.properties.get('plant_type')).replace('None', '')
                 if clean_name != '':
                     clean_name += ' '
                 clean_name +=  name.base_name
+                if name.base_name == 'sand':
+                    print(name.properties)
                 # clean_name_t = name.replace("[material=\""," ").replace('",type="bottom"]','').replace('",type="top"]','')\
                 #     .replace('[color="',' ').replace('"]', '').replace("[",' ').replace('"','').replace('east','')\
                 #                  .replace('north','').replace('south','').replace('west','').replace('=','')\
@@ -50,7 +53,7 @@ class PluginClassName(wx.Panel, DefaultOperationUI):
                 #                    .replace('{','').replace('age','').replace('halflower','').replace('halfupper','').replace(' ','')\
                 #                .replace('fallingflowinglevel','')+": "
                 # clean_name = re.sub(r'[0-9]+', '', clean_name_t)
-                print(name)
+                #print(name)
                 matrials[clean_name].append(clean_name)
         for x in matrials.keys():
             text += str(x)  +" " + str(len(matrials[x])) + "\n"
@@ -60,9 +63,11 @@ class PluginClassName(wx.Panel, DefaultOperationUI):
     def bind_events(self):
         super().bind_events()
         self._selection.bind_events()
+        self._selection.enable()
 
     def enable(self):
         self._selection = BlockSelectionBehaviour(self.canvas)
+        self._selection.enable()
     pass
 
 
