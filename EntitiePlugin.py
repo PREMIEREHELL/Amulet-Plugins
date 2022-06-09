@@ -141,8 +141,8 @@ class BedRock(wx.Panel):
                         d = int(1).to_bytes(4, 'little', signed=True)
                     key = b'digp' + cx + cz + d  # build the digp key for the chunk
                     try:
-                        if self.world.level_wrapper._level_manager._db.get(key):
-                            data = self.world.level_wrapper._level_manager._db.get(key)
+                        if self.level_db.get(key):
+                            data = self.level_db.get(key)
                             for CntB in range(0, len(data), 8):  # the actorprefix keys are every 8 bytes , build a list
                                 prefixList.append(b'actorprefix' + data[CntB:CntB + 8])
                             pdig_to_delete.append(key)
@@ -150,9 +150,9 @@ class BedRock(wx.Panel):
                         print(e)
 
             for pkey in prefixList:
-                self.world.level_wrapper._level_manager._db.delete(pkey)
+                self.level_db.delete(pkey)
             for pdig_d in pdig_to_delete:
-                self.world.level_wrapper._level_manager._db.delete(pdig_d)
+                self.level_db.delete(pdig_d)
         else:
             for x, z in all_chunks:
                 if (x,z) not in selected:
@@ -633,9 +633,9 @@ class BedRock(wx.Panel):
                         dig_byte_list += new_prefix[len(b'actorprefix'):]
                         final_data = amulet_nbt.NBTFile(ent_data).save_to(compressed=False, little_endian=True)
                         print(new_prefix, final_data)
-                        self.world.level_wrapper._level_manager._db.put(new_prefix, final_data)
+                        self.level_db.put(new_prefix, final_data)
 
-                    self.world.level_wrapper._level_manager._db.put(key, dig_byte_list)
+                    self.level_db.put(key, dig_byte_list)
 
             else:
                 cnt = 0
@@ -1061,6 +1061,20 @@ class BedRock(wx.Panel):
                         actor_key = self.uuid_to_storage_key(nbt)
                         self.actors[actor_key].append(nbt.to_snbt(1))
                         self.digp[(cx, cz, dim)].append(actor_key)
+
+    def _delete_all_the_dead(self, _):
+        self._set_list_of_actors_digp
+        self.the_dead = collections.defaultdict(list)
+        count_deleted = 0
+        for dv in self.actors.keys():
+            if dv not in self.not_to_remove:
+                key = b''.join([b'actorprefix', struct.pack('>II', dv[0], dv[1])])
+                self.level_db.delete(key)
+                count_deleted +=1
+        self.ui_entitie_choice_list.Set([])
+        EntitiePlugin.Onmsgbox(self,"DELETED",f"Deleted {count_deleted} ghosted entities . ")
+
+
 
 
     def _list_the_dead(self, _):
@@ -1953,11 +1967,11 @@ class EntitiePlugin(wx.Panel, DefaultOperationUI):
         self.right_sizer = wx.BoxSizer(wx.VERTICAL)
 
         self.bottom_h = wx.BoxSizer(wx.HORIZONTAL)
-        self.top_sizer = wx.GridSizer(4, 3, 0, 1)
-        self.button_group_one = wx.GridSizer(0, 2, 0, 1)
-        self.button_group_two = wx.GridSizer(0, 3, 0, 1)
-        self.button_group_three = wx.GridSizer(0, 2, 0, 1)
-        self.button_group_four = wx.GridSizer(0, 4, 1, -1)
+        self.top_sizer = wx.GridSizer(4, 3, 0, -1)
+        self.button_group_one = wx.GridSizer(2, 2, 0, -20)
+        self.button_group_two = wx.GridSizer(0, 3, 0,  1)
+        self.button_group_three = wx.GridSizer(0, 2, 0, -1)
+        self.button_group_four = wx.GridSizer(0, 4, 1, 1)
 
         self.SetSizer(self._sizer_v_main)
         self.operation.filter_include_label = wx.StaticText(self, label=" Include Filter:", size=(76,25))
@@ -1966,9 +1980,9 @@ class EntitiePlugin(wx.Panel, DefaultOperationUI):
         self.operation.include_filter = wx.TextCtrl(self, style=wx.TE_LEFT, size=(120, 25))
 
         self.button_group_four.Add(self.operation.filter_include_label)
-        self.button_group_four.Add(self.operation.include_filter, 0, wx.LEFT, -20)
+        self.button_group_four.Add(self.operation.include_filter, 3, wx.LEFT, -20)
         self.button_group_four.Add(self.operation.filter_exclude_label)
-        self.button_group_four.Add(self.operation.exclude_filter,0, wx.LEFT, -20)
+        self.button_group_four.Add(self.operation.exclude_filter,3, wx.LEFT, -20)
         self.font_ex_in = wx.Font(12, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_MAX, wx.FONTWEIGHT_BOLD)
         self.operation.exclude_filter.SetForegroundColour((0,  0, 0))
         self.operation.exclude_filter.SetBackgroundColour((255, 0, 0))
@@ -2045,36 +2059,42 @@ class EntitiePlugin(wx.Panel, DefaultOperationUI):
         self.operation._Y.SetFont(self.font_ex_in)
         self.operation._Z.SetFont(self.font_ex_in)
 
-        self.top_sizer.Add(self.delete_unselected)
-        self.top_sizer.Add(self.operation._imp_button)
-        self.button_group_three.Add(self._get_button)
-        self.button_group_three.Add(self._get_all_button)
-        self.top_sizer.Add(self.button_group_three)
+        self.top_sizer.Add(self.delete_unselected,0 ,wx.TOP, 5)
+        self.top_sizer.Add(self.operation._imp_button,0 ,wx.TOP, 5)
+        self.button_group_three.Add(self._get_button,0 ,wx.TOP, 5)
+        self.button_group_three.Add(self._get_all_button ,0 ,wx.TOP, 5)
+        self.top_sizer.Add(self.button_group_three,0 ,wx.TOP, 1)
 
         self.top_sizer.Add(self.delete_selected)
 
         self.top_sizer.Add(self.operation._exp_button)
-        self.top_sizer.Add(self._set_button)
+        self.top_sizer.Add(self._set_button )
 
-        self.top_sizer.Add(self.operation._X)
-        self.top_sizer.Add(self.operation._Y)
-        self.top_sizer.Add(self.operation._Z)
+        self.top_sizer.Add(self.operation._X ,0 ,wx.TOP, -5)
+        self.top_sizer.Add(self.operation._Y,0 ,wx.TOP, -5)
+        self.top_sizer.Add(self.operation._Z,0 ,wx.TOP, -5)
+        self.del_ghosts = wx.Button(self, label="Delete All", size=(60, 20))
+        self.del_ghosts.SetToolTip("Delete all dead unlinked entities.")
+        self.del_ghosts.Bind(wx.EVT_BUTTON, lambda event: self.operation._delete_all_the_dead(event))
         self.button_group_one.Add(self.list_dead)
-        self.button_group_one.Add(self.make_undead, 0 ,wx.LEFT,-10)
+        self.button_group_one.Add(self.make_undead)
+        self.button_group_one.Add(self.del_ghosts)
         if self.world.level_wrapper.platform == "bedrock":
             if self.world.level_wrapper.version < (1, 18, 30, 4, 0):
                 self.list_dead.Hide()
                 self.make_undead.Hide()
+                self.del_ghosts.Hide()
         elif self.world.level_wrapper.platform == "java":
             self.list_dead.Hide()
             self.make_undead.Hide()
-        self.top_sizer.Add(self.button_group_one)
-        self.top_sizer.Add(self._teleport_check)
+            self.del_ghosts.Hide()
+        self.top_sizer.Add(self.button_group_one,0 ,wx.TOP, -10)
+        self.top_sizer.Add(self._teleport_check, 0 ,wx.LEFT, 7)
 
         self.button_group_two.Add(self._move)
         self.button_group_two.Add(self._copy)
         self.button_group_two.Add(self._delete)
-        self.top_sizer.Add(self.button_group_two)
+        self.top_sizer.Add(self.button_group_two )
 
         self._snbt_edit_data = wx.TextCtrl(self, style=wx.TE_MULTILINE, size=(280, 650))
         self._snbt_edit_data.SetFont(self.font)
@@ -2370,4 +2390,4 @@ class ExportImportCostomDialog(wx.Dialog):
         self.nbt_file_option.SetValue(False)
         self.Destroy()
 
-export = dict(name="# The Entitie's Plugin v1.01", operation=EntitiePlugin) #PremiereHell
+export = dict(name="# The Entitie's Plugin v1.02", operation=EntitiePlugin) #PremiereHell
