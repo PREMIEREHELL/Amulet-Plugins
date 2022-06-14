@@ -1,3 +1,4 @@
+import math
 from typing import TYPE_CHECKING, Tuple
 
 import amulet_nbt
@@ -11,7 +12,7 @@ import os
 import string
 import os.path
 from os import path
-
+import math
 from distutils.version import LooseVersion, StrictVersion
 from amulet.api.data_types import Dimension
 from amulet.api.selection import SelectionGroup
@@ -79,7 +80,7 @@ class SetBlock(wx.Panel, DefaultOperationUI):
         options = self._load_options({})
         top_sizer = wx.BoxSizer(wx.VERTICAL)
         side_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.font = wx.Font(16, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        self.font = wx.Font(13, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
         self._sizer.Add(side_sizer, 1, wx.TOP | wx.LEFT, 0)
         self._sizer.Add(top_sizer, 0, wx.TOP | wx.LEFT, 290)
         # choicebox for operation mode selection.
@@ -104,7 +105,7 @@ class SetBlock(wx.Panel, DefaultOperationUI):
         self.g_merge = wx.Button(self, label="Merge")
         self.g_merge.Bind(wx.EVT_BUTTON, self.merge)
 
-        self.grid = wx.GridSizer(3,2,8,8)
+        self.grid = wx.GridSizer(3,2,12,75)
         self.grid.Add(self.g_save)
         self.grid.Add(self.g_load)
         self.grid.Add(self._run_button)
@@ -200,34 +201,71 @@ class SetBlock(wx.Panel, DefaultOperationUI):
 
     def merge(self, _):
         data = self._location_data.GetValue()
-        dataxyz = data.split("\n")
+        datafixtxt = data.split("\n")
+        data_two = ''
+        data_three = ''
+        start_with_new_line = [x for x in datafixtxt if len(x) == 0]
+        if "/tp" in data or "#" in data or " " in data or len(start_with_new_line) > 0:
+            for i, txt in enumerate(datafixtxt):
+                if not txt.startswith('#'):
+                    if txt != "":
+                        if txt != "\n":
+                            if len(txt) > 5:
+                                data_two += txt.replace("/tp ", "", 1).replace("/tp ", ",").replace(" ", ",") + "\n"
+                if i == len(datafixtxt)-1:
+                    data_two = data_two[:-1]
+            for d in data_two.split('\n'):
+                x, y, z, xx, yy, zz = d.split(",")
+                x, y, z, xx, yy, zz = float(x), float(y), float(z), float(xx), float(yy), float(zz)
+                data_three += f"{math.floor(int(x))},{math.floor(int(y))},{math.floor(int(z))}," \
+                              f"{math.floor(int(xx))},{math.floor(int(yy))},{math.floor(int(zz))}\n"
+            dataxyz = data_three[:-1]
+        else:
+            dataxyz = data
         group = []
-        for d in dataxyz:
+        for d in dataxyz.split("\n"):
             x, y, z, xx, yy, zz = d.split(",")
             group.append(SelectionBox((int(x), int(y), int(z)), (int(xx), int(yy), int(zz))))
         sel = SelectionGroup(group)
-        new_text = ''
-        new_data = sel.merge_boxes()
-        for data  in new_data:
-
-            new_text += f'{data.min[0]},{data.min[1]},{data.min[2]},{data.max[0]},{data.max[1]},{data.max[2]}\n'
-        self._location_data.SetValue(new_text[:-1])
-
+        cleaner = sel.merge_boxes()
+        cleaner_data = ''
+        for data  in cleaner:
+            cleaner_data += f'{data.min[0]},{data.min[1]},{data.min[2]},{data.max[0]},{data.max[1]},{data.max[2]}\n'
+        self._location_data.SetValue(cleaner_data[:-1])
 
     def _run_operation(self, _):
 
         data = self._location_data.GetValue()
-        dataxyz = data.split("\n")
-
+        datafixtxt = data.split("\n")
+        data_two = ''
+        data_three = ''
+        start_with_new_line = [x for x in datafixtxt if len(x) == 0]
+        print(start_with_new_line)
+        if "/tp" in data or "#" in data or " " in data or len(start_with_new_line) > 0:
+            for i, txt in enumerate(datafixtxt):
+                if not txt.startswith('#'):
+                    if txt != "":
+                        if txt != "\n":
+                            if len(txt) > 5:
+                                data_two += txt.replace("/tp ", "", 1).replace("/tp ", ",").replace(" ", ",") + "\n"
+                if i == len(datafixtxt) - 1:
+                    data_two = data_two[:-1]
+            for d in data_two.split('\n'):
+                x, y, z, xx, yy, zz = d.split(",")
+                x, y, z, xx, yy, zz = float(x), float(y), float(z), float(xx), float(yy), float(zz)
+                data_three += f"{math.floor(int(x))},{math.floor(int(y))},{math.floor(int(z))}," \
+                              f"{math.floor(int(xx))},{math.floor(int(yy))},{math.floor(int(zz))}\n"
+            dataxyz = data_three[:-1]
+        else:
+            dataxyz = data
         group = []
-        for d in dataxyz:
-            x,y,z,xx,yy,zz = d.split(",")
-            group.append(SelectionBox((int(x),int(y),int(z)),(int(xx),int(yy),int(zz))))
+        for d in dataxyz.split("\n"):
+            x, y, z, xx, yy, zz = d.split(",")
+            group.append(SelectionBox((int(x), int(y), int(z)), (int(xx), int(yy), int(zz))))
         sel = SelectionGroup(group)
-        print(sel.merge_boxes())
-        self.canvas.selection.set_selection_group(sel.merge_boxes())
-
+        cleaner = sel.merge_boxes()
+        self.canvas.selection.set_selection_group(cleaner)
 
     pass
 
-export = dict(name="Multi Selection Tool, v1.22", operation=SetBlock) #By PremiereHell
+export = dict(name="Multi Selection Tool, v1.23", operation=SetBlock) #By PremiereHell
