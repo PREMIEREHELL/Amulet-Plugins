@@ -85,7 +85,7 @@ class SetBlock(wx.Panel, DefaultOperationUI):
         # choicebox for operation mode selection.
 
         self._run_button = wx.Button(self, label="Set Selection Boxs")
-        self.info = wx.StaticText(self, label="Each line = x,y,z,x,y,z ")
+        self.info = wx.StaticText(self, label="Each line = x,y,z,x,y,z \n Hold Ctrl for muti Selections ")
         self._run_button.Bind(wx.EVT_BUTTON, self._run_operation)
         self.info.SetFont(self.font)
 
@@ -95,7 +95,7 @@ class SetBlock(wx.Panel, DefaultOperationUI):
         # self.sel.Bind(wx.EVT_BUTTON, self._sel)
         # side_sizer.Add(self.sel, 10, wx.TOP | wx.LEFT, 5)
 
-        self.gsel = wx.Button(self, label="Get Selection")
+        self.gsel = wx.Button(self, label="Get Selection /'s")
         self.gsel.Bind(wx.EVT_BUTTON, self._gsel)
         self.g_save = wx.Button(self, label="Save")
         self.g_save.Bind(wx.EVT_BUTTON, self.save_data)
@@ -212,7 +212,7 @@ class SetBlock(wx.Panel, DefaultOperationUI):
 
             new_text += f'{data.min[0]},{data.min[1]},{data.min[2]},{data.max[0]},{data.max[1]},{data.max[2]}\n'
         self._location_data.SetValue(new_text[:-1])
-       
+
 
     def _run_operation(self, _):
 
