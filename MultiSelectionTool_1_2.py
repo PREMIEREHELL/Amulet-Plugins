@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Tuple
 
 import amulet_nbt
 from amulet.api.wrapper import Interface, EntityIDType, EntityCoordType
-
+import re
 import numpy
 import urllib.request
 import wx
@@ -85,8 +85,11 @@ class SetBlock(wx.Panel, DefaultOperationUI):
         self._sizer.Add(top_sizer, 0, wx.TOP | wx.LEFT, 290)
         # choicebox for operation mode selection.
 
-        self._run_button = wx.Button(self, label="Set Selection Boxs")
-        self.info = wx.StaticText(self, label="Each line = x,y,z,x,y,z \n Hold Ctrl for muti Selections ")
+        self._run_button = wx.Button(self, label="Set \n Selection Boxs")
+        self.info = wx.StaticText(self, label="Need groups of 6 values! \n"
+                                              "Corners Side X,Y,Z, OtherSide X,Y,Z \n "
+                                              "0,0,0,1,1,1 & 1,1,1,0,0,0 Same Block at 0,0,0\n"
+                                              " Hold Ctrl for muti Selections ")
         self._run_button.Bind(wx.EVT_BUTTON, self._run_operation)
         self.info.SetFont(self.font)
 
@@ -96,16 +99,16 @@ class SetBlock(wx.Panel, DefaultOperationUI):
         # self.sel.Bind(wx.EVT_BUTTON, self._sel)
         # side_sizer.Add(self.sel, 10, wx.TOP | wx.LEFT, 5)
 
-        self.gsel = wx.Button(self, label="Get Selection /'s")
+        self.gsel = wx.Button(self, label="Get \n Selection /'s")
         self.gsel.Bind(wx.EVT_BUTTON, self._gsel)
         self.g_save = wx.Button(self, label="Save")
         self.g_save.Bind(wx.EVT_BUTTON, self.save_data)
         self.g_load = wx.Button(self, label="Load")
         self.g_load.Bind(wx.EVT_BUTTON, self.load_data)
-        self.g_merge = wx.Button(self, label="Merge")
+        self.g_merge = wx.Button(self, label="Merge Duplicate\n *Removes Text")
         self.g_merge.Bind(wx.EVT_BUTTON, self.merge)
 
-        self.grid = wx.GridSizer(3,2,12,75)
+        self.grid = wx.GridSizer(3,2,8,80)
         self.grid.Add(self.g_save)
         self.grid.Add(self.g_load)
         self.grid.Add(self._run_button)
@@ -201,29 +204,25 @@ class SetBlock(wx.Panel, DefaultOperationUI):
 
     def merge(self, _):
         data = self._location_data.GetValue()
-        datafixtxt = data.split("\n")
-        data_two = ''
-        data_three = ''
-        start_with_new_line = [x for x in datafixtxt if len(x) == 0]
-        if "/tp" in data or "#" in data or " " in data or len(start_with_new_line) > 0:
-            for i, txt in enumerate(datafixtxt):
-                if not txt.startswith('#'):
-                    if txt != "":
-                        if txt != "\n":
-                            if len(txt) > 5:
-                                data_two += txt.replace("/tp ", "", 1).replace("/tp ", ",").replace(" ", ",") + "\n"
-                if i == len(datafixtxt)-1:
-                    data_two = data_two[:-1]
-            for d in data_two.split('\n'):
-                x, y, z, xx, yy, zz = d.split(",")
-                x, y, z, xx, yy, zz = float(x), float(y), float(z), float(xx), float(yy), float(zz)
-                data_three += f"{math.floor(int(x))},{math.floor(int(y))},{math.floor(int(z))}," \
-                              f"{math.floor(int(xx))},{math.floor(int(yy))},{math.floor(int(zz))}\n"
-            dataxyz = data_three[:-1]
-        else:
-            dataxyz = data
+        prog = re.compile(r'([-+]?\d[\d+]*)(?:\.\d+)?',flags=0) #(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?  r'[-+]?[^(\.\d*)](\d+)+'
+        result = prog.findall(data)
+        lenofr = len(result)
+        cnt = 0
+        new_data = ''
+        for i, x in enumerate(result):
+            cnt += 1
+            if cnt < 6:
+                new_data += str(int(x))+", "
+            else:
+                new_data += str(int(x))+'\n'
+                cnt = 0
+                lenofr -= 6
+                if not lenofr > 5:
+                    break
+        sp = new_data[:-1]
+        #self._location_data.SetValue(sp)
         group = []
-        for d in dataxyz.split("\n"):
+        for d in sp.split("\n"):
             x, y, z, xx, yy, zz = d.split(",")
             group.append(SelectionBox((int(x), int(y), int(z)), (int(xx), int(yy), int(zz))))
         sel = SelectionGroup(group)
@@ -234,37 +233,33 @@ class SetBlock(wx.Panel, DefaultOperationUI):
         self._location_data.SetValue(cleaner_data[:-1])
 
     def _run_operation(self, _):
-
         data = self._location_data.GetValue()
-        datafixtxt = data.split("\n")
-        data_two = ''
-        data_three = ''
-        start_with_new_line = [x for x in datafixtxt if len(x) == 0]
-        print(start_with_new_line)
-        if "/tp" in data or "#" in data or " " in data or len(start_with_new_line) > 0:
-            for i, txt in enumerate(datafixtxt):
-                if not txt.startswith('#'):
-                    if txt != "":
-                        if txt != "\n":
-                            if len(txt) > 5:
-                                data_two += txt.replace("/tp ", "", 1).replace("/tp ", ",").replace(" ", ",") + "\n"
-                if i == len(datafixtxt) - 1:
-                    data_two = data_two[:-1]
-            for d in data_two.split('\n'):
-                x, y, z, xx, yy, zz = d.split(",")
-                x, y, z, xx, yy, zz = float(x), float(y), float(z), float(xx), float(yy), float(zz)
-                data_three += f"{math.floor(int(x))},{math.floor(int(y))},{math.floor(int(z))}," \
-                              f"{math.floor(int(xx))},{math.floor(int(yy))},{math.floor(int(zz))}\n"
-            dataxyz = data_three[:-1]
-        else:
-            dataxyz = data
+        prog = re.compile(r'([-+]?\d[\d+]*)(?:\.\d+)?',
+                          flags=0)  # (?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?  r'[-+]?[^(\.\d*)](\d+)+'
+        result = prog.findall(data)
+        lenofr = len(result)
+        cnt = 0
+        new_data = ''
         group = []
-        for d in dataxyz.split("\n"):
+        for i, x in enumerate(result):
+            cnt += 1
+            if cnt < 6:
+                new_data += str(int(x)) + ", "
+            else:
+                new_data += str(int(x)) + '\n'
+                cnt = 0
+                lenofr -= 6
+                if not lenofr > 5:
+                    break
+        new_data = new_data[:-1]
+        for d in new_data.split("\n"):
             x, y, z, xx, yy, zz = d.split(",")
             group.append(SelectionBox((int(x), int(y), int(z)), (int(xx), int(yy), int(zz))))
         sel = SelectionGroup(group)
         cleaner = sel.merge_boxes()
         self.canvas.selection.set_selection_group(cleaner)
+
+
 
     pass
 
