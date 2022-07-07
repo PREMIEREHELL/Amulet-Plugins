@@ -122,7 +122,6 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
             tfile.close()
         yield 1
 
-
     def run_restore(self):
 
         fdlg = wx.FileDialog(self, "Restore sublayers", "", "",
@@ -147,9 +146,6 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
         self.canvas.run_operation(self.run_restore, "Restoring Data", "Restoring...")
         self.canvas.renderer.render_world._rebuild()
 
-
-
-
     def _refresh_chunk(self, _):
         self.set_seed(_)
         self.world.save()
@@ -161,7 +157,8 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
 
         self.world.purge()
         self.canvas.renderer.render_world._rebuild()
-        wx.MessageBox("It Worked"
+        print(self.donechunks, "The Last Chunk Just If it had an error check it out.")
+        wx.MessageBox("If you Had no errors It Worked "
                       "\n Close World and Open in Minecraft", "IMPORTANT",
                       wx.OK | wx.ICON_INFORMATION)
 
@@ -182,6 +179,7 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
         total = len(self.all_chunks)
         count = 0
         loaction_dict = collections.defaultdict(list)
+
         if self.world.level_wrapper.platform == "java":
 
             for xx, zz in self.all_chunks:
@@ -247,12 +245,14 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
                 subchunks = {}
                 chunk_data = {}
                 heigh_next_layer = []
-
+                self.donechunks = []
+                self.donechunks.append((xx, zz, "CHUNK !!!!!", world_utils.chunk_coords_to_block_coords(xx,zz)))
                 for k, v in self.world.level_wrapper.level_db.iterate(start=chunkkey + b'\x2f\x00',
                                                                       end=chunkkey + b'\x2f\xff\xff'):
                     if self._save_backup.GetValue():
                         if struct.unpack('b', k[-1::])[0] <= 0:
                             self.save_data[k] = v
+                    #v = v[0:2] + v[3:]
                     chunk_data[struct.unpack('b', k[-1::])[0]] = v
                 key_s = [k for k in sorted(chunk_data.keys(), reverse=False)]
                 self.height = numpy.frombuffer(numpy.zeros(512, 'b'), "<i2").reshape((16, 16))
@@ -286,7 +286,7 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
                     header, lays = b'', 1
                     if len(extra_blk) > 0:
                         lays = 2
-                    if self.world.level_wrapper.version > (1, 17, 30, 0):
+                    if self.v_byte > 8:
                         header = struct.pack('bbb', self.v_byte, lays, y_level)
                     else:
                         header = struct.pack('bb', self.v_byte, lays)
@@ -321,9 +321,6 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
             dim = 'DIM-1'
         elif 'minecraft:overworld' in self.canvas.dimension:
             dim = ''
-        # if self.world.level_wrapper.version >= 2730:
-        #     version = "entities"
-        # else:
         version = "region"
         full_path =  os.path.join(path,dim,version,file)
         return full_path
@@ -383,9 +380,9 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
     def get_pallets_and_extra(self, raw_sub_chunk):
 
         block_pal_dat, block_bits, bpv = self.get_blocks(raw_sub_chunk)
-        if bpv < 1:
+        if bpv < 1 :
             pallet_size = 1
-            pallet_size, pallet_data, off =1, block_pal_dat, 0
+            pallet_size, pallet_data, off = 1, block_pal_dat, 0
         else:
             pallet_size, pallet_data, off = struct.unpack('<I', block_pal_dat[:4])[0], block_pal_dat[4:], 0
         blocks = []
@@ -394,7 +391,6 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
         extra_pnt_bits = None
 
         for x in range(pallet_size):
-            print(pallet_size,x, "count", pallet_data, raw_sub_chunk, block_bits)
             nbt, p = amulet_nbt.load(pallet_data, little_endian=True, offset=True)
             pallet_data = pallet_data[p:]
             blocks.append(nbt.value)
@@ -402,8 +398,12 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
         extra_blocks = []
         if pallet_data:
             block_pal_dat, extra_block_bits, bpv = self.get_blocks(pallet_data)
+            if bpv < 1 and self.v_byte > 8:
+                pallet_size = 1
+                pallet_size, pallet_data, off = 1, block_pal_dat, 0
+            else:
+                pallet_size, pallet_data, off = struct.unpack('<I', block_pal_dat[:4])[0], block_pal_dat[4:], 0
             extra_pnt_bits = extra_block_bits
-            pallet_size, pallet_data, off = struct.unpack('<I', block_pal_dat[0:4])[0], block_pal_dat[4:], 0
             for aa in range(pallet_size):
                 nbt, p = amulet_nbt.load(pallet_data, little_endian=True, offset=True)
                 pallet_data = pallet_data[p:]
@@ -411,7 +411,7 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
         return blocks, block_pnt_bits, extra_blocks, extra_pnt_bits
 
     def get_blocks(self, raw_sub_chunk):
-        print(raw_sub_chunk)
+
         bpv, rawdata = struct.unpack("b", raw_sub_chunk[0:1])[0] >> 1, raw_sub_chunk[1:]
         if bpv > 0:
             bpw = (32 // bpv)
@@ -430,6 +430,6 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
         return rawdata, block_bits, bpv
 
 
-export = dict(name="Force_Blending v1.00", operation=ForceHeightUpdate) #By PremiereHell
+export = dict(name="Force_Blending v1.02b", operation=ForceHeightUpdate) #By PremiereHell
 
 
