@@ -73,11 +73,8 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
         if self.world.level_wrapper.platform == "bedrock":
             side_sizer.Add(self._save_backup, 0,   wx.LEFT, 11)
             side_sizer.Add(self._restore_button, 0,  wx.LEFT, 11)
-
-
         self.Layout()
         self.Thaw()
-
 
     def bind_events(self):
         super().bind_events()
@@ -179,7 +176,6 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
         total = len(self.all_chunks)
         count = 0
         loaction_dict = collections.defaultdict(list)
-
         if self.world.level_wrapper.platform == "java":
 
             for xx, zz in self.all_chunks:
@@ -216,8 +212,8 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
                 self.level_db.delete(b'LevelChunkMetaDataDictionary')
             except Exception as e:
                 print("B", e)
-            for xx, zz in self.all_chunks:
 
+            for xx, zz in self.all_chunks:
                 count += 1
                 yield count / total, f"Chunk: {xx, zz} Done.... {count} of {total}"
                 chunkkey = struct.pack('<ii', xx, zz)
@@ -247,28 +243,37 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
                 heigh_next_layer = []
                 self.donechunks = []
                 self.donechunks.append((xx, zz, "CHUNK !!!!!", world_utils.chunk_coords_to_block_coords(xx,zz)))
+                new_air = amulet_nbt.from_snbt(
+                    '{name: "minecraft:air", states: {}, version: 17879555}')
+                new_block = amulet_nbt.from_snbt(
+                    '{name: "minecraft:bedrock", states: {"infiniburn_bit": 0b}, version: 17879555}')
                 for k, v in self.world.level_wrapper.level_db.iterate(start=chunkkey + b'\x2f\x00',
                                                                       end=chunkkey + b'\x2f\xff\xff'):
                     if self._save_backup.GetValue():
                         if struct.unpack('b', k[-1::])[0] <= 0:
                             self.save_data[k] = v
-                    #v = v[0:2] + v[3:]
                     chunk_data[struct.unpack('b', k[-1::])[0]] = v
+                    self.v_byte = v[0]
                 key_s = [k for k in sorted(chunk_data.keys(), reverse=False)]
                 self.height = numpy.frombuffer(numpy.zeros(512, 'b'), "<i2").reshape((16, 16))
-
                 for y_ld in key_s.copy():
 
                     if y_ld < 0:
                         self.level_db.delete(chunkkey + b'/' + struct.pack('b', y_ld))
                         key_s.remove(y_ld)
                 min_y, max_y = key_s[-1], key_s[0]
-                for y_level in key_s:
+                if 0 not in chunk_data: #Build the chunk
+                    if self.v_byte > 8:
+                        header_e = struct.pack('bbbb', self.v_byte, 1, 0,0)
+                    else:
+                        header_e = struct.pack('bbb', self.v_byte, 1, 0)#
+                    new_raw_block = amulet_nbt.NBTFile(new_air).save_to(compressed=False, little_endian=True)
+                    chunk_data[0] = header_e  + new_raw_block
+                only_needed_ylevel = (0,)
+                for y_level in only_needed_ylevel:
                     v_off = self.get_v_off(chunk_data[y_level])
                     blocks, block_bits, extra_blk, extra_blk_bits = self.get_pallets_and_extra(
                         chunk_data[y_level][v_off:])
-                    new_block = amulet_nbt.from_snbt(
-                        '{name: "minecraft:bedrock", states: {"infiniburn_bit": 0b}, version: 17879555}')  #
 
                     for x in range(16):
                         for z in range(16):
@@ -430,6 +435,6 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
         return rawdata, block_bits, bpv
 
 
-export = dict(name="Force_Blending v1.02b", operation=ForceHeightUpdate) #By PremiereHell
+export = dict(name="Force_Blending v1.05", operation=ForceHeightUpdate) #By PremiereHell
 
 
