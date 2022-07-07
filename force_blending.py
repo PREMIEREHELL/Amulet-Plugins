@@ -280,33 +280,22 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
                             for y in range(16):
                                 yy = y + (16 * (y_level))
                                 if (x, yy, z) == (x, 0, z):
-
                                     if new_block in blocks:
                                         inx = blocks.index(new_block)
                                     else:
                                         inx = numpy.amax(block_bits) + 1
                                         blocks.append(new_block)
                                     block_bits[x][y][z] = inx
-
-                    header, lays = b'', 1
-                    if len(extra_blk) > 0:
-                        lays = 2
-                    if self.v_byte > 8:
-                        header = struct.pack('bbb', self.v_byte, lays, y_level)
-                    else:
-                        header = struct.pack('bb', self.v_byte, lays)
-
                     for x in range(16):
                         for z in range(16):
                             for y in range(16):
-
                                 if "minecraft:air" not in str(blocks[block_bits[x][y][z]]):
                                     self.height[z][x] = (y + 1) + (
                                                 y_level * 16) + 64  # y + (16 * (key_s.index(y_level) + 1) - 15)
-
-                    final_data = header + b''.join(self.back_2_raw(block_bits, blocks, extra_blk_bits, extra_blk))
+                    final_data = b''.join(self.back_2_raw(block_bits, blocks, extra_blk_bits, extra_blk, y_level))
                     b_layer = struct.pack('b', y_level)
                     self.world.level_wrapper.level_db.put(chunkkey + b'/' + b_layer, final_data)
+
                 biome_key = b''
                 if self.v_byte == 9:
                     biome_key = b'+'
@@ -333,11 +322,18 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
     def cal_height_map(self, data):
         return numpy.frombuffer(data[:512], "<i2").reshape((16, 16))
 
-    def back_2_raw(self, lay_one, pal_one, lay_two, pal_two):
+    def back_2_raw(self, lay_one, pal_one, lay_two, pal_two, y_level):
         block_list = []
         byte_blocks = []
         bytes_nbt = []
         pal_len = []
+        header, lays = b'', 1
+        if len(pal_two) > 0:
+            lays = 2
+        if self.v_byte > 8:
+            header = struct.pack('bbb', self.v_byte, lays, y_level)
+        else:
+            header = struct.pack('bb', self.v_byte, lays)
 
         if len(pal_two) > 0:
             block_list = [lay_one, lay_two]
@@ -376,7 +372,7 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
             compact = numpy.pad(compact, [(0, 0), (32 - bpw * bpv, 0)], "constant", )
             compact = numpy.packbits(compact).view(dtype=">i4").tobytes()
             compact = bytes(reversed(compact))
-            byte_blocks.append(compact_level + compact + struct.pack("<I", pal_len[ii]) + bytes_nbt[ii])
+            byte_blocks.append(header + compact_level + compact + struct.pack("<I", pal_len[ii]) + bytes_nbt[ii])
 
         return byte_blocks
 
@@ -385,7 +381,7 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
     def get_pallets_and_extra(self, raw_sub_chunk):
 
         block_pal_dat, block_bits, bpv = self.get_blocks(raw_sub_chunk)
-        if bpv < 1 :
+        if bpv < 1:
             pallet_size = 1
             pallet_size, pallet_data, off = 1, block_pal_dat, 0
         else:
@@ -403,7 +399,7 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
         extra_blocks = []
         if pallet_data:
             block_pal_dat, extra_block_bits, bpv = self.get_blocks(pallet_data)
-            if bpv < 1 and self.v_byte > 8:
+            if bpv < 1:
                 pallet_size = 1
                 pallet_size, pallet_data, off = 1, block_pal_dat, 0
             else:
@@ -435,6 +431,6 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
         return rawdata, block_bits, bpv
 
 
-export = dict(name="Force_Blending v1.05", operation=ForceHeightUpdate) #By PremiereHell
+export = dict(name="Force_Blending v1.06", operation=ForceHeightUpdate) #By PremiereHell
 
 
