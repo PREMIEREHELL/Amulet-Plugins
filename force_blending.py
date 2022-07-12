@@ -173,6 +173,7 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
             self.all_chunks = [x for x in self.world.level_wrapper.all_chunk_coords(self.canvas.dimension)]
         else:
             self.all_chunks = self.canvas.selection.selection_group.chunk_locations()
+        #self.all_chunks = [(4, 119)]
         total = len(self.all_chunks)
         count = 0
         loaction_dict = collections.defaultdict(list)
@@ -206,6 +207,8 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
                                 nbtdata['DataVersion'] = amulet_nbt.TAG_Int(2860)
                                 self.raw_data.put_chunk_data(cx % 32, cz % 32, nbtdata)
                             self.raw_data.save()
+            yield count / total, f"Chunk: {xx, zz} Done.... {count} of {total}"
+
 
         else:    #BEDROCK
             try:
@@ -215,7 +218,6 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
 
             for xx, zz in self.all_chunks:
                 count += 1
-                yield count / total, f"Chunk: {xx, zz} Done.... {count} of {total}"
                 chunkkey = struct.pack('<ii', xx, zz)
                 try:  # TODO check all and make sure they are needed
                     self.level_db.put(chunkkey + b';', b'')
@@ -242,68 +244,111 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
                 chunk_data = {}
                 heigh_next_layer = []
                 self.donechunks = []
-                self.donechunks.append((xx, zz, "CHUNK !!!!!", world_utils.chunk_coords_to_block_coords(xx,zz)))
+
                 new_air = amulet_nbt.from_snbt(
                     '{name: "minecraft:air", states: {}, version: 17879555}')
                 new_block = amulet_nbt.from_snbt(
                     '{name: "minecraft:bedrock", states: {"infiniburn_bit": 0b}, version: 17879555}')
                 for k, v in self.world.level_wrapper.level_db.iterate(start=chunkkey + b'\x2f\x00',
                                                                       end=chunkkey + b'\x2f\xff\xff'):
-                    if self._save_backup.GetValue():
-                        if struct.unpack('b', k[-1::])[0] <= 0:
-                            self.save_data[k] = v
-                    chunk_data[struct.unpack('b', k[-1::])[0]] = v
+                    #print(v[0], "version")
                     self.v_byte = v[0]
+                    if v[0] > 8:
+                        chunk_data[struct.unpack('b', k[-1::])[0]] = v
+                    if self._save_backup.GetValue():
+                        if v[0] > 8:
+                            if struct.unpack('b', k[-1::])[0] <= 0: #240, 0, 1584
+                                self.save_data[k] = v
+
+                self.donechunks.append(
+                    (xx, zz, "CHUNK !!!!!", world_utils.chunk_coords_to_block_coords(xx, zz), self.v_byte))
                 key_s = [k for k in sorted(chunk_data.keys(), reverse=False)]
                 self.height = numpy.frombuffer(numpy.zeros(512, 'b'), "<i2").reshape((16, 16))
                 for y_ld in key_s.copy():
-
                     if y_ld < 0:
                         self.level_db.delete(chunkkey + b'/' + struct.pack('b', y_ld))
                         key_s.remove(y_ld)
-                min_y, max_y = key_s[-1], key_s[0]
+               # min_y, max_y = key_s[-1], key_s[0]
                 if 0 not in chunk_data: #Build the chunk
-                    if self.v_byte > 8:
+                    if self.v_byte >= 8:
                         header_e = struct.pack('bbbb', self.v_byte, 1, 0,0)
                     else:
                         header_e = struct.pack('bbb', self.v_byte, 1, 0)#
                     new_raw_block = amulet_nbt.NBTFile(new_air).save_to(compressed=False, little_endian=True)
                     chunk_data[0] = header_e  + new_raw_block
                 only_needed_ylevel = (0,)
+                for y_h in chunk_data:
+                    if self.v_byte > 8:
+                        v_off = self.get_v_off(chunk_data[y_h])
+                        blocks, block_bits, extra_blk, extra_blk_bits = self.get_pallets_and_extra(
+                            chunk_data[y_h][v_off:])
+                        for x in range(16):
+                            for z in range(16):
+                                for y in range(16):
+                                    # self.height[z][x] = (y + 1) + (y_h * 16) + 64
+                                    if "minecraft:air" not in str(blocks[block_bits[x][y][z]]):
+                                        self.height[z][x] = (y+1) + (y_h * 16) + 64
+                                        #print((y+1) + (y_h * 16) + 64)
+                                        # else:
+                                        #     self.height[z][x] = (y + 1) + (
+                                        #             y_h * 16)
                 for y_level in only_needed_ylevel:
-                    v_off = self.get_v_off(chunk_data[y_level])
-                    blocks, block_bits, extra_blk, extra_blk_bits = self.get_pallets_and_extra(
-                        chunk_data[y_level][v_off:])
+                    if self.v_byte > 8:
+                        v_off = self.get_v_off(chunk_data[y_level])
+                        blocks, block_bits, extra_blk, extra_blk_bits = self.get_pallets_and_extra(
+                            chunk_data[y_level][v_off:])
 
-                    for x in range(16):
-                        for z in range(16):
-                            for y in range(16):
-                                yy = y + (16 * (y_level))
-                                if (x, yy, z) == (x, 0, z):
-                                    if new_block in blocks:
-                                        inx = blocks.index(new_block)
-                                    else:
-                                        inx = numpy.amax(block_bits) + 1
-                                        blocks.append(new_block)
-                                    block_bits[x][y][z] = inx
-                    for x in range(16):
-                        for z in range(16):
-                            for y in range(16):
-                                if "minecraft:air" not in str(blocks[block_bits[x][y][z]]):
-                                    self.height[z][x] = (y + 1) + (
-                                                y_level * 16) + 64  # y + (16 * (key_s.index(y_level) + 1) - 15)
-                    final_data = b''.join(self.back_2_raw(block_bits, blocks, extra_blk_bits, extra_blk, y_level))
-                    b_layer = struct.pack('b', y_level)
-                    self.world.level_wrapper.level_db.put(chunkkey + b'/' + b_layer, final_data)
+                        for x in range(16):
+                            for z in range(16):
+                                for y in range(16):
+                                    yy = y + (16 * (y_level))
+                                    if (x, yy, z) == (x, 0, z):
+                                        if new_block in blocks:
+                                            inx = blocks.index(new_block)
+                                        else:
+                                            inx = numpy.amax(block_bits) + 1
+                                            blocks.append(new_block)
+                                        block_bits[x][y][z] = inx
+                        # y + (16 * (key_s.index(y_level) + 1) - 15)
+                        final_data = b''.join(self.back_2_raw(block_bits, blocks, extra_blk_bits, extra_blk, y_level))
+                        b_layer = struct.pack('b', y_level)
+                        self.world.level_wrapper.level_db.put(chunkkey + b'/' + b_layer, final_data)
 
-                biome_key = b''
-                if self.v_byte == 9:
-                    biome_key = b'+'
-                else:
-                    biome_key = b'-'
-                biome = self.world.level_wrapper.level_db.get(chunkkey + biome_key)[512:]
-                height = self.height.tobytes()
-                self.world.level_wrapper.level_db.put(chunkkey + biome_key, height + biome)
+                #biome_key = b''
+                # if self.v_byte == 9:
+                #     biome_key = b'+'
+                # else:
+                #     biome_key = b'-'
+                biome_key = b'+'
+                #print(xx, zz, "CHUNK !!!!!", world_utils.chunk_coords_to_block_coords(xx,zz), self.v_byte)
+                if self.v_byte > 8:
+                    try:
+                        # print('Before ', self.world.level_wrapper.level_db.get(chunkkey + biome_key)[:512])
+                        biome = self.world.level_wrapper.level_db.get(chunkkey + biome_key)[512:]
+                        height = self.height.tobytes()
+                        self.world.level_wrapper.level_db.put(chunkkey + biome_key, height + biome)
+                        # print(height, biome_key)
+                        # print("EERRE no + key")
+                    except:
+                        # print("EERRE no + key")
+                        pass
+
+                    # # print("EERRE no - key")
+                    # biome_key = b'-'
+                    # try:
+                    #     biome = self.world.level_wrapper.level_db.get(chunkkey + biome_key)[512:]
+                    #     height = self.height.tobytes()
+                    #     self.world.level_wrapper.level_db.put(chunkkey + biome_key, height + biome)
+                    #     # print(height, biome_key)
+                    # except:
+                    #     # print("EERRE no - key")
+                    # pass
+            yield count / total, f"Chunk: {xx, zz} Done.... {count} of {total}"
+
+
+
+
+
 
     def get_dim_vpath_java_dir(self, regonx,regonz):
         file =  "r." + str(regonx) + "." + str(regonz) + ".mca"
@@ -359,7 +404,8 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
                 bpv = 8
             elif 9 <= bpv <= 15:
                 bpv = 16
-
+            if ii == 1:
+                header = b''
             compact_level = bytes([bpv << 1])
             bpw = (32 // bpv)
             wc = -(-4096 // bpw)
@@ -414,6 +460,7 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
     def get_blocks(self, raw_sub_chunk):
 
         bpv, rawdata = struct.unpack("b", raw_sub_chunk[0:1])[0] >> 1, raw_sub_chunk[1:]
+        #print(bpv)
         if bpv > 0:
             bpw = (32 // bpv)
             wc = -(-4096 // bpw)
@@ -431,6 +478,6 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
         return rawdata, block_bits, bpv
 
 
-export = dict(name="Force_Blending v1.06", operation=ForceHeightUpdate) #By PremiereHell
+export = dict(name="Force_Blending v1.09", operation=ForceHeightUpdate) #By PremiereHell
 
 
