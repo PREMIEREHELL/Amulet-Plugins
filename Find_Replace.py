@@ -1,12 +1,16 @@
 import json
 from typing import TYPE_CHECKING, Tuple
+import amulet_nbt
 from amulet.api.wrapper import Interface, EntityIDType, EntityCoordType
 import wx
 import wx.grid
+import os
+import os.path
+from os import path
 from amulet.api.data_types import Dimension
 from amulet.api.selection import SelectionGroup
 from amulet.api.selection import SelectionBox
-import amulet_nbt as nbt
+from amulet_nbt import *
 from amulet.api.block_entity import BlockEntity
 from amulet_map_editor.api.wx.ui.simple import SimpleDialog
 from amulet_map_editor.api.wx.ui.block_select import BlockDefine
@@ -18,6 +22,7 @@ from amulet.utils import block_coords_to_chunk_coords
 from amulet.api.block import Block
 import PyMCTranslate
 from amulet.libs.leveldb.leveldb import LevelDB
+from pathlib import Path
 from amulet_map_editor.programs.edit.api.behaviour import StaticSelectionBehaviour
 from amulet_map_editor.programs.edit.api.events import EVT_SELECTION_CHANGE
 from amulet_map_editor.programs.edit.api.behaviour import BlockSelectionBehaviour
@@ -26,7 +31,6 @@ from amulet_map_editor.programs.edit.api.behaviour.pointer_behaviour import Poin
 from amulet_map_editor.programs.edit.api.behaviour.pointer_behaviour import PointerBehaviour
 from amulet_map_editor.programs.edit.api.key_config import ACT_BOX_CLICK
 from amulet_map_editor.programs.edit.api.events import (
-    EVT_PASTE,
     InputPressEvent,
     EVT_INPUT_PRESS,
 )
@@ -179,7 +183,7 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
             "Every Chunk": 2
         }
 
-        self.lst_mode = wx.RadioBox(self, label='Select Search Mode', choices=[*self.listSearchType] ,majorDimension=1)
+        self.lst_mode = wx.RadioBox(self, label='Select Search Mode', choices=list(self.listSearchType.keys()),majorDimension=1)
         self.grid_and_text = wx.GridSizer(2, 0,0, 0)
         self.sel = wx.Button(self, label="Un/Select")
         self.sel.Bind(wx.EVT_BUTTON, self._sel)
@@ -189,7 +193,6 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
         self.saveJ.Bind(wx.EVT_BUTTON, self.savejson)
         self.find_rep = wx.Button(self, label="Replace")
         self.find_rep.Bind(wx.EVT_BUTTON, self.findReplace)
-
 
         self.saveload.Add(self.find_rep, 5, wx.TOP, -25)
         self.saveload.Add(self.loadJ, 0, wx.LEFT, -10)
@@ -207,15 +210,9 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
         self._the_data = wx.grid.Grid(self)
         self._the_data.Hide()
         self._sizer.Fit(self)
+
         self.Layout()
         self.Thaw()
-
-    @property
-    def wx_add_options(self): # -> Tuple[int, ...]:
-        return (0,)
-
-    def _cls(self):
-        print("\033c\033[3J", end='')
 
     def _boxUp(self, v):
         def OnClick(event):
@@ -454,13 +451,13 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
             ex_block_name = ""
             enty = str(changedData[x + 4]).split("\n")
             if enty[0] != 'null':
-                snb = "{"+str(changedData[x + 4]).replace("DIR_B\n","{").replace("DIR_E","}") +" }"
+                snb = "{"+str(changedData[x + 4]).replace("DIR_B\n","{").replace("DIR_E","}") +"}"
                 try:
 
-                    the_Ent = BlockEntity("minecraft", row_three[0].replace(",",""), 0, 0, 0, nbt.NBTFile(nbt.from_snbt(snb)))
-                except Exception as err:
-                    wx.MessageBox("error:" + str(err) + " : maybe a Syntax Error in: \n" + snb + " \nMake Sure you have not removed a comma or somthing important \n Use null for None.",
-                                      "Error Applying snbt, please try agian error messase:",  wx.OK | wx.ICON_INFORMATION)
+                    the_Ent = BlockEntity("minecraft", row_three[0].replace(",",""), 0, 0, 0, NBTFile(from_snbt(snb)))
+                except:
+                    wx.MessageBox("Syntax Error in: \n" + snb + " \nMake Sure you have not removed a comma or somthing important \n Use null for None.",
+                                      "Error Applying snbt, please try agian", wx.OK | wx.ICON_INFORMATION)
                     return
             if len(row_three) > 1:
                 org_blk_data = ""
@@ -773,7 +770,7 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
         except:
             pass
 
-        tableCount = int(len(data) / 5)
+        tableCount = int(int(len(data) / 5))
         self._the_data.CreateGrid(tableCount, 5)
         self._the_data.SetRowLabelSize(0)
         self._the_data.SetColLabelValue(0, "x")
@@ -829,6 +826,28 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
         self.frame.Show(True)
         save_close.Show(True)
 
+    def gridTreeClick(self, event):
+        try:
+            self.frame.Hide()
+            self.frame.Close()
+        except:
+            pass
+        self.frame = wx.Frame(self.parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=(400, 700),
+                              style=(
+                                      wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN | wx.FRAME_FLOAT_ON_PARENT),
+                              name="Panel",
+                              title="Cell (Row: " + str(event.GetRow()) + " Col: " + str(event.GetCol()) + ")")
+        sizer_P = wx.BoxSizer(wx.VERTICAL)
+        self.frame.SetSizer(sizer_P)
+        save_close = wx.Button(self.frame, label="save_close")
+        save_close.Bind(wx.EVT_BUTTON, self.ex_save_close(event.GetRow(), event.GetCol()))
+        sizer_P.Add(save_close)
+        self.textGrid = wx.TextCtrl(self.frame, style=wx.TE_MULTILINE | wx.TE_BESTWRAP, size=(400, 750))
+        sizer_P.Add(self.textGrid)
+        self.textGrid.SetValue(self._the_data.GetCellValue(event.GetRow(), event.GetCol()))
+        self.frame.Show(True)
+        save_close.Show(True)
+
     def ex_save_close(self, r,c):
         def OnClick(event):
 
@@ -861,7 +880,7 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
             if Pages[-1][1] < Max:
                 Pages.append((Pages[-1][1], Max))
             self.pg = {"Page: " + str(i): x for i, x in enumerate(Pages)}
-            self.lpage = wx.Choice(self, choices=[*self.pg])
+            self.lpage = wx.Choice(self, choices=list(self.pg))
             self.lpage.Bind(wx.EVT_CHOICE, self.pageContol)
             self.lpage.SetSelection(0)
             self.saveload.Add(self.lpage, 0 ,wx.LEFT,-70)
@@ -891,7 +910,7 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
                  for kkk,vvv in vv.items():
                     Block = str(kkk).replace("[","\n").replace(",","\n").replace("universal_","").replace("minecraft:","").replace("]\n","")
                     if "None" != str(vvv):
-                        Enty = nbt.from_snbt(str(vvv).replace(";B",";")).to_snbt(0).replace("}","DIR_E").replace("{\n","DIR_B\n")\
+                        Enty = amulet_nbt.from_snbt(str(vvv).replace(";B",";")).to_snbt(0).replace("}","DIR_E").replace("{\n","DIR_B\n")\
                         .replace("\"utags\": ","").replace("DIR_B\nDIR_B\n","").replace("DIR_E\nDIR_E\n","")[::-1].replace("E_RID\n","",1).replace("E_RID\n]\n","]",1)[::-1].replace("DIR_B\n","",1)
                     else:
                         Enty = str("null")
@@ -900,4 +919,4 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
 
     pass
 
-export = dict(name="Finder_Replacer v.1.2", operation=Finder_Replacer) #By PremiereHell
+export = dict(name="Finder_Replacer v.1.11", operation=Finder_Replacer) #By PremiereHell
