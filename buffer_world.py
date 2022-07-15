@@ -33,11 +33,12 @@ class Inventory(wx.Panel, DefaultOperationUI):
         top_sizer = wx.BoxSizer(wx.VERTICAL)
         self._sizer.Add(top_sizer)
         self.label_main = wx.StaticText(self, label="Setup a blank world to work with")
-        self.label = wx.StaticText(self, label="Set The Range of chunks to source Its *4: ")
+        self.label = wx.StaticText(self, label="Set The Range of chunks from Source Its Times 4: ")
 
         self.make_world_buffer = wx.Button(self, label="Build Buffer World")
         self.make_world_buffer.Bind(wx.EVT_BUTTON, self.make_world)
-        self.world_load = wx.Button(self, label="Change/Add Source World Location")
+        self.world_load = wx.Button(self, label="Change/Add Source World Location\n"
+                                                "(only needed if you want to make \nexsiting world a buffer world)")
         self.world_load.Bind(wx.EVT_BUTTON, self.operation_run)
         self.keep_chunks = wx.CheckBox(self, label="Keep Previously Sourced Chunks\n"
                                                    "( uncheck to overwrite local from source )")
