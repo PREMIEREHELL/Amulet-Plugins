@@ -237,9 +237,10 @@ class RandomFill(wx.Panel, DefaultOperationUI):
         random.shuffle(selection)
         random.shuffle(blocks)
         rng_inx = 0
-        for s in range(0,len(selection)-1,len(blocks)):
+        for s in range(0,len(selection),len(blocks)):
             for b in range(len(blocks)):
-                print("OK", len(selection), len(blocks), s, b)
+                if rng_inx > len(selection)-1:
+                    break
                 x,y,z = selection[rng_inx][0],selection[rng_inx][1],selection[rng_inx][2]
                 rng_inx +=1
                 self.world.set_version_block(x,y,z,self.canvas.dimension,(platform,version),blocks[b],None)
