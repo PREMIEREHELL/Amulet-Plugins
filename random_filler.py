@@ -225,7 +225,7 @@ class RandomFill(wx.Panel, DefaultOperationUI):
         import random
         platform = self.world.level_wrapper.platform
         version = self.world.level_wrapper.version
-        data = self.snbt_text_data.GetValue().split("\n")
+        data = self.snbt_text_data.GetValue()[:-1].split("\n")
         blocks = []
         for c in range(0,len(data),2):
             blks, props = data[c],data[c+1]
