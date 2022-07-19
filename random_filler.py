@@ -112,11 +112,11 @@ class RandomFill(wx.Panel, DefaultOperationUI):
 
     def get_block(self, event, data, toggle):
         the_snbt = f"{data.block.namespaced_name}" \
-                   f"\n{amulet_nbt.from_snbt(str(data.properties)).to_snbt()}"
+                   f"||{amulet_nbt.from_snbt(str(data.properties)).to_snbt()}"
         self.block_prop.SetValue(the_snbt)
 
 
- 
+
 
 
 
@@ -220,10 +220,15 @@ class RandomFill(wx.Panel, DefaultOperationUI):
         import random
         platform = self.world.level_wrapper.platform
         version = self.world.level_wrapper.version
-        data = self.snbt_text_data.GetValue()[:-1].split("\n")
+        data = self.snbt_text_data.GetValue()
+
+        data = data.split("\n")
+
         blocks = []
-        for c in range(0,len(data),2):
-            blks, props = data[c],data[c+1]
+        for c in range(0,len(data)):
+            if "||" not in data[c]:
+                break
+            blks, props = data[c].split("||")
             blk_space,blk_name = blks.split(":")
             blk = Block(blk_space,blk_name,dict(amulet_nbt.from_snbt(props)))
             blocks.append(blk)
