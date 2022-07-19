@@ -83,7 +83,7 @@ class RandomFill(wx.Panel, DefaultOperationUI):
         self.Thaw()
 
     def set_block(self, event, data ,toggle):
-        self.toggle = toggle
+
         x,y,z =self.canvas.selection.selection_group.min
         block, enty = self.world.get_version_block(x,y,z,self.canvas.dimension,
                 (self.world.level_wrapper.platform, self.world.level_wrapper.version))# self.canvas.selection.selection_group.min
@@ -104,24 +104,19 @@ class RandomFill(wx.Panel, DefaultOperationUI):
             self.extra_block_prop.SetValue(the_snbt)
         self.block_prop.SetValue(the_snbt)
         data.block = block
-        self.toggle = False
+
 
 
 
 
 
     def get_block(self, event, data, toggle):
+        the_snbt = f"{data.block.namespaced_name}" \
+                   f"\n{amulet_nbt.from_snbt(str(data.properties)).to_snbt()}"
+        self.block_prop.SetValue(the_snbt)
 
-        if self.toggle:
-            the_snbt = f"{data.block.namespaced_name}" \
-                       f"\n{amulet_nbt.from_snbt(str(data.properties)).to_snbt()}"
-            self.block_prop.SetValue(the_snbt)
 
-        else:
-            self.toggle_count += 1
-        if self.toggle_count == 2:
-            self.toggle = True
-            self.toggle_count = 0
+ 
 
 
 
