@@ -336,7 +336,7 @@ class Inventory(wx.Panel, DefaultOperationUI):
                     self.world_location = d.read()
 
                 buffer_world = ''.join(self.world_location)
-                os.system(f"cp -rf {self.world.level_wrapper.path}/playerdata {buffer_world}")
+                os.system(f"cp -rf \"{self.world.level_wrapper.path}/playerdata\" \"{buffer_world}\"")
 
 
     def world_load_data(self):
@@ -433,7 +433,7 @@ class Inventory(wx.Panel, DefaultOperationUI):
                 self.Onmsgbox("Chunks Saved to Source", f"Chunks Saved {the_chunks}")
             else: #java
                 buffer_world = ''.join(self.world.level_wrapper.path + "/" + self.get_dim_path_name())
-                os.system(f"cp -rf {buffer_world} {self.world_location}")
+                os.system(f"cp -rf \"{buffer_world}\" \"{self.world_location}\"")
                 #shutil.copytree(buffer_world, source_world)
                 self.Onmsgbox("Chunks Saved to Source", f"Copied {buffer_world} to {source_world}")
 
@@ -530,7 +530,7 @@ class Inventory(wx.Panel, DefaultOperationUI):
                     self.world_location = d.read()
 
                 buffer_world = ''.join(self.world_location + "/entities")
-                os.system(f"cp -rf {buffer_world} {self.world.level_wrapper.path} ")
+                os.system(f"cp -rf \"{buffer_world}\" \"{self.world.level_wrapper.path}\" ")
                 self.Onmsgbox("Entities Added", f"All Entities from source world are now in this world.")
 
 
