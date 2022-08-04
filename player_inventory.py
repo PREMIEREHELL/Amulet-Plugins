@@ -135,11 +135,18 @@ class Inventory(wx.Panel, DefaultOperationUI):
 
         setdata = self._structlist.GetStringSelection()#self._structlist.GetString(self._structlist.GetSelection())
         enS = setdata.encode("utf-8")
-        player = self.level_db.get(enS).replace(b'\x08\n\x00StorageKey\x08\x00', b'\x07\n\x00StorageKey\x08\x00\x00\x00')
-        self.nbt_dic_list = amulet_nbt.load(player, little_endian=True)
-        self.items.SetItems(["EnderChestInventory", "Inventory"])
-        self.items.SetSelection(1)
-        self.snbt_text_data.SetValue(self.nbt_dic_list["Inventory"].to_snbt(1))
+        try:
+            player = self.level_db.get(enS).replace(b'\x08\n\x00StorageKey\x08\x00',
+                                                    b'\x07\n\x00StorageKey\x08\x00\x00\x00')
+            self.nbt_dic_list = amulet_nbt.load(player, little_endian=True)
+            self.items.SetItems(["EnderChestInventory", "Inventory"])
+            self.items.SetSelection(1)
+            self.snbt_text_data.SetValue(self.nbt_dic_list["Inventory"].to_snbt(1))
+        except:
+            self.Onmsgbox("Local Player Does exits", "Open locally In Minecraft to regenerate the player.")
+
+
+
 
 
     def Onmsgbox(self, caption, message):  # message
@@ -211,14 +218,16 @@ class Inventory(wx.Panel, DefaultOperationUI):
 
     def remove_player(self, _):
         if self.world.level_wrapper.platform == "bedrock":
-            theKey = self._run_text.GetValue().encode("utf-8")
+            theKey = self._structlist.GetStringSelection().encode("utf-8")
             wxx = wx.MessageBox("You are going to deleted \n " + str(theKey),
                                 "This can't be undone Are you Sure?", wx.OK | wx.CANCEL | wx.ICON_INFORMATION)
             if wxx == int(16):
                 return
+            print(theKey,type(theKey))
             self.level_db.delete(theKey)
-            wxx = wx.MessageBox("PLAYER " + str(theKey) + " DELETED",
-                                "THis " + str(theKey) + "has been deleted \n ", wx.OK | wx.ICON_INFORMATION)
+            wxx = wx.MessageBox("THis " + str(theKey) + "has been deleted \n  Reload plugin to see changes \n"
+                                                        "Reloading in minecraft will regenerate the player",
+                                "PLAYER " + str(theKey) + " DELETED", wx.OK | wx.ICON_INFORMATION)
         else:
             s_player = self._structlist.GetStringSelection()
             if s_player == '~local_player':
@@ -282,4 +291,4 @@ class Inventory(wx.Panel, DefaultOperationUI):
         else:
             return level_wrapper._level_manager._db
 
-export = dict(name="Players Inventory 2.00", operation=Inventory)
+export = dict(name="Players Inventory 2.01", operation=Inventory)
