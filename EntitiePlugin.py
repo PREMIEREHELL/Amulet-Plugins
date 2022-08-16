@@ -27,7 +27,7 @@ from amulet.level.formats.anvil_world.region import AnvilRegion
 from amulet_map_editor.programs.edit.api.operations import DefaultOperationUI
 from amulet_map_editor.api.wx.ui.base_select import BaseSelect
 from amulet.api.errors import ChunkDoesNotExist
-import amulet_nbt.amulet_cy_nbt as Nbt
+import amulet_nbt as Nbt
 
 if TYPE_CHECKING:
     from amulet.api.level import BaseLevel
@@ -2390,4 +2390,4 @@ class ExportImportCostomDialog(wx.Dialog):
         self.nbt_file_option.SetValue(False)
         self.Destroy()
 
-export = dict(name="# The Entitie's Plugin v1.02", operation=EntitiePlugin) #PremiereHell
+export = dict(name="# The Entitie's Plugin v1.03", operation=EntitiePlugin) #PremiereHell
