@@ -153,6 +153,14 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
         self.Thaw()
 
     @property
+    def level_db(self):
+        level_wrapper = self.world.level_wrapper
+        if hasattr(level_wrapper, "level_db"):
+            return level_wrapper.level_db
+        else:
+            return level_wrapper._level_manager._db
+        
+    @property
     def wx_add_options(self) -> Tuple[int, ...]:
         return (0,)
 
@@ -163,7 +171,7 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
             try:
                 enS = pl.encode("utf-8")
 
-                player = self.world.level_wrapper._level_manager._db.get(enS)
+                player = self.level_db.get(enS)
                 data = amulet_nbt.load(player, little_endian=True)
             except:
                 data = "None"
@@ -276,7 +284,7 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
         pdata['Pos'].append(TAG_Float(float(self.Y.GetValue().replace("f",""))))
         pdata['Pos'].append(TAG_Float(float(self.Z.GetValue().replace("f",""))))
         save = pdata.save_to(compressed=False, little_endian=True)
-        self.world.level_wrapper._level_manager._db.put(player.encode("utf-8"), save)
+        self.level_db.put(player.encode("utf-8"), save)
         wx.MessageBox(player +"\nPersonal Mode: "+ mode +"\nLocation is set to\n"+dim.get(int(self.dim.GetSelection()))+" \nX: "
                       +self.X.GetValue().replace("f","")+"\nY: "+ self.Y.GetValue().replace("f","") +"\nZ: "+self.Z.GetValue().replace("f","") +
                       "\nFacing: " + self.facing.GetValue().replace("f", "") +
@@ -368,4 +376,4 @@ class SetPlayer(wx.Panel, DefaultOperationUI):
     pass
 
 
-export = dict(name="Set Position/Re-enable hardcore/achievements V2.0", operation=SetPlayer)  # by PremiereHell
+export = dict(name="Set Position/Re-enable hardcore/achievements V2.1", operation=SetPlayer)  # by PremiereHell
