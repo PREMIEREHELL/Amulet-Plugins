@@ -42,7 +42,6 @@ from amulet_map_editor.programs.edit.api.behaviour.pointer_behaviour import Poin
 from amulet_map_editor.programs.edit.api.behaviour.pointer_behaviour import PointerBehaviour
 from amulet_map_editor.programs.edit.api.key_config import ACT_BOX_CLICK
 from amulet_map_editor.programs.edit.api.events import (
-    EVT_PASTE,
     InputPressEvent,
     EVT_INPUT_PRESS,
 )
