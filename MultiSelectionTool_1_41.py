@@ -377,7 +377,7 @@ class SetBlock(wx.Panel, DefaultOperationUI):
                     xx, yy, zz = glist[-1].point_2
                     yy += 1
                     y += 1
-                    new = SelectionBox((x - 1, y, z + 1), (xx - 1, yy, zz + 1))
+                    new = SelectionBox((x + 1, y, z + 1), (xx + 1, yy, zz + 1))
                     glist.append(new)
                     merg = SelectionGroup(glist).merge_boxes()
                     self.canvas.selection.set_selection_group(merg)
@@ -454,7 +454,7 @@ class SetBlock(wx.Panel, DefaultOperationUI):
                     xx, yy, zz = glist[-1].point_2
                     yy -= 1
                     y -= 1
-                    new = SelectionBox((x - 1, y, z + 1), (xx - 1, yy, zz + 1))
+                    new = SelectionBox((x + 1, y, z + 1), (xx + 1, yy, zz + 1))
                     glist.append(new)
                     merg = SelectionGroup(glist).merge_boxes()
                     self.canvas.selection.set_selection_group(merg)
