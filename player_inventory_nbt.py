@@ -1,3 +1,11 @@
+#By PremiereHell  ,
+# Thanks To Ben #Podshot https://github.com/Podshot ,
+# For the NBT Editor, without his code this would not exist.
+#
+# used some code from the WxPython wiki:
+# Thanks To Rob and Titus for Drag And Drop Sample Code
+# https://wiki.wxpython.org/DragAndDropWithFolderMovingAndRearranging
+# Sample and NBT_Editor Updated and Edited By #PremiereHell
 from __future__ import annotations
 
 import collections
