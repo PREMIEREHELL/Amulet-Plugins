@@ -1326,7 +1326,7 @@ class Inventory(wx.Panel, DefaultOperationUI):
         new_data = NBTEditor.commit(self.snbt_text_data, _)
         if self.world.level_wrapper.platform == "bedrock":
             theKey = self._structlist.GetStringSelection().encode("utf-8")
-            data = new_data.to_snbt()
+            data = new_data[self.items.GetStringSelection()].to_snbt()
 
             try:
                 selcted = self.items.GetStringSelection()
@@ -1341,7 +1341,7 @@ class Inventory(wx.Panel, DefaultOperationUI):
 
 
         else:
-            data = new_data.to_snbt()
+            data = new_data[self.items.GetStringSelection()].to_snbt()
             selection = self.items.GetStringSelection()
             s_player = self._structlist.GetStringSelection()
             if s_player == '~local_player':
