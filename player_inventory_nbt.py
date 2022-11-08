@@ -1476,4 +1476,4 @@ class Inventory(wx.Panel, DefaultOperationUI):
         else:
             return level_wrapper._level_manager._db
 
-export = dict(name="Players Inventory 3.00b", operation=Inventory)
+export = dict(name="Players Inventory 3.01b", operation=Inventory)
