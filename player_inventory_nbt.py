@@ -459,7 +459,10 @@ class NBTEditor(wx.Panel):
                             inner_child, cc = tree.GetFirstChild(child)
                             if inner_child.IsOk():
                                 for xx in range(fcnt):
-                                    k, v = tree.GetItemData(inner_child)
+                                    if isinstance(tree.GetItemData(inner_child), tuple):
+                                        k, v = tree.GetItemData(inner_child)
+                                    else:
+                                        v = tree.GetItemData(inner_child)
                                     if v == nbt.ListTag:
                                         temp_comp[k] = is_list(inner_child, da_nbt)
                                     elif v == nbt.CompoundTag:
@@ -1336,4 +1339,4 @@ class Inventory(wx.Panel, DefaultOperationUI):
         else:
             return level_wrapper._level_manager._db
 
-export = dict(name="Players Inventory 3.03b", operation=Inventory)
+export = dict(name="Players Inventory 3.03.1b", operation=Inventory)
