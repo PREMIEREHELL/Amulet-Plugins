@@ -163,7 +163,7 @@ class SmallEditDialog(wx.Frame):
         self.Centre(50)
         self.image_map = image_map
         self.tree = tree
-        self.tree.nbt_data = self.tree.get_root_nbt()
+        #self.tree.nbt_data = self.tree.get_root_nbt()
 
         self.text = self.tree.GetItemText(item)
         self.data = self.tree.GetItemData(item)
@@ -395,7 +395,7 @@ class NBTEditor(wx.Panel):
         wx.Panel.__init__(self, parent)
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(self.sizer)
-        self.SetSize(600, 650)
+      #  self.SetSize(600, 650)
         self.nbt_new = nbt.CompoundTag()
         self.nbt_data = nbt_data
         self.copy_data = None
@@ -598,7 +598,7 @@ class NBTEditor(wx.Panel):
         font = wx.Font(15, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_MAX, wx.FONTWEIGHT_BOLD)
 
         tree.SetFont(font)
-        tree.SetSize(500,500)
+        #tree.SetSize(500,500)
         tree.AssignImageList(self.image_list)
         root_tag_name = f"{len(self.nbt_data)} entries"
         root = tree.AddRoot(root_tag_name)
@@ -729,6 +729,7 @@ class NBTEditor(wx.Panel):
             else:
                  data = tag_type()
             if continues:
+                data = tag_type()
                 self.has_list_type = str(type(data)).split(".")[-1][:-2]
                 try:
                     self.edit_dialog.Destroy()
@@ -799,7 +800,7 @@ class NBTEditor(wx.Panel):
     def _generate_menu(self, include_add_tag=False):
         menu = wx.Menu()
         s_menu = wx.Menu()
-       
+
         path_list = [ nbt_resources.path +"\\" + x + ".png" for x in dir(nbt_resources) ]
         menu_items = [
             wx.MenuItem(menu, text="Edit Tag", id=wx.ID_ANY),
@@ -1042,20 +1043,20 @@ class Inventory(wx.Panel, DefaultOperationUI):
         self.SetSizer(self._sizer)
 
         self.font = wx.Font(11, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
-        top_sizer = wx.BoxSizer(wx.VERTICAL)
-        side_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        bottom_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.top_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.side_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.bottom_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self._sizer.Add(side_sizer, 1, wx.TOP | wx.LEFT, 0)
-        self._sizer.Add(top_sizer)
-        self._sizer.Add(bottom_sizer, 1, wx.BOTTOM | wx.LEFT,2)
+        self._sizer.Add(self.side_sizer, 1, wx.TOP | wx.LEFT, 0)
+        self._sizer.Add(self.top_sizer)
+        self._sizer.Add(self.bottom_sizer, 1, wx.BOTTOM | wx.LEFT,2)
         self.items = wx.Choice(self, choices=[])
         self.items.Bind(wx.EVT_CHOICE, self.on_item_focus)
 
 
 
         self.info_list = wx.StaticText(self, label="Select A Player")
-        top_sizer.Add(self.info_list, 0, wx.LEFT, 300)
+        self.top_sizer.Add(self.info_list, 0, wx.LEFT, 300)
 
 
 
@@ -1080,7 +1081,7 @@ class Inventory(wx.Panel, DefaultOperationUI):
         self.the_grid.Add(self.load_player_snbt)
         self.the_grid.Add(self.blank)
         self.the_grid.Add(self.save_player_data_button, 0, wx.LEFT, 10)
-        bottom_sizer.Add(self.the_grid)
+        self.bottom_sizer.Add(self.the_grid)
         self.snbt_text_data = NBTEditor(self)
 
         self._sizer.Add(self.snbt_text_data,130, wx.EXPAND,21)
@@ -1099,7 +1100,7 @@ class Inventory(wx.Panel, DefaultOperationUI):
 
         self.snbt_text_data.Fit()
 
-        top_sizer.Add(self._structlist, 0, wx.LEFT, 11)
+        self.top_sizer.Add(self._structlist, 0, wx.LEFT, 11)
         if self.world.level_wrapper.platform == "bedrock":
             self.get_player_data()
         self.Layout()
@@ -1111,28 +1112,23 @@ class Inventory(wx.Panel, DefaultOperationUI):
     def on_item_focus(self, _):
         selcted = self.items.GetStringSelection()
         if self.world.level_wrapper.platform == "bedrock":
+            self.Freeze()
             self._sizer.Detach(self.snbt_text_data)
             self.snbt_text_data.Hide()
             NBTEditor.close(self.snbt_text_data, None, self.GetParent())
             self.snbt_text_data = NBTEditor(self, nbt.CompoundTag({selcted: self.nbt_dic_list[selcted]}) )
-            self._sizer.Add(self.snbt_text_data, 25, wx.EXPAND | wx.TOP | wx.RIGHT, 0)
-
-            self._sizer.Layout()
-            self._sizer.Fit(self)
-            self.Fit()
+            self._sizer.Add(self.snbt_text_data, 130, wx.EXPAND,21)
             self.Layout()
+            self.Thaw()
         else:
+            self.Freeze()
             self._sizer.Detach(self.snbt_text_data)
             self.snbt_text_data.Hide()
             NBTEditor.close(self.snbt_text_data, None, self.GetParent())
             self.snbt_text_data = NBTEditor(self, nbt.CompoundTag({selcted: self.nbt_dic_list[selcted]}))
-            self.snbt_text_data.SetSize(500, 500)
-            self._sizer.Add(self.snbt_text_data, 25, wx.EXPAND | wx.TOP | wx.RIGHT, 0)
-
-            self._sizer.Layout()
-            self._sizer.Fit(self)
-            self.Fit()
+            self._sizer.Add(self.snbt_text_data,130, wx.EXPAND,21)
             self.Layout()
+            self.Thaw()
 
     def onFocus(self,evt):
         if self.world.level_wrapper.platform == "bedrock":
@@ -1180,13 +1176,9 @@ class Inventory(wx.Panel, DefaultOperationUI):
             self.snbt_text_data.Hide()
             NBTEditor.close(self.snbt_text_data, None, self.GetParent())
             self.snbt_text_data = NBTEditor(self, nbt.CompoundTag({"Inventory": self.nbt_dic_list["Inventory"]}))
-            self.snbt_text_data.SetSize(500, 500)
-            self._sizer.Add(self.snbt_text_data, 25, wx.EXPAND | wx.TOP | wx.RIGHT, 0)
-            self._sizer.Layout()
-            self._sizer.Fit(self)
-            self.Thaw()
-            self.Fit()
+            self._sizer.Add(self.snbt_text_data,130, wx.EXPAND,21)
             self.Layout()
+            self.Thaw()
             # self.snbt_text_data.SetValue(self.nbt_dic_list["Inventory"].to_snbt(1))
         except:
             self.Onmsgbox("Local Player Does exits", "Open locally In Minecraft to regenerate the player.")
@@ -1322,12 +1314,7 @@ class Inventory(wx.Panel, DefaultOperationUI):
                 self.snbt_text_data.Hide()
                 NBTEditor.close(self.snbt_text_data, None, self.GetParent())
                 self.snbt_text_data = NBTEditor(self, nbt.CompoundTag({"Inventory": self.nbt_dic_list["Inventory"]}))
-
                 self._sizer.Add(self.snbt_text_data, 130, wx.EXPAND,76)
-
-                self._sizer.Layout()
-                self._sizer.Fit(self)
-                self.Thaw()
                 self.Fit()
                 self.Layout()
                  ##################################################################################################
@@ -1349,4 +1336,4 @@ class Inventory(wx.Panel, DefaultOperationUI):
         else:
             return level_wrapper._level_manager._db
 
-export = dict(name="Players Inventory 3.02b", operation=Inventory)
+export = dict(name="Players Inventory 3.03b", operation=Inventory)
