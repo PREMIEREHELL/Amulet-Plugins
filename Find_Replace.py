@@ -21,7 +21,7 @@ from amulet_map_editor.api import image
 from amulet.utils import block_coords_to_chunk_coords
 from amulet.api.block import Block
 import PyMCTranslate
-from amulet.libs.leveldb.leveldb import LevelDB
+from leveldb import LevelDB
 from pathlib import Path
 from amulet_map_editor.programs.edit.api.behaviour import StaticSelectionBehaviour
 from amulet_map_editor.programs.edit.api.events import EVT_SELECTION_CHANGE
@@ -919,4 +919,4 @@ class Finder_Replacer(wx.Panel, DefaultOperationUI):
 
     pass
 
-export = dict(name="Finder_Replacer v.1.11", operation=Finder_Replacer) #By PremiereHell
+export = dict(name="Finder_Replacer v.1.22", operation=Finder_Replacer) #By PremiereHell
