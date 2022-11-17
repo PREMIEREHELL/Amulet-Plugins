@@ -42,11 +42,6 @@ class MyTreeCtrl(wx.TreeCtrl):
 
         func(startNode, 0)
         TraverseAux(startNode, 1, func)
-    def save_root_nbt(self, new_nbt):
-        self.nbt_data = new_nbt
-
-    def get_root_nbt(self):
-        return self.nbt_data
 
     def ItemIsChildOf(self, item1, item2):
         self.result = False
@@ -168,7 +163,7 @@ class SmallEditDialog(wx.Frame):
         self.Centre(50)
         self.image_map = image_map
         self.tree = tree
-        self.tree.nbt_data = self.tree.get_root_nbt()
+        #self.tree.nbt_data = self.tree.get_root_nbt()
 
         self.text = self.tree.GetItemText(item)
         self.data = self.tree.GetItemData(item)
@@ -279,14 +274,17 @@ class SmallEditDialog(wx.Frame):
                 entries = self.tree.GetChildrenCount(item, 0)
                 t_value = '' if meta else value
                 set_string = f"{key}:{t_value} entries {entries}" if name else f"{t_value} entries {entries}"
-                t_data = data if meta else tag_type(value)
-                set_data = (key, tag_type(value)) if name else tag_type(value)
+
+                set_data = (key, tag_type) if name else tag_type
             else:
                 t_value = '' if meta else value
                 set_string = f"{key}:{t_value}" if name else f"{t_value}"
                 set_data = (key, tag_type(value)) if name else tag_type(value)
             self.tree.SetItemText(item, set_string)
+
             self.tree.SetItemData(item, set_data)
+            entries = self.tree.GetChildrenCount(item, 0)
+            print("Childen", entries)
 
         def add_data_tree(item, data):
             tag_type_data = [tag_class for tag_class in self.image_map if tag_class.__name__ ==
@@ -340,98 +338,6 @@ class SmallEditDialog(wx.Frame):
         elif oper_name == "Add":
             add_data_tree(item, data)
         self.Close()
-
-
-class EditTagDialog(wx.Frame):
-    GRID_ROWS = 7
-    GRID_COLUMNS = 2
-
-    def __init__(
-            self, parent, tag_name, tag, tag_types, list_type, name_value, create=False, save_callback=None
-    ):
-
-        super(EditTagDialog, self).__init__(
-            parent, title="Edit NBT Tag", size=(800, 800)
-        )
-        self.save_callback = save_callback
-        self.old_name = tag_name
-        self.data_type_func = lambda x: x
-
-        main_panel = simple.SimplePanel(self)
-
-        name_panel = simple.SimplePanel(main_panel, sizer_dir=wx.HORIZONTAL)
-        value_panel = simple.SimplePanel(main_panel, sizer_dir=wx.HORIZONTAL)
-        tag_type_panel = simple.SimplePanel(main_panel)
-        button_panel = simple.SimplePanel(main_panel, sizer_dir=wx.HORIZONTAL)
-
-        name_label = wx.StaticText(name_panel, label="Name: ")
-        self.name_field = wx.TextCtrl(name_panel)
-
-        if tag_name == "" or isinstance(tag_name, int) and not create:
-            self.name_field.SetValue('')
-        else:
-            if isinstance(tag_name, int):
-                self.name_field.SetValue(str(tag_name))
-            else:
-                self.name_field.SetValue(tag_name)
-        name_panel.add_object(name_label, space=0, options=wx.ALL | wx.CENTER)
-        name_panel.add_object(self.name_field, space=1, options=wx.ALL | wx.EXPAND)
-
-        value_label = wx.StaticText(value_panel, label="Value: ")
-        self.value_field = wx.TextCtrl(value_panel)
-
-        if isinstance(tag, (nbt.ListTag, nbt.ListTag, nbt.NamedTag, nbt.CompoundTag)):
-            self.value_field.SetValue('')
-
-        else:
-            self.value_field.SetValue(str(tag.value))
-
-        value_panel.add_object(value_label, space=0, options=wx.ALL | wx.CENTER)
-        value_panel.add_object(self.value_field, space=1, options=wx.ALL | wx.EXPAND)
-
-        tag_type_sizer = wx.GridSizer(self.GRID_ROWS, self.GRID_COLUMNS, 0, 0)
-
-        self.radio_buttons = []
-
-        for tag_type in tag_types:
-            print(tag_type)
-            self.rd_btn = NBTRadioButton(
-                tag_type_panel,
-                tag_type,
-                parent.image_list.GetBitmap(parent.image_map[getattr(nbt, tag_type)]),
-
-            )
-            self.rd_btn.SetLabel(tag_type)
-            self.radio_buttons.append(self.rd_btn)
-            self.rd_btn.Bind(wx.EVT_RADIOBUTTON, partial(self.handle_radio_button, tag_type))
-            tag_type_sizer.Add(self.rd_btn, 0, wx.ALL, 0)
-
-            if list_type != False:
-                if tag_type == list_type:
-                    self.rd_btn.SetValue(True)
-                    self.change_tag_type_func(tag_type, name_value)
-
-            if tag_type == tag.__class__.__name__:
-                self.rd_btn.SetValue(True)
-                self.change_tag_type_func(tag_type, name_value)
-                print(name_value)
-        tag_type_panel.SetSizerAndFit(tag_type_sizer)
-        self.save_button = wx.Button(button_panel, label="Save")
-        self.cancel_button = wx.Button(button_panel, label="Cancel")
-
-        button_panel.add_object(self.save_button, space=0)
-        button_panel.add_object(self.cancel_button, space=0)
-
-        main_panel.add_object(name_panel, space=0, options=wx.ALL | wx.EXPAND)
-        main_panel.add_object(value_panel, space=0, options=wx.ALL | wx.EXPAND)
-        main_panel.add_object(tag_type_panel, space=0)
-        main_panel.add_object(button_panel, space=0)
-        #
-        self.save_button.Bind(wx.EVT_BUTTON, self.save)
-        self.cancel_button.Bind(wx.EVT_BUTTON, lambda evt: self.Close())
-        self.value_field.Bind(wx.EVT_TEXT, self.value_changed)
-        # self.SetSize((600, 600))
-        self.Layout()
 
     def value_changed(self, evt):
         tag_value = evt.GetString()
@@ -489,9 +395,10 @@ class NBTEditor(wx.Panel):
         wx.Panel.__init__(self, parent)
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(self.sizer)
-        self.SetSize(600, 650)
+      #  self.SetSize(600, 650)
         self.nbt_new = nbt.CompoundTag()
         self.nbt_data = nbt_data
+        self.copy_data = None
         self.image_list = wx.ImageList(32, 32)
         self.image_map = {
             nbt.TAG_Byte: self.image_list.Add(self.resize_resorce(nbt_resources.nbt_tag_byte.bitmap())),
@@ -552,7 +459,10 @@ class NBTEditor(wx.Panel):
                             inner_child, cc = tree.GetFirstChild(child)
                             if inner_child.IsOk():
                                 for xx in range(fcnt):
-                                    k, v = tree.GetItemData(inner_child)
+                                    if isinstance(tree.GetItemData(inner_child), tuple):
+                                        k, v = tree.GetItemData(inner_child)
+                                    else:
+                                        v = tree.GetItemData(inner_child)
                                     if v == nbt.ListTag:
                                         temp_comp[k] = is_list(inner_child, da_nbt)
                                     elif v == nbt.CompoundTag:
@@ -631,62 +541,6 @@ class NBTEditor(wx.Panel):
         parent.Close(True)
         self.Close(True)
 
-    def edit_tag(self):
-
-        selected_tag = self.tree.GetFocusedItem()
-        name, data = self.tree.GetItemData(selected_tag)
-        p_tag = self.tree.GetItemParent(selected_tag)
-        root_i = self.tree.GetRootItem()
-        # if p_tag == root_i:
-        #     print("YES")
-        # else:
-        #     print("No")
-        pname, pdata = self.tree.GetItemData(p_tag)
-        # print(pdata)
-        #        root_path, root_types = self.get_root_path_types(selected_tag)
-        self.has_list_type = None
-        self.name_value = [False, False]
-        if isinstance(data, nbt.ListTag):
-            if len(data) >= 1:
-                self.has_list_type = str(type(data[0])).split(".")[-1][:-2]
-            else:
-                self.has_list_type = False
-
-        def save_func(new_name, new_tag_value, new_tag_type, old_name):
-
-            tag_type = [
-                tag_class
-                for tag_class in self.image_map
-                if tag_class.__name__ == new_tag_type
-            ][0]
-            if new_name != name:
-                new_dick = self.insert_key_value(pdata, new_name, name, pdata[name])
-                self.nbt_data = new_dick
-                old_data = pdata.pop(name)
-                pdata[new_name] = old_data
-                self.tree.SetItemText(selected_tag, f"{new_name}: {new_tag_value}")
-                self.tree.SetItemData(selected_tag, (new_name, pdata[new_name]))
-
-            else:
-                pdata[new_name] = tag_type(new_tag_value)
-                self.tree.SetItemText(selected_tag, f"{new_name}: {new_tag_value}")
-                self.tree.SetItemData(selected_tag, (new_name, pdata[new_name]))
-
-        edit_dialog = EditTagDialog(
-            self,
-            name,
-            data,
-            [
-                tag_type.__name__
-                for tag_type in self.image_map.keys()
-                if "Tag" in tag_type.__name__
-            ],
-            False,
-            self.name_value,
-            save_callback=save_func,
-        )
-        edit_dialog.Show()
-
     def build_tree(self,  data, x=0,y=0, root_tag_name=""):
         try:
             self.sizer.Remove(self.tree)
@@ -747,7 +601,7 @@ class NBTEditor(wx.Panel):
         font = wx.Font(15, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_MAX, wx.FONTWEIGHT_BOLD)
 
         tree.SetFont(font)
-        tree.SetSize(500,500)
+        #tree.SetSize(500,500)
         tree.AssignImageList(self.image_list)
         root_tag_name = f"{len(self.nbt_data)} entries"
         root = tree.AddRoot(root_tag_name)
@@ -832,10 +686,12 @@ class NBTEditor(wx.Panel):
         menu.Destroy()
         evt.Skip()
 
+
     def popup_menu_handler(self, op_map, op_sm_map,icon_sm_map, evt):
         op_id = evt.GetId()
         op_name = None
         continues = True
+
         if op_id in op_map:
             op_name = op_map[op_id]
         if op_id in op_sm_map:
@@ -876,6 +732,7 @@ class NBTEditor(wx.Panel):
             else:
                  data = tag_type()
             if continues:
+                data = tag_type()
                 self.has_list_type = str(type(data)).split(".")[-1][:-2]
                 try:
                     self.edit_dialog.Destroy()
@@ -890,6 +747,14 @@ class NBTEditor(wx.Panel):
 
         # if op_name == "add":
         #     self.add_tag()
+
+        elif op_name == "copy":
+            self.copy_data = self.tree.SaveItemsToList(self.tree.GetFocusedItem())
+
+        elif op_name == "paste":
+            self.tree.InsertItemsFromList(self.copy_data,self.tree.GetFocusedItem())
+            self.tree.UnselectAll()
+            # print(self.copy_data)
         elif op_name == "edit":
             item = self.tree.GetFocusedItem()
             try:
@@ -938,12 +803,15 @@ class NBTEditor(wx.Panel):
     def _generate_menu(self, include_add_tag=False):
         menu = wx.Menu()
         s_menu = wx.Menu()
-        print(include_add_tag)
+
         path_list = [ nbt_resources.path +"\\" + x + ".png" for x in dir(nbt_resources) ]
         menu_items = [
             wx.MenuItem(menu, text="Edit Tag", id=wx.ID_ANY),
+            wx.MenuItem(menu, text="Copy Tag", id=wx.ID_ANY),
             wx.MenuItem(menu, text="Delete Tag", id=wx.ID_ANY),
         ]
+        if self.copy_data:
+            menu_items.insert(2, wx.MenuItem(menu, text="Paste Tag", id=wx.ID_ANY))
         sub_menu = [
             wx.MenuItem(s_menu, text="Byte Tag", id=wx.ID_ANY),
             wx.MenuItem(s_menu, text="Short Tag", id=wx.ID_ANY),
@@ -994,7 +862,7 @@ class NBTEditor(wx.Panel):
                 cnt = 0
             print(tag_type, type(tag_type), type(data))
             if isinstance(data, nbt.ListTag) and cnt > 0:
-                print("YES")
+
                 self.has_list_type = str(type(tag_type)).split(".")[-1][:-2]
                 for s_menu_item in sub_menu:
                     has_tag = s_menu_item.GetItemLabel().replace(" ", "")
@@ -1074,9 +942,16 @@ class NBTEditor(wx.Panel):
             self.tree.Delete(source)
             newitems = self.tree.InsertItemsFromList(save, targetparent, target)
             self.tree.UnselectAll()
-            # for item in newitems:
-            #     self.tree.SelectItem(item)
-            print("NOPE")
+            for item in newitems:
+                self.tree.SelectItem(item)
+        def CopyHere(event):
+            print("SDs")
+            # Save + delete the source
+            save = self.tree.SaveItemsToList(source)
+            newitems = self.tree.InsertItemsFromList(save, target)
+            self.tree.UnselectAll()
+            for item in newitems:
+                self.tree.SelectItem(item)
 
         def InsertInToThisGroup(event):
             # Save + delete the source
@@ -1094,9 +969,11 @@ class NBTEditor(wx.Panel):
             menu = wx.Menu()
             menu.Append(101, "Move to after this group", "")
             menu.Append(102, "Insert into this group", "")
+            menu.Append(103, "Copy into this group", "")
             menu.UpdateUI()
             menu.Bind(wx.EVT_MENU, MoveHere, id=101)
             menu.Bind(wx.EVT_MENU, InsertInToThisGroup, id=102)
+            menu.Bind(wx.EVT_MENU, CopyHere, id=103)
             self.PopupMenu(menu)
         else:
             if self.tree.IsExpanded(target):
@@ -1169,20 +1046,20 @@ class Inventory(wx.Panel, DefaultOperationUI):
         self.SetSizer(self._sizer)
 
         self.font = wx.Font(11, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
-        top_sizer = wx.BoxSizer(wx.VERTICAL)
-        side_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        bottom_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.top_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.side_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.bottom_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self._sizer.Add(side_sizer, 1, wx.TOP | wx.LEFT, 0)
-        self._sizer.Add(top_sizer)
-        self._sizer.Add(bottom_sizer, 1, wx.BOTTOM | wx.LEFT,2)
+        self._sizer.Add(self.side_sizer, 1, wx.TOP | wx.LEFT, 0)
+        self._sizer.Add(self.top_sizer)
+        self._sizer.Add(self.bottom_sizer, 1, wx.BOTTOM | wx.LEFT,2)
         self.items = wx.Choice(self, choices=[])
         self.items.Bind(wx.EVT_CHOICE, self.on_item_focus)
 
 
 
         self.info_list = wx.StaticText(self, label="Select A Player")
-        top_sizer.Add(self.info_list, 0, wx.LEFT, 300)
+        self.top_sizer.Add(self.info_list, 0, wx.LEFT, 300)
 
 
 
@@ -1207,7 +1084,7 @@ class Inventory(wx.Panel, DefaultOperationUI):
         self.the_grid.Add(self.load_player_snbt)
         self.the_grid.Add(self.blank)
         self.the_grid.Add(self.save_player_data_button, 0, wx.LEFT, 10)
-        bottom_sizer.Add(self.the_grid)
+        self.bottom_sizer.Add(self.the_grid)
         self.snbt_text_data = NBTEditor(self)
 
         self._sizer.Add(self.snbt_text_data,130, wx.EXPAND,21)
@@ -1226,7 +1103,7 @@ class Inventory(wx.Panel, DefaultOperationUI):
 
         self.snbt_text_data.Fit()
 
-        top_sizer.Add(self._structlist, 0, wx.LEFT, 11)
+        self.top_sizer.Add(self._structlist, 0, wx.LEFT, 11)
         if self.world.level_wrapper.platform == "bedrock":
             self.get_player_data()
         self.Layout()
@@ -1238,28 +1115,23 @@ class Inventory(wx.Panel, DefaultOperationUI):
     def on_item_focus(self, _):
         selcted = self.items.GetStringSelection()
         if self.world.level_wrapper.platform == "bedrock":
+            self.Freeze()
             self._sizer.Detach(self.snbt_text_data)
             self.snbt_text_data.Hide()
             NBTEditor.close(self.snbt_text_data, None, self.GetParent())
             self.snbt_text_data = NBTEditor(self, nbt.CompoundTag({selcted: self.nbt_dic_list[selcted]}) )
-            self._sizer.Add(self.snbt_text_data, 25, wx.EXPAND | wx.TOP | wx.RIGHT, 0)
-
-            self._sizer.Layout()
-            self._sizer.Fit(self)
-            self.Fit()
+            self._sizer.Add(self.snbt_text_data, 130, wx.EXPAND,21)
             self.Layout()
+            self.Thaw()
         else:
+            self.Freeze()
             self._sizer.Detach(self.snbt_text_data)
             self.snbt_text_data.Hide()
             NBTEditor.close(self.snbt_text_data, None, self.GetParent())
             self.snbt_text_data = NBTEditor(self, nbt.CompoundTag({selcted: self.nbt_dic_list[selcted]}))
-            self.snbt_text_data.SetSize(500, 500)
-            self._sizer.Add(self.snbt_text_data, 25, wx.EXPAND | wx.TOP | wx.RIGHT, 0)
-
-            self._sizer.Layout()
-            self._sizer.Fit(self)
-            self.Fit()
+            self._sizer.Add(self.snbt_text_data,130, wx.EXPAND,21)
             self.Layout()
+            self.Thaw()
 
     def onFocus(self,evt):
         if self.world.level_wrapper.platform == "bedrock":
@@ -1307,13 +1179,9 @@ class Inventory(wx.Panel, DefaultOperationUI):
             self.snbt_text_data.Hide()
             NBTEditor.close(self.snbt_text_data, None, self.GetParent())
             self.snbt_text_data = NBTEditor(self, nbt.CompoundTag({"Inventory": self.nbt_dic_list["Inventory"]}))
-            self.snbt_text_data.SetSize(500, 500)
-            self._sizer.Add(self.snbt_text_data, 25, wx.EXPAND | wx.TOP | wx.RIGHT, 0)
-            self._sizer.Layout()
-            self._sizer.Fit(self)
-            self.Thaw()
-            self.Fit()
+            self._sizer.Add(self.snbt_text_data,130, wx.EXPAND,21)
             self.Layout()
+            self.Thaw()
             # self.snbt_text_data.SetValue(self.nbt_dic_list["Inventory"].to_snbt(1))
         except:
             self.Onmsgbox("Local Player Does exits", "Open locally In Minecraft to regenerate the player.")
@@ -1326,7 +1194,7 @@ class Inventory(wx.Panel, DefaultOperationUI):
         new_data = NBTEditor.commit(self.snbt_text_data, _)
         if self.world.level_wrapper.platform == "bedrock":
             theKey = self._structlist.GetStringSelection().encode("utf-8")
-            data = new_data.to_snbt()
+            data = new_data[self.items.GetStringSelection()].to_snbt()
 
             try:
                 selcted = self.items.GetStringSelection()
@@ -1341,7 +1209,7 @@ class Inventory(wx.Panel, DefaultOperationUI):
 
 
         else:
-            data = new_data.to_snbt()
+            data = new_data[self.items.GetStringSelection()].to_snbt()
             selection = self.items.GetStringSelection()
             s_player = self._structlist.GetStringSelection()
             if s_player == '~local_player':
@@ -1449,12 +1317,7 @@ class Inventory(wx.Panel, DefaultOperationUI):
                 self.snbt_text_data.Hide()
                 NBTEditor.close(self.snbt_text_data, None, self.GetParent())
                 self.snbt_text_data = NBTEditor(self, nbt.CompoundTag({"Inventory": self.nbt_dic_list["Inventory"]}))
-
                 self._sizer.Add(self.snbt_text_data, 130, wx.EXPAND,76)
-
-                self._sizer.Layout()
-                self._sizer.Fit(self)
-                self.Thaw()
                 self.Fit()
                 self.Layout()
                  ##################################################################################################
@@ -1476,4 +1339,4 @@ class Inventory(wx.Panel, DefaultOperationUI):
         else:
             return level_wrapper._level_manager._db
 
-export = dict(name="Players Inventory 3.00b", operation=Inventory)
+export = dict(name="Players Inventory 3.03.1b", operation=Inventory)
