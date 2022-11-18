@@ -245,20 +245,25 @@ class HardCodedSpawnArea(wx.Panel, DefaultOperationUI):
                 found.append((x, z))
             except:
                 pass
-        self.dropdownlist.InsertItems([x for x in self.cord_dic.keys()], 0)
-        group = []
-        for k in self.cord_dic.keys():
-            cords = self.cord_dic[k]
-            cx,cy,cz = self.cord_dic[k][:3]
-            cx1, cy1, cz1 = self.cord_dic[k][3:6]
-            lenth = int(len(cords)/6)
-            for d in range(0, (lenth*6), 6):
-                x, y, z, xx, yy, zz = cords[d:d+6]
-                group.append(SelectionBox((int(x), int(y), int(z)), (int(xx+1), int(yy), int(zz+1))))
-        sel = SelectionGroup(group)
-        self.canvas.selection.set_selection_group(sel)
-        print(found)
-        wx.MessageBox(f"Found and selected Spawns From Chunk\s: {found}", "Completed", wx.OK | wx.ICON_INFORMATION)
+
+        try:
+            self.dropdownlist.InsertItems([x for x in self.cord_dic.keys()], 0)
+            group = []
+            for k in self.cord_dic.keys():
+                cords = self.cord_dic[k]
+                cx, cy, cz = self.cord_dic[k][:3]
+                cx1, cy1, cz1 = self.cord_dic[k][3:6]
+                lenth = int(len(cords) / 6)
+                for d in range(0, (lenth * 6), 6):
+                    x, y, z, xx, yy, zz = cords[d:d + 6]
+                    group.append(SelectionBox((int(x), int(y), int(z)), (int(xx + 1), int(yy), int(zz + 1))))
+            sel = SelectionGroup(group)
+            self.canvas.selection.set_selection_group(sel)
+            wx.MessageBox(f"Found and selected Spawns From Chunk\s: {found}", "Completed", wx.OK | wx.ICON_INFORMATION)
+        except:
+            wx.MessageBox(f"No Spawns Found", "Completed", wx.OK | wx.ICON_INFORMATION)
+
+
 
 
     def _delete_spawns(self, _):
