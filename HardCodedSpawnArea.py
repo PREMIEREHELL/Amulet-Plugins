@@ -1,6 +1,4 @@
-import calendar
 import collections
-import copy
 import math
 
 import leveldb
@@ -14,16 +12,11 @@ from amulet_map_editor.programs.edit.api.operations import DefaultOperationUI
 from amulet.api.errors import ChunkDoesNotExist
 from amulet_map_editor.programs.edit.api.key_config import ACT_BOX_CLICK
 from amulet_map_editor.programs.edit.api.key_config import ACT_CHANGE_MOUSE_MODE
-
-from wx.lib import newevent
 from amulet_map_editor.programs.edit.api.events import (
     InputPressEvent,
     EVT_INPUT_PRESS,
     SelectionChangeEvent,
     EVT_SELECTION_CHANGE,
-    DimensionChangeEvent,
-    EVT_DIMENSION_CHANGE,
-
 )
 from amulet_map_editor.programs.edit.api.behaviour.pointer_behaviour import (
     PointerBehaviour,
@@ -34,19 +27,6 @@ from amulet.api.data_types import Dimension
 if TYPE_CHECKING:
     from amulet.api.level import BaseLevel
     from amulet_map_editor.programs.edit.api.canvas import EditCanvas
-
-DimensionChangeEvent, EVT_DIMENSION_CHANGE = newevent.NewEvent()
-class listen():
-    def __init__(self, dim=None):
-        self.dom = ""
-        self.dim = dim
-        if self.dim:
-            if self.dom != self.dim:
-                print("OK")
-                self.dom = self.dim
-            else:
-                print("PASS")
-
 
 class HardCodedSpawnArea(wx.Panel, DefaultOperationUI):
 
@@ -276,14 +256,8 @@ class HardCodedSpawnArea(wx.Panel, DefaultOperationUI):
             tx, ty, tz = 0, 0, 0
             tx1, ty1, tz1 = 0, 0, 0
             self.abc.append(( tx+a, ty+b, tz+c,(tx1+aa)+a, (ty1+bb)+b, (tz1+cc)+c))
-        print(self.abc)
-
 
     def _paste_boxs(self, evt):
-        #self.abc = (5, 5, 5)
-
-
-        # self.canvas.Bind(EVT_DIMENSION_CHANGE, self._on_canvas_change)
         self.canvas.Bind(EVT_POINT_CHANGE, self._on_pointer_change)#, id=300, id2=400)
         self.canvas.Bind(EVT_INPUT_PRESS, self._on_input_press)#, id=301, id2=401)
         self._is_enabled = True
