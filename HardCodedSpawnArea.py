@@ -1,10 +1,6 @@
 import collections
-import math
-
-import leveldb
 import wx
 from typing import TYPE_CHECKING, Tuple
-from amulet_map_editor.api.opengl.camera import Projection
 from amulet_map_editor.programs.edit.api.behaviour import BlockSelectionBehaviour
 from amulet.api.selection import SelectionGroup
 from amulet.api.selection import SelectionBox
@@ -23,7 +19,6 @@ from amulet_map_editor.programs.edit.api.behaviour.pointer_behaviour import (
     EVT_POINT_CHANGE,
     PointChangeEvent,
 )
-from amulet.api.data_types import Dimension
 if TYPE_CHECKING:
     from amulet.api.level import BaseLevel
     from amulet_map_editor.programs.edit.api.canvas import EditCanvas
@@ -159,8 +154,6 @@ class HardCodedSpawnArea(wx.Panel, DefaultOperationUI):
                 self.canvas.renderer.fake_levels.active_transform = ()
         evt.Skip()
 
-
-
     def bind_events(self):
         super().bind_events()
         self._selection.bind_events()
@@ -170,7 +163,6 @@ class HardCodedSpawnArea(wx.Panel, DefaultOperationUI):
 
         self._selection = BlockSelectionBehaviour(self.canvas)
         self._selection.enable()
-
 
     def _on_canvas_change(self, evt):
         dim = self.canvas.dimension
@@ -199,15 +191,12 @@ class HardCodedSpawnArea(wx.Panel, DefaultOperationUI):
                 evt.point
             )
             x, y, z = evt.point
-            xx, yy, zz = evt.point
-            y +=3
             groups = []
             for (a,b,c,aa,bb,cc) in self.abc:
                 groups.append(SelectionBox((x + a, y + b, z + c), (x + aa, y + bb, z + cc)))
             sg = SelectionGroup(groups )
             self.canvas.selection.set_selection_group(sg)
         evt.Skip()
-
 
     def search_button_(self, _):
         self.cord_dic.clear()
@@ -224,7 +213,6 @@ class HardCodedSpawnArea(wx.Panel, DefaultOperationUI):
 
         found = []
         for x, z in sel_chunks:
-
             xx, zz = int(x).to_bytes(4, 'little', signed=True), int(z).to_bytes(4, 'little', signed=True)
             dim = get_dim_value_bytes()
             k = xx + zz + dim + b'\x39'
@@ -262,9 +250,6 @@ class HardCodedSpawnArea(wx.Panel, DefaultOperationUI):
             wx.MessageBox(f"Found and selected Spawns From Chunk\s: {found}", "Completed", wx.OK | wx.ICON_INFORMATION)
         except:
             wx.MessageBox(f"No Spawns Found", "Completed", wx.OK | wx.ICON_INFORMATION)
-
-
-
 
     def _delete_spawns(self, _):
         sel_chunks = self.canvas.selection.selection_group.chunk_locations()
@@ -478,4 +463,4 @@ class HardCodedSpawnArea(wx.Panel, DefaultOperationUI):
             self.canvas.selection.set_selection_group(SelectionGroup(sgs))
         return OnClick
 
-export = dict(name="Hard Coded Spawn Area Editor v1.10", operation=HardCodedSpawnArea) #By PremiereHell
+export = dict(name="Hard Coded Spawn Area Editor v1.11", operation=HardCodedSpawnArea) #By PremiereHell
