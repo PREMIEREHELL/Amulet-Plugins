@@ -79,10 +79,10 @@ class HardCodedSpawnArea(wx.Panel, DefaultOperationUI):
             self.copy_boxs.Bind(wx.EVT_BUTTON, self._copy_boxs)
             self.paste_boxs = wx.Button(self, label="Paste Boxs")
             self.paste_boxs.Bind(wx.EVT_BUTTON, self._paste_boxs)
-            self.dropdownlist = wx.ListBox(self, size=(260, 480))
-            self.dropdownlist.Bind(wx.EVT_LISTBOX, self.go_to_and_sel)
-            self.dropdownlist.SetBackgroundColour((0, 0, 0))
-            self.dropdownlist.SetForegroundColour((0, 255, 0))
+            self.locationlist = wx.ListBox(self, size=(260, 480))
+            self.locationlist.Bind(wx.EVT_LISTBOX, self.go_to_and_sel)
+            self.locationlist.SetBackgroundColour((0, 0, 0))
+            self.locationlist.SetForegroundColour((0, 255, 0))
             self.lb_info_move = wx.StaticText(self, label="Move All Box/s\n Step == Faster")
             self.lb_info_delete = wx.StaticText(self, label="Delete Spawns\n From Selected")
             self.lb_info = wx.StaticText(self, label="Set Bounding Boxes:\n")
@@ -104,7 +104,7 @@ class HardCodedSpawnArea(wx.Panel, DefaultOperationUI):
             self.delete_spawns = wx.Button(self, label="Delete Spawns")
             self.delete_spawns.Bind(wx.EVT_BUTTON, self._delete_spawns)
 
-            self.sizer.Add(self.dropdownlist)
+            self.sizer.Add(self.locationlist)
             self.side.Add(self.get_button, 0, wx.TOP, 5)
             self.side.Add(self.search_button, 0, wx.TOP, 5)
 
@@ -211,7 +211,7 @@ class HardCodedSpawnArea(wx.Panel, DefaultOperationUI):
 
     def search_button_(self, _):
         self.cord_dic.clear()
-        self.dropdownlist.Clear()
+        self.locationlist.Clear()
         sel_chunks = self.canvas.selection.selection_group.chunk_locations()
         def get_dim_value_bytes():
             if 'minecraft:the_end' in self.canvas.dimension:
@@ -247,7 +247,7 @@ class HardCodedSpawnArea(wx.Panel, DefaultOperationUI):
                 pass
 
         try:
-            self.dropdownlist.InsertItems([x for x in self.cord_dic.keys()], 0)
+            self.locationlist.InsertItems([x for x in self.cord_dic.keys()], 0)
             group = []
             for k in self.cord_dic.keys():
                 cords = self.cord_dic[k]
@@ -371,9 +371,9 @@ class HardCodedSpawnArea(wx.Panel, DefaultOperationUI):
 
     def go_to_and_sel(self, _):
         group = []
-        cords = self.cord_dic[self.dropdownlist.GetStringSelection()]
-        cx,cy,cz = self.cord_dic[self.dropdownlist.GetStringSelection()][:3]
-        cx1, cy1, cz1 = self.cord_dic[self.dropdownlist.GetStringSelection()][3:6]
+        cords = self.cord_dic[self.locationlist.GetStringSelection()]
+        cx,cy,cz = self.cord_dic[self.locationlist.GetStringSelection()][:3]
+        cx1, cy1, cz1 = self.cord_dic[self.locationlist.GetStringSelection()][3:6]
         self.canvas.camera.set_location((float(((cx+cx1)/2)+10),float(((cy+cy1)/2)+40 ),float(((cz+cz1)/2))-10))
         self.canvas.camera.set_rotation((float(0),float(90)))
         lenth = int(len(cords)/6)
@@ -381,7 +381,7 @@ class HardCodedSpawnArea(wx.Panel, DefaultOperationUI):
             x, y, z, xx, yy, zz = cords[d:d+6]
             group.append(SelectionBox((int(x), int(y), int(z)), (int(xx+1), int(yy), int(zz+1))))
         sel = SelectionGroup(group)
-        if "Overworld" in self.dropdownlist.GetStringSelection():
+        if "Overworld" in self.locationlist.GetStringSelection():
             self.canvas.dimension = 'minecraft:overworld'
         else:
             self.canvas.dimension = 'minecraft:the_nether'
@@ -390,6 +390,7 @@ class HardCodedSpawnArea(wx.Panel, DefaultOperationUI):
 
     def get_all_(self, _):
         self.cord_dic.clear()
+        self.locationlist.Clear()
         for k,v in self.level_db.iterate():
             if k[-1] == 57 and (len(k) == 9 or len(k) == 13):
                 num_of = int.from_bytes(v[:4], 'little', signed=True)
@@ -404,7 +405,7 @@ class HardCodedSpawnArea(wx.Panel, DefaultOperationUI):
                     for gc, c in enumerate(range(4, 1 + (num_of * 6) * 4, 4)):
                         g = int(gc / 6)
                         self.cord_dic[f"{self.type_dic[v[-1]]} Overworld:{xc,zc}"].append(int.from_bytes(v[c+g:g+c+4], 'little', signed=True))
-        self.dropdownlist.InsertItems([ x for x in self.cord_dic.keys()], 0)
+        self.locationlist.InsertItems([ x for x in self.cord_dic.keys()], 0)
 
     @property
     def level_db(self):
@@ -478,4 +479,3 @@ class HardCodedSpawnArea(wx.Panel, DefaultOperationUI):
         return OnClick
 
 export = dict(name="Hard Coded Spawn Area Editor v1.10", operation=HardCodedSpawnArea) #By PremiereHell
-
