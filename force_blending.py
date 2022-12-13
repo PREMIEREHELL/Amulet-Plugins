@@ -88,11 +88,11 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
 
     def set_seed(self, _):
         if self.world.level_wrapper.platform == "java":
-            self.world.level_wrapper.root_tag['Data']['WorldGenSettings']['seed'] = amulet_nbt.TAG_Long(
+            self.world.level_wrapper.root_tag['Data']['WorldGenSettings']['seed'] = amulet_nbt.LongTag(
                 (int(self.seed_input.GetValue())))
             self.world.save()
         else:
-            self.world.level_wrapper.root_tag['RandomSeed'] = amulet_nbt.TAG_Long((int(self.seed_input.GetValue())))
+            self.world.level_wrapper.root_tag['RandomSeed'] = amulet_nbt.LongTag((int(self.seed_input.GetValue())))
             self.world.level_wrapper.root_tag.save()
 
     @property
@@ -153,8 +153,10 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
                                       self.save_it(self.save_data), "Saving Data", "Saving...")
 
         self.world.purge()
+        self.world.save()
         self.canvas.renderer.render_world._rebuild()
-        print(self.donechunks, "The Last Chunk Just If it had an error check it out.")
+
+      #  print(self.donechunks, "The Last Chunk Just If it had an error check it out.")
         wx.MessageBox("If you Had no errors It Worked "
                       "\n Close World and Open in Minecraft", "IMPORTANT",
                       wx.OK | wx.ICON_INFORMATION)
@@ -185,10 +187,10 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
 
             for rx, rz in loaction_dict.keys():
                 file_exists = exists(self.get_dim_vpath_java_dir(rx, rz))
-                self.world.level_wrapper.root_tag['Data']['DataVersion'] = amulet_nbt.TAG_Int(2860)
-                self.world.level_wrapper.root_tag['Data']['Version'] = amulet_nbt.TAG_Compound(
-                    {"Snapshot": amulet_nbt.TAG_Byte(0), "Id": amulet_nbt.TAG_Int(2860),
-                     "Name": amulet_nbt.TAG_String("1.18.0")})
+                self.world.level_wrapper.root_tag['Data']['DataVersion'] = amulet_nbt.IntTag(2860)
+                self.world.level_wrapper.root_tag['Data']['Version'] = amulet_nbt.CompoundTag(
+                    {"Snapshot": amulet_nbt.ByteTag(0), "Id": amulet_nbt.IntTag(2860),
+                     "Name": amulet_nbt.StringTag("1.18.0")})
                 self.world.save()
                 if file_exists:
                     for di in loaction_dict[(rx, rz)]:
@@ -201,10 +203,10 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
 
                             if nbtdata['sections']:  # [0]['block_states']['palette']:
                                 # nbtdata.pop('PostProcessing')
-                                nbtdata['Heightmaps'] = amulet_nbt.TAG_Compound({})
-                                nbtdata['blending_data'] = amulet_nbt.TAG_Compound(
-                                    {"old_noise": amulet_nbt.TAG_Byte(1)})
-                                nbtdata['DataVersion'] = amulet_nbt.TAG_Int(2860)
+                                nbtdata['Heightmaps'] = amulet_nbt.CompoundTag({})
+                                nbtdata['blending_data'] = amulet_nbt.CompoundTag(
+                                    {"old_noise": amulet_nbt.ByteTag(1)})
+                                nbtdata['DataVersion'] = amulet_nbt.IntTag(2860)
                                 self.raw_data.put_chunk_data(cx % 32, cz % 32, nbtdata)
                             self.raw_data.save()
             yield count / total, f"Chunk: {xx, zz} Done.... {count} of {total}"
@@ -244,20 +246,19 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
                 chunk_data = {}
                 heigh_next_layer = []
                 self.donechunks = []
-
                 new_air = amulet_nbt.from_snbt(
                     '{name: "minecraft:air", states: {}, version: 17879555}')
                 new_block = amulet_nbt.from_snbt(
                     '{name: "minecraft:bedrock", states: {"infiniburn_bit": 0b}, version: 17879555}')
+
                 for k, v in self.world.level_wrapper.level_db.iterate(start=chunkkey + b'\x2f\x00',
                                                                       end=chunkkey + b'\x2f\xff\xff'):
-                    #print(v[0], "version")
                     self.v_byte = v[0]
                     if v[0] > 8:
                         chunk_data[struct.unpack('b', k[-1::])[0]] = v
                     if self._save_backup.GetValue():
                         if v[0] > 8:
-                            if struct.unpack('b', k[-1::])[0] <= 0: #240, 0, 1584
+                            if struct.unpack('b', k[-1::])[0] <= 0:  # 240, 0, 1584
                                 self.save_data[k] = v
 
                 self.donechunks.append(
@@ -268,16 +269,20 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
                     if y_ld < 0:
                         self.level_db.delete(chunkkey + b'/' + struct.pack('b', y_ld))
                         key_s.remove(y_ld)
+                        del chunk_data[y_ld]
                # min_y, max_y = key_s[-1], key_s[0]
+                
+
                 if 0 not in chunk_data: #Build the chunk
                     if self.v_byte >= 8:
                         header_e = struct.pack('bbbb', self.v_byte, 1, 0,0)
                     else:
                         header_e = struct.pack('bbb', self.v_byte, 1, 0)#
-                    new_raw_block = amulet_nbt.NBTFile(new_air).save_to(compressed=False, little_endian=True)
+                    new_raw_block = new_air.save_to(compressed=False, little_endian=True)
                     chunk_data[0] = header_e  + new_raw_block
                 only_needed_ylevel = (0,)
                 for y_h in chunk_data:
+        
                     if self.v_byte > 8:
                         v_off = self.get_v_off(chunk_data[y_h])
                         blocks, block_bits, extra_blk, extra_blk_bits = self.get_pallets_and_extra(
@@ -324,9 +329,9 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
                 if self.v_byte > 8:
                     try:
                         # print('Before ', self.world.level_wrapper.level_db.get(chunkkey + biome_key)[:512])
-                        biome = self.world.level_wrapper.level_db.get(chunkkey + biome_key)[512:]
+                        biome = self.level_db.get(chunkkey + biome_key)[512:]
                         height = self.height.tobytes()
-                        self.world.level_wrapper.level_db.put(chunkkey + biome_key, height + biome)
+                        self.level_db.put(chunkkey + biome_key, height + biome)
                         # print(height, biome_key)
                         # print("EERRE no + key")
                     except:
@@ -385,18 +390,19 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
             pal_len = [len(pal_one), len(pal_two)]
             raw = b''
             for rnbt in pal_one:
-                raw += amulet_nbt.NBTFile(rnbt).save_to(compressed=False, little_endian=True)
+               
+                raw += rnbt.save_to(compressed=False, little_endian=True)
             bytes_nbt.append(raw)
             raw = b''
             for rnbt in pal_two:
-                raw += amulet_nbt.NBTFile(rnbt).save_to(compressed=False, little_endian=True)
+                raw += rnbt.save_to(compressed=False, little_endian=True)
             bytes_nbt.append(raw)
         else:
             block_list = [lay_one]
             pal_len = [len(pal_one)]
             raw = b''
             for rnbt in pal_one:
-                raw += amulet_nbt.NBTFile(rnbt).save_to(compressed=False, little_endian=True)
+                raw += rnbt.save_to(compressed=False, little_endian=True)
             bytes_nbt.append(raw)
         for ii, b in enumerate(block_list):
             bpv = max(int(numpy.amax(b)).bit_length(), 1)
@@ -418,14 +424,12 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
             compact = numpy.pad(compact, [(0, 0), (32 - bpw * bpv, 0)], "constant", )
             compact = numpy.packbits(compact).view(dtype=">i4").tobytes()
             compact = bytes(reversed(compact))
+            
             byte_blocks.append(header + compact_level + compact + struct.pack("<I", pal_len[ii]) + bytes_nbt[ii])
 
         return byte_blocks
 
-
-
     def get_pallets_and_extra(self, raw_sub_chunk):
-
         block_pal_dat, block_bits, bpv = self.get_blocks(raw_sub_chunk)
         if bpv < 1:
             pallet_size = 1
@@ -438,6 +442,7 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
         extra_pnt_bits = None
 
         for x in range(pallet_size):
+            
             nbt, p = amulet_nbt.load(pallet_data, little_endian=True, offset=True)
             pallet_data = pallet_data[p:]
             blocks.append(nbt.value)
@@ -452,7 +457,9 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
                 pallet_size, pallet_data, off = struct.unpack('<I', block_pal_dat[:4])[0], block_pal_dat[4:], 0
             extra_pnt_bits = extra_block_bits
             for aa in range(pallet_size):
+
                 nbt, p = amulet_nbt.load(pallet_data, little_endian=True, offset=True)
+
                 pallet_data = pallet_data[p:]
                 extra_blocks.append(nbt.value)
         return blocks, block_pnt_bits, extra_blocks, extra_pnt_bits
@@ -464,13 +471,14 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
         if bpv > 0:
             bpw = (32 // bpv)
             wc = -(-4096 // bpw)
-            buffer = numpy.frombuffer(bytes(reversed(rawdata[: 4 * wc])), dtype="uint8")
+            buffer = numpy.frombuffer(bytes(reversed(rawdata[: 4 * wc])), dtype="uint8")#reversed
             unpack = numpy.unpackbits(buffer)
             unpack = unpack.reshape(-1, 32)[:, -bpw * bpv:]
             unpack = unpack.reshape(-1, bpv)[-4096:, :]
             unpacked = numpy.pad(unpack, [(0, 0), (16 - bpv, 0)], "constant")
             p_arr = numpy.packbits(unpacked).view(dtype=">i2")[::-1]
             block_bits = p_arr.reshape((16, 16, 16)).swapaxes(1, 2)
+
             rawdata = rawdata[wc * 4:]
 
         else:
@@ -478,5 +486,5 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
         return rawdata, block_bits, bpv
 
 
-export = dict(name="Force_Blending v1.10", operation=ForceHeightUpdate) #By PremiereHell
+export = dict(name="Force_Blending v1.13", operation=ForceHeightUpdate) #By PremiereHell
 
