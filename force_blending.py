@@ -59,9 +59,9 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
         if self.seed_input.GetValue() == "":
             if self.world.level_wrapper.platform == "java":
                 self.seed_input.SetValue(
-                    str(self.world.level_wrapper.root_tag['Data']['WorldGenSettings']['seed'])[:-1])
+                    str(self.world.level_wrapper.root_tag['Data']['WorldGenSettings']['seed']))
             else:
-                self.seed_input.SetValue(str(self.world.level_wrapper.root_tag['RandomSeed'])[:-1])
+                self.seed_input.SetValue(str(self.world.level_wrapper.root_tag['RandomSeed']))
         self._run_button.Bind(wx.EVT_BUTTON, self._refresh_chunk)
         self.seed.Bind(wx.EVT_BUTTON,self.set_seed)
         side_sizer.Add(self.info_label, 0,  wx.LEFT, 11)
@@ -478,6 +478,5 @@ class ForceHeightUpdate(wx.Panel, DefaultOperationUI):
         return rawdata, block_bits, bpv
 
 
-export = dict(name="Force_Blending v1.09", operation=ForceHeightUpdate) #By PremiereHell
-
+export = dict(name="Force_Blending v1.10", operation=ForceHeightUpdate) #By PremiereHell
 
