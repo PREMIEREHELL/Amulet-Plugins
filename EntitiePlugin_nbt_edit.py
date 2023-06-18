@@ -13,6 +13,8 @@ from __future__ import annotations
 import math
 import time
 import struct
+
+import amulet_nbt
 from amulet_map_editor.programs.edit.api.events import (
     EVT_SELECTION_CHANGE,
 )
@@ -24,6 +26,7 @@ import wx
 from amulet_map_editor.api.wx.ui import simple
 from amulet_map_editor.api import image
 nbt_resources = image.nbt
+import re
 import abc
 import collections
 import os
@@ -64,13 +67,9 @@ class MyTreeCtrl(wx.TreeCtrl):
                 TraverseAux(child, depth + 1, func)
                 child, cookie = self.GetNextChild(node, cookie)
 
+
         func(startNode, 0)
         TraverseAux(startNode, 1, func)
-    def save_root_nbt(self, new_nbt):
-        self.nbt_data = new_nbt
-
-    def get_root_nbt(self):
-        return self.nbt_data
 
     def ItemIsChildOf(self, item1, item2):
         self.result = False
@@ -85,7 +84,6 @@ class MyTreeCtrl(wx.TreeCtrl):
         lista = []
 
         def save_func(node, depth):
-            print(depth)
             tmplist = lista
             for x in range(depth):
                 if type(tmplist[-1]) is not dict:
@@ -148,31 +146,7 @@ class MyTreeCtrl(wx.TreeCtrl):
                 break
         return orderit
 
-class NBTRadioButton(simple.SimplePanel):
-    def __init__(self, parent, nbt_tag_class, icon):
-        super(NBTRadioButton, self).__init__(parent, wx.HORIZONTAL)
 
-        self.nbt_tag_class = nbt_tag_class
-        self.radio_button = wx.RadioButton(self, wx.ID_ANY, wx.EmptyString)
-        self.tag_bitmap = wx.StaticBitmap(self, wx.ID_ANY, icon)
-        self.add_object(self.tag_bitmap, 0, wx.ALIGN_CENTER | wx.ALL)
-        self.add_object(self.radio_button, 0, wx.ALIGN_CENTER | wx.ALL)
-        self.tag_bitmap.SetToolTip(nbt_tag_class)
-
-    def GetValue(self):
-        return self.radio_button.GetValue()
-
-    def SetValue(self, val):
-        self.radio_button.SetValue(val)
-
-    def SetLabel(self, label):
-        self.radio_button.SetLabel(label)
-
-    def GetLabel(self):
-        return self.radio_button.GetLabel()
-
-    def Hide(self):
-        return self.radio_button.Hide()
 
 class SmallEditDialog(wx.Frame):
     GRID_ROWS = 2
@@ -184,88 +158,126 @@ class SmallEditDialog(wx.Frame):
         super(SmallEditDialog, self).__init__(
             parent, title=f"{oper_name} {tag_type_name}", size=(400, 200)
         )
-
-        if isinstance(bitmap_icon, wx.Icon):
-            self.SetIcon(bitmap_icon)
-        else:
-            self.SetIcon(wx.Icon(bitmap_icon))
+        if bitmap_icon:
+            if isinstance(bitmap_icon, wx.Icon):
+                self.SetIcon(bitmap_icon)
+            else:
+                self.SetIcon(wx.Icon(bitmap_icon))
         self.Centre(50)
-        self.image_map = image_map
-        self.tree = tree
-        self.tree.nbt_data = self.tree.get_root_nbt()
 
-        self.text = self.tree.GetItemText(item)
-        self.data = self.tree.GetItemData(item)
+        if "SNBT" not in tag_type_name:
+            self.image_map = image_map
+            self.tree = tree
 
-        main_panel = simple.SimplePanel(self)
-        button_panel = simple.SimplePanel(main_panel, sizer_dir=wx.HORIZONTAL)
-        name_panel = simple.SimplePanel(main_panel, sizer_dir=wx.HORIZONTAL)
-        value_panel = simple.SimplePanel(main_panel, sizer_dir=wx.HORIZONTAL)
-        name_label = wx.StaticText(name_panel, label="Name: ")
-        value_label = wx.StaticText(value_panel, label="Value: ")
+            self.text = self.tree.GetItemText(item)
+            self.data = self.tree.GetItemData(item)
+            main_panel = simple.SimplePanel(self)
+            button_panel = simple.SimplePanel(main_panel, sizer_dir=wx.HORIZONTAL)
+            name_panel = simple.SimplePanel(main_panel, sizer_dir=wx.HORIZONTAL)
+            value_panel = simple.SimplePanel(main_panel, sizer_dir=wx.HORIZONTAL)
+            name_label = wx.StaticText(name_panel, label="Name: ")
+            value_label = wx.StaticText(value_panel, label="Value: ")
 
-        self.name_field = wx.TextCtrl(name_panel)
-        self.value_field = wx.TextCtrl(value_panel)
-        name_panel.add_object(name_label, space=0, options=wx.ALL | wx.CENTER)
-        name_panel.add_object(self.name_field, space=1, options=wx.ALL | wx.EXPAND)
+            self.name_field = wx.TextCtrl(name_panel)
+            self.value_field = wx.TextCtrl(value_panel)
+            name_panel.add_object(name_label, space=0, options=wx.ALL | wx.CENTER)
+            name_panel.add_object(self.name_field, space=1, options=wx.ALL | wx.EXPAND)
 
-        meta = False
-        if isinstance(self.data, tuple):
-            name, data = self.data
-        else:
-            name, data = None, self.data
-        if isinstance(data, abc.ABCMeta):
-            meta = True
-        final_name, final_value = None, None
-        self.name_field.Disable(),self.value_field.Disable()
-        if oper_name == "Add":
-            self.name_field.Enable(), self.value_field.Enable()
-            f_child = self.tree.GetFirstChild(item)[0]
-            if f_child.IsOk():
-                if isinstance(self.tree.GetItemData(f_child), tuple):
-                    name, type_t = self.tree.GetItemData(f_child)
-                    self.name_field.SetValue("")
-                    self.value_field.SetValue("")
-                else:
-                    type_t = self.tree.GetItemData(f_child)
-                    self.name_field.Disable()
-                    self.value_field.SetValue("")
-        else:
-            if name:
-                self.name_field.SetValue(name)
-                self.name_field.Enable()
-            if not meta:
-                self.value_field.SetValue(str(data.value))
-                self.value_field.Enable()
+
+
+            meta = False
+            if isinstance(self.data, tuple):
+                name, data = self.data
+            else:
+                name, data = None, self.data
+            if isinstance(data, abc.ABCMeta):
+                meta = True
+            final_name, final_value = None, None
+            self.name_field.Disable(), self.value_field.Disable()
+            if oper_name == "Add":
+                self.name_field.Enable(), self.value_field.Enable()
+                f_child = self.tree.GetFirstChild(item)[0]
+                if f_child.IsOk():
+                    if isinstance(self.tree.GetItemData(f_child), tuple):
+                        name, type_t = self.tree.GetItemData(f_child)
+                        self.name_field.SetValue("")
+                        self.value_field.SetValue("")
+                    else:
+                        type_t = self.tree.GetItemData(f_child)
+                        self.name_field.Disable()
+                        self.value_field.SetValue("")
             else:
                 if name:
                     self.name_field.SetValue(name)
-                    self.value_field.SetValue(str(data))
+                    self.name_field.Enable()
+                if not meta:
+                    self.value_field.SetValue(str(data.value))
+                    self.value_field.Enable()
+                else:
+                    if name:
+                        self.name_field.SetValue(name)
+                        self.value_field.SetValue(str(data))
 
-        value_panel.add_object(value_label, space=0, options=wx.ALL | wx.CENTER)
-        value_panel.add_object(self.value_field, space=1, options=wx.ALL | wx.EXPAND)
+            value_panel.add_object(value_label, space=0, options=wx.ALL | wx.CENTER)
+            value_panel.add_object(self.value_field, space=1, options=wx.ALL | wx.EXPAND)
+            self.save_button = wx.Button(button_panel, label=oper_name)
+            self.cancel_button = wx.Button(button_panel, label="Cancel")
+            button_panel.add_object(self.save_button, space=0)
+            button_panel.add_object(self.cancel_button, space=0)
+            main_panel.add_object(name_panel, space=0, options=wx.ALL | wx.EXPAND)
+            main_panel.add_object(value_panel, space=0, options=wx.ALL | wx.EXPAND)
+            main_panel.add_object(button_panel, space=0)
+            self.save_button.Bind(wx.EVT_BUTTON, lambda evt:
+            self.add_edit(evt, oper_name, self.data, item, tag_type_name))
+            self.save_button.Bind(wx.EVT_KEY_UP, lambda evt:
+            self.key_down_enter(evt, oper_name, self.data, item, tag_type_name))
+            self.name_field.Bind(wx.EVT_KEY_UP, lambda evt:
+            self.key_down_enter(evt, oper_name, self.data, item, tag_type_name))
+            self.value_field.Bind(wx.EVT_KEY_UP, lambda evt:
+            self.key_down_enter(evt, oper_name, self.data, item, tag_type_name))
+            self.cancel_button.Bind(wx.EVT_BUTTON, lambda evt: self.Close())
+            self.Layout()
+        else:
+            self.tree = tree
+            self.SetSize(600,700)
+            main_panel = simple.SimplePanel(self)
+            button_panel = simple.SimplePanel(main_panel, sizer_dir=wx.HORIZONTAL)
+            value_panel = simple.SimplePanel(main_panel, sizer_dir=wx.HORIZONTAL)
+            self.value_field = wx.TextCtrl(value_panel, style=wx.TE_MULTILINE, size=(577,640))
+            self.value_field.SetBackgroundColour((0,0,0))
+            self.value_field.SetForegroundColour((0, 255, 255))
+            font = wx.Font(14, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_MAX, wx.FONTWEIGHT_BOLD)
+            self.value_field.SetFont(font)
+            value_panel.add_object(self.value_field)
+            self.save_button = wx.Button(button_panel, label="Save")
+            self.save_button.Bind(wx.EVT_BUTTON, lambda evt:
+            self.update_tree(evt))
+            button_panel.add_object(self.save_button)
+            self.f_path, self.raw_nbt, sel_snbt = NBTEditor.build_to(self.Parent, None, opt="snbt" )
+            self.value_field.SetValue(sel_snbt)
 
-        self.save_button = wx.Button(button_panel, label=oper_name)
-        self.cancel_button = wx.Button(button_panel, label="Cancel")
-        button_panel.add_object(self.save_button, space=0)
-        button_panel.add_object(self.cancel_button, space=0)
-        main_panel.add_object(name_panel, space=0, options=wx.ALL | wx.EXPAND)
-        main_panel.add_object(value_panel, space=0, options=wx.ALL | wx.EXPAND)
-        main_panel.add_object(button_panel, space=0)
-        self.save_button.Bind(wx.EVT_BUTTON, lambda evt:
-        self.add_edit(evt, oper_name, self.data, item, tag_type_name))
-        self.save_button.Bind(wx.EVT_KEY_UP, lambda evt:
-        self.key_down_enter(evt, oper_name, self.data, item, tag_type_name))
-        self.name_field.Bind(wx.EVT_KEY_UP, lambda evt:
-        self.key_down_enter(evt, oper_name, self.data, item, tag_type_name))
-        self.value_field.Bind(wx.EVT_KEY_UP, lambda evt:
-        self.key_down_enter(evt, oper_name, self.data, item, tag_type_name))
-        self.cancel_button.Bind(wx.EVT_BUTTON, lambda evt: self.Close())
-        self.Layout()
+            main_panel.add_object(value_panel, options=wx.EXPAND)
+            main_panel.add_object(button_panel, space=0)
+
+
+            self.Layout()
+
+
+    def update_tree(self, evt):
+        def get_real_nbt(map_list):
+            return reduce(operator.getitem, map_list[:-1], self.raw_nbt)
+        updated_nbt = get_real_nbt(self.f_path)
+        if len(self.f_path) == 0:
+            self.raw_nbt = nbt.from_snbt(self.value_field.GetValue())
+        else:
+            updated_nbt[self.f_path[-1]] = nbt.from_snbt(self.value_field.GetValue())
+
+        EntitiePlugin.update_player_data(self, self.raw_nbt)
+        # print("UPDATE",self.raw_nbt)
+
 
     def nbt_clean_array_string(self, strr, ntype):
         import re
-        print(strr, "SSS")
         dtyped = {"L": "longs","B": "bytes","I": "ints"}
         dtype = dtyped[ntype]
         prog = re.compile(r'(\d*[.-]?\d*)', flags=0)
@@ -290,7 +302,6 @@ class SmallEditDialog(wx.Frame):
                 name, data = data
             if isinstance(data, abc.ABCMeta):
                 data, meta = data(), True
-            print(oper_name)
             tag_type = [tag_class for tag_class in self.image_map if tag_class.__name__ ==
                         tag_type_name.replace(" ", "")][0]
             set_data = tag_type(data)
@@ -303,19 +314,20 @@ class SmallEditDialog(wx.Frame):
                 entries = self.tree.GetChildrenCount(item, 0)
                 t_value = '' if meta else value
                 set_string = f"{key}:{t_value} entries {entries}" if name else f"{t_value} entries {entries}"
-                t_data = data if meta else tag_type(value)
-                set_data = (key, tag_type(value)) if name else tag_type(value)
+
+                set_data = (key, tag_type) if name else tag_type
             else:
                 t_value = '' if meta else value
                 set_string = f"{key}:{t_value}" if name else f"{t_value}"
                 set_data = (key, tag_type(value)) if name else tag_type(value)
             self.tree.SetItemText(item, set_string)
+
             self.tree.SetItemData(item, set_data)
+            entries = self.tree.GetChildrenCount(item, 0)
 
         def add_data_tree(item, data):
             tag_type_data = [tag_class for tag_class in self.image_map if tag_class.__name__ ==
                              tag_type_name.replace(" ", "")][0]
-            print(tag_type_data, "TAG")
             self.other = self.image_map[nbt.TAG_String]
             name, meta = None, False
             name, value = self.name_field.GetValue(), self.value_field.GetValue()
@@ -354,7 +366,6 @@ class SmallEditDialog(wx.Frame):
                 self.image_map.get(tag_type_data().__class__, self.other),
                 wx.TreeItemIcon_Normal,
             )
-            print( self.image_map.get(tag_type_data.__class__, self.other),"MAP")
             entries = self.tree.GetChildrenCount(item, 0)
             testdata = self.tree.GetItemText(item)
             self.tree.SetItemText(item, testdata.replace(f"{entries-1} entries",f"{entries} entries"))
@@ -365,107 +376,10 @@ class SmallEditDialog(wx.Frame):
             add_data_tree(item, data)
         self.Close()
 
-
-class EditTagDialog(wx.Frame):
-    GRID_ROWS = 7
-    GRID_COLUMNS = 2
-
-    def __init__(
-            self, parent, tag_name, tag, tag_types, list_type, name_value, create=False, save_callback=None
-    ):
-
-        super(EditTagDialog, self).__init__(
-            parent, title="Edit NBT Tag", size=(800, 800)
-        )
-        self.save_callback = save_callback
-        self.old_name = tag_name
-        self.data_type_func = lambda x: x
-
-        main_panel = simple.SimplePanel(self)
-
-        name_panel = simple.SimplePanel(main_panel, sizer_dir=wx.HORIZONTAL)
-        value_panel = simple.SimplePanel(main_panel, sizer_dir=wx.HORIZONTAL)
-        tag_type_panel = simple.SimplePanel(main_panel)
-        button_panel = simple.SimplePanel(main_panel, sizer_dir=wx.HORIZONTAL)
-
-        name_label = wx.StaticText(name_panel, label="Name: ")
-        self.name_field = wx.TextCtrl(name_panel)
-
-        if tag_name == "" or isinstance(tag_name, int) and not create:
-            self.name_field.SetValue('')
-        else:
-            if isinstance(tag_name, int):
-                self.name_field.SetValue(str(tag_name))
-            else:
-                self.name_field.SetValue(tag_name)
-        name_panel.add_object(name_label, space=0, options=wx.ALL | wx.CENTER)
-        name_panel.add_object(self.name_field, space=1, options=wx.ALL | wx.EXPAND)
-
-        value_label = wx.StaticText(value_panel, label="Value: ")
-        self.value_field = wx.TextCtrl(value_panel)
-
-        if isinstance(tag, (nbt.ListTag, nbt.ListTag, nbt.NamedTag, nbt.CompoundTag)):
-            self.value_field.SetValue('')
-
-        else:
-            self.value_field.SetValue(str(tag.value))
-
-        value_panel.add_object(value_label, space=0, options=wx.ALL | wx.CENTER)
-        value_panel.add_object(self.value_field, space=1, options=wx.ALL | wx.EXPAND)
-
-        tag_type_sizer = wx.GridSizer(self.GRID_ROWS, self.GRID_COLUMNS, 0, 0)
-
-        self.radio_buttons = []
-
-        for tag_type in tag_types:
-            print(tag_type)
-            self.rd_btn = NBTRadioButton(
-                tag_type_panel,
-                tag_type,
-                parent.image_list.GetBitmap(parent.image_map[getattr(nbt, tag_type)]),
-
-            )
-            self.rd_btn.SetLabel(tag_type)
-            self.radio_buttons.append(self.rd_btn)
-            self.rd_btn.Bind(wx.EVT_RADIOBUTTON, partial(self.handle_radio_button, tag_type))
-            tag_type_sizer.Add(self.rd_btn, 0, wx.ALL, 0)
-
-            if list_type != False:
-                if tag_type == list_type:
-                    self.rd_btn.SetValue(True)
-                    self.change_tag_type_func(tag_type, name_value)
-
-            if tag_type == tag.__class__.__name__:
-                self.rd_btn.SetValue(True)
-                self.change_tag_type_func(tag_type, name_value)
-                print(name_value)
-        tag_type_panel.SetSizerAndFit(tag_type_sizer)
-        self.save_button = wx.Button(button_panel, label="Save")
-        self.cancel_button = wx.Button(button_panel, label="Cancel")
-
-        button_panel.add_object(self.save_button, space=0)
-        button_panel.add_object(self.cancel_button, space=0)
-
-        main_panel.add_object(name_panel, space=0, options=wx.ALL | wx.EXPAND)
-        main_panel.add_object(value_panel, space=0, options=wx.ALL | wx.EXPAND)
-        main_panel.add_object(tag_type_panel, space=0)
-        main_panel.add_object(button_panel, space=0)
-        #
-        self.save_button.Bind(wx.EVT_BUTTON, self.save)
-        self.cancel_button.Bind(wx.EVT_BUTTON, lambda evt: self.Close())
-        self.value_field.Bind(wx.EVT_TEXT, self.value_changed)
-        # self.SetSize((600, 600))
-        self.Layout()
-
     def value_changed(self, evt):
         tag_value = evt.GetString()
         self.value_field.ChangeValue(str(self.data_type_func(tag_value)))
 
-    def handle_radio_button(self, tag_type, evt):
-        for rd_btn in self.radio_buttons:
-            rd_btn.SetValue(rd_btn.nbt_tag_class == tag_type)
-
-        self.change_tag_type_func(tag_type)
 
     def change_tag_type_func(self, tag_type, name_value=[False,False]):
         #self.data_type_func = lambda x: x
@@ -513,9 +427,10 @@ class NBTEditor(wx.Panel):
         wx.Panel.__init__(self, parent)
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(self.sizer)
-        self.SetSize(280, 650)
+      #  self.SetSize(600, 650)
         self.nbt_new = nbt.CompoundTag()
         self.nbt_data = nbt_data
+        self.copy_data = None
         self.image_list = wx.ImageList(32, 32)
         self.image_map = {
             nbt.TAG_Byte: self.image_list.Add(self.resize_resorce(nbt_resources.nbt_tag_byte.bitmap())),
@@ -546,9 +461,48 @@ class NBTEditor(wx.Panel):
         result = wx.Bitmap(image)
         return result
 
-    def commit(self, evt):
-
+    def build_to(self, evt, opt='raw'):
         tree = self.tree
+
+        # def get_full_path(child):
+        #     index = 0
+        #     p_type = None
+        #     the_sib_items = []
+        #     nbt_path_keys = []
+        #     if isinstance(tree.GetItemData(child), tuple):
+        #         name, data = tree.GetItemData(child)
+        #         nbt_path_keys.append(name)
+        #     sibl = tree.GetItemParent(child)
+        #     while sibl.IsOk():
+        #         # print("____",tree.GetItemData(sibl))
+        #         the_sib_items.append(sibl)
+        #         if isinstance(tree.GetItemData(sibl), tuple):
+        #             p_type = tree.GetItemData(sibl)[1]
+        #         else:
+        #             p_type = tree.GetItemData(sibl)
+        #         print(root_path(tree.GetFocusedItem()))
+        #         if p_type == nbt.ListTag:
+        #             item_num = tree.GetChildrenCount(sibl, recursively=True)
+        #             f_child, f_c = tree.GetFirstChild(sibl)
+        #             f_item = tree.GetFocusedItem()
+        #             if f_child.IsOk():
+        #                 for c in range(item_num):
+        #                     if f_child.IsOk():
+        #
+        #                         if f_child == f_item:
+        #                             index = c
+        #                             break
+        #                         f_child, f_c = tree.GetNextChild(f_child, f_c)
+        #
+        #             nbt_path_keys.append(index)
+        #         if isinstance(tree.GetItemData(sibl), tuple):
+        #             nname, ddata = tree.GetItemData(sibl)
+        #             nbt_path_keys.append(nname)
+        #         sibl = tree.GetItemParent(sibl)
+        #     nbt_path_keys.reverse()
+        #
+        #     return nbt_path_keys[1:]
+
         def root_path(child):
             nbt_path_keys = []
             if isinstance(tree.GetItemData(child), tuple):
@@ -556,15 +510,60 @@ class NBTEditor(wx.Panel):
                 nbt_path_keys.append(name)
             sibl = tree.GetItemParent(child)
             while sibl.IsOk():
+
                 if isinstance(tree.GetItemData(sibl), tuple):
                     nname, ddata = tree.GetItemData(sibl)
+                    if ddata == nbt.ListTag:
+
+                        index = 0
+                        item_num = tree.GetChildrenCount(sibl, recursively=False)
+                        f_child, f_c = tree.GetFirstChild(sibl)
+                        f_item = tree.GetFocusedItem()
+                        f_par = tree.GetItemParent(f_item)
+                        if len(nbt_path_keys) > 0:
+                            for xx in range(len(nbt_path_keys)-1):
+                                f_par = tree.GetItemParent(f_par)
+                        else:
+                            f_par = tree.GetFocusedItem()
+                        for c in range(item_num):
+                            if f_child == f_par:
+                                index = c
+                                nbt_path_keys.append(index)
+                            f_child, f_c = tree.GetNextChild(f_child, f_c)
                     nbt_path_keys.append(nname)
+                # else:
+                #     index = 0
+                #     nname, ddata = "", tree.GetItemData(sibl)
+                #     if ddata == nbt.ListTag:
+                #         print("????", nname)
+                #         index = 0
+                #         item_num = tree.GetChildrenCount(sibl, recursively=False)
+                #         f_child, f_c = tree.GetFirstChild(sibl)
+                #         f_item = tree.GetFocusedItem()
+                #         f_par = tree.GetItemParent(f_item)
+                #         for xx in range(len(nbt_path_keys)):
+                #             f_par = tree.GetItemParent(f_par)
+                #         print(len(nbt_path_keys), "KKKKKKK")
+                #         for c in range(item_num):
+                #             if f_child == f_par:
+                #                 index = c
+                #                 nbt_path_keys.append(index)
+                #
+                #             f_child, f_c = tree.GetNextChild(f_child, f_c)
+                #
+                #         print(index, "DEX")
+                    # print(type(ddata),"DtN", ddata)
+                    # nbt_path_keys.append(index)
+
                 sibl = tree.GetItemParent(sibl)
             nbt_path_keys.reverse()
             return nbt_path_keys[1:]
 
         def get_nbt(data_nbt, map_list):
             return reduce(operator.getitem, map_list[:-1], data_nbt)
+
+        def get_real_nbt(data_nbt, map_list):
+            return reduce(operator.getitem, map_list, data_nbt)
 
         def loop_tree_nodes(node, da_nbt):
             def is_comp(child, da_nbt):
@@ -576,7 +575,10 @@ class NBTEditor(wx.Panel):
                             inner_child, cc = tree.GetFirstChild(child)
                             if inner_child.IsOk():
                                 for xx in range(fcnt):
-                                    k, v = tree.GetItemData(inner_child)
+                                    if isinstance(tree.GetItemData(inner_child), tuple):
+                                        k, v = tree.GetItemData(inner_child)
+                                    else:
+                                        v = tree.GetItemData(inner_child)
                                     if v == nbt.ListTag:
                                         temp_comp[k] = is_list(inner_child, da_nbt)
                                     elif v == nbt.CompoundTag:
@@ -645,71 +647,56 @@ class NBTEditor(wx.Panel):
                         child, cookie = tree.GetNextChild(child, cookie)
 
 
-        root_tree = self.tree.GetRootItem()
-        loop_tree_nodes(root_tree, self.nbt_new)
-        # print(self.nbt_new.to_snbt(3))
-        # self.nbt_new.save_to(r"A_NEW_Atest.nbt", compressed=False, little_endian=True)
-        return self.nbt_new
+        if opt == 'snbt':
+            f_item = self.tree.GetFocusedItem()
+            #
+            # i_par = self.tree.GetItemParent(f_item)
+            #
+
+            root_tree = self.tree.GetRootItem()
+            loop_tree_nodes(root_tree, self.nbt_new)
+            t_path = root_path(f_item)
+
+            selected_nbt = get_real_nbt(self.nbt_new, t_path)
+            # self.nbt_new.save_to(r"C:\Users\drthe\AppData\Local\Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe\LocalState\games\com.mojang\minecraftWorlds\wNOGYzAFAQA=\Test.nbt", compressed=False , little_endian=True)
+            if hasattr(selected_nbt, 'items'):
+                tsnbt = []
+                for k, v in selected_nbt.items():
+                    tsnbt.append(nbt.CompoundTag({k: v}).to_snbt(5))
+                snbt = '{' + ''.join([f" {x[1:-2]}," for x in tsnbt]) + "\n}" #replace("}{", ",").replace("\n,", ",")
+                pat = re.compile(r'[A-Za-z0-9._+-:]+(?=":\s)')
+                matchs = pat.finditer(snbt)
+                for i,x in enumerate(matchs):
+                    C1 = x.span()[0] - 1 -(i)#i*2 if no space
+                    C2 = x.span()[1] - 1 -(i)#i*2 if no space
+                    if ":" in x.group():
+                        C1 -= 2
+                        C2 += 2
+                    snbt = snbt[0:C1:] + snbt[C1+1::]
+                    snbt = snbt[0:C2:] + " " + snbt[C2+1::]
+            else:
+                snbt = selected_nbt.to_snbt(5)
+                pat = re.compile(r'[A-Za-z0-9._+-:]+(?=":\s)')
+                matchs = pat.finditer(snbt)
+                for i, x in enumerate(matchs):
+                    C1 = x.span()[0] - 1 - (i)  # i*2 if no space
+                    C2 = x.span()[1] - 1 - (i)  # i*2 if no space
+                    if ":" in x.group():
+                        C1 -= 2
+                        C2 += 2
+                    snbt = snbt[0:C1:] + snbt[C1 + 1::]
+                    snbt = snbt[0:C2:] + " " + snbt[C2 + 1::]
+
+            return t_path, self.nbt_new, snbt
+
+        else:
+            root_tree = self.tree.GetRootItem()
+            loop_tree_nodes(root_tree, self.nbt_new)
+            return self.nbt_new
 
     def close(self, evt, parent):
         parent.Close(True)
         self.Close(True)
-
-    def edit_tag(self):
-
-        selected_tag = self.tree.GetFocusedItem()
-        name, data = self.tree.GetItemData(selected_tag)
-        p_tag = self.tree.GetItemParent(selected_tag)
-        root_i = self.tree.GetRootItem()
-        # if p_tag == root_i:
-        #     print("YES")
-        # else:
-        #     print("No")
-        pname, pdata = self.tree.GetItemData(p_tag)
-        # print(pdata)
-        #        root_path, root_types = self.get_root_path_types(selected_tag)
-        self.has_list_type = None
-        self.name_value = [False, False]
-        if isinstance(data, nbt.ListTag):
-            if len(data) >= 1:
-                self.has_list_type = str(type(data[0])).split(".")[-1][:-2]
-            else:
-                self.has_list_type = False
-
-        def save_func(new_name, new_tag_value, new_tag_type, old_name):
-
-            tag_type = [
-                tag_class
-                for tag_class in self.image_map
-                if tag_class.__name__ == new_tag_type
-            ][0]
-            if new_name != name:
-                new_dick = self.insert_key_value(pdata, new_name, name, pdata[name])
-                self.nbt_data = new_dick
-                old_data = pdata.pop(name)
-                pdata[new_name] = old_data
-                self.tree.SetItemText(selected_tag, f"{new_name}: {new_tag_value}")
-                self.tree.SetItemData(selected_tag, (new_name, pdata[new_name]))
-
-            else:
-                pdata[new_name] = tag_type(new_tag_value)
-                self.tree.SetItemText(selected_tag, f"{new_name}: {new_tag_value}")
-                self.tree.SetItemData(selected_tag, (new_name, pdata[new_name]))
-
-        edit_dialog = EditTagDialog(
-            self,
-            name,
-            data,
-            [
-                tag_type.__name__
-                for tag_type in self.image_map.keys()
-                if "Tag" in tag_type.__name__
-            ],
-            False,
-            self.name_value,
-            save_callback=save_func,
-        )
-        edit_dialog.Show()
 
     def build_tree(self,  data, x=0,y=0, root_tag_name=""):
         try:
@@ -731,7 +718,7 @@ class NBTEditor(wx.Panel):
 
                         if isinstance(item, MutableMapping):
 
-                            child_child = _tree.AppendItem(new_child, f"{len(value)} entries")
+                            child_child = _tree.AppendItem(new_child, f"{len(item)} entries")
                             add_tree_node(_tree, child_child, item)
                             tree.SetItemData(child_child, type(item))
                             tree.SetItemImage(
@@ -768,10 +755,9 @@ class NBTEditor(wx.Panel):
                                wx.TR_HAS_BUTTONS, self.nbt_data)
         tree.SetBackgroundColour((0, 0, 0))
         tree.SetForegroundColour((0, 255, 0))
-        font = wx.Font(15, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_MAX, wx.FONTWEIGHT_BOLD)
+        font = wx.Font(14, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_MAX, wx.FONTWEIGHT_BOLD)
 
         tree.SetFont(font)
-        tree.SetSize(400,400)
         tree.AssignImageList(self.image_list)
         root_tag_name = f"{len(self.nbt_data)} entries"
         root = tree.AddRoot(root_tag_name)
@@ -805,7 +791,7 @@ class NBTEditor(wx.Panel):
         pt = (evt.x, evt.y)
 
         item, a = self.tree.HitTest(pt)
-        print(item, a)
+
         if item == self.tree.GetFocusedItem() and evt.Button(wx.MOUSE_BTN_LEFT) and a == 64:
             try:
                 self.edit_dialog.Destroy()
@@ -813,7 +799,7 @@ class NBTEditor(wx.Panel):
                 pass
             if isinstance(self.tree.GetItemData(item), tuple):
                 name , data = self.tree.GetItemData(item)
-                print(name,data)
+
             else:
                 data = self.tree.GetItemData(item)
 
@@ -821,7 +807,7 @@ class NBTEditor(wx.Panel):
                 datat = type(data())
             else:
                 datat = type(data)
-            print(datat, data,">>>")
+
 
             self.has_list_type = str(datat).split(".")[-1][:-2]
             icon = self.image_list.GetBitmap(self.image_map[datat])
@@ -834,12 +820,10 @@ class NBTEditor(wx.Panel):
             self.edit_dialog.SetWindowStyle( style | wx.STAY_ON_TOP )
             self.edit_dialog.Show()
 
-
-
         evt.Skip()
 
     def tree_right_click(self, evt):
-        print(evt.GetPoint())
+
 
         if isinstance(self.tree.GetItemData(evt.GetItem()), tuple):
             tag_name, tag_obj = self.tree.GetItemData(evt.GetItem())
@@ -848,7 +832,6 @@ class NBTEditor(wx.Panel):
         else:
             tag_obj = self.tree.GetItemData(evt.GetItem())
 
-        print(tag_obj,"_______")
         menu = self._generate_menu(
             isinstance(tag_obj, (MutableMapping, MutableSequence, nbt.NamedTag, nbt.CompoundTag, abc.ABCMeta))
         )
@@ -856,18 +839,22 @@ class NBTEditor(wx.Panel):
         menu.Destroy()
         evt.Skip()
 
+
+
     def popup_menu_handler(self, op_map, op_sm_map,icon_sm_map, evt):
         op_id = evt.GetId()
         op_name = None
         continues = True
+
         if op_id in op_map:
             op_name = op_map[op_id]
+
         if op_id in op_sm_map:
             tag_type = [tag_class for tag_class in self.image_map if tag_class.__name__ ==
                         op_sm_map[op_id].replace(" ","")][0]
-            print(self.image_map, tag_type)
+
             item = self.tree.GetFocusedItem()
-            #item_data = self.tree.GetItemData(item)
+
             root = self.tree.GetRootItem()
             n_child = self.tree.GetFirstChild(item)[0]
             if root == item:
@@ -875,15 +862,10 @@ class NBTEditor(wx.Panel):
             elif n_child.IsOk():
 
                 child_data = self.tree.GetItemData(n_child)
-                print(child_data, "aaaa")
-                if isinstance(child_data, tuple):
-                    pass
-                    # data = child_data[1]
-                    # if type(data) == 'abc.ABCMeta':
-                    #     data = child_data[1]()
-                else:
+
+                if not isinstance(child_data, tuple):
                     data = child_data
-                    print(data, "KKOOO")
+
                     if type(data) == abc.ABCMeta:
                         entries = self.tree.GetChildrenCount(item, 0)
                         testdata = self.tree.GetItemText(item)
@@ -900,6 +882,7 @@ class NBTEditor(wx.Panel):
             else:
                  data = tag_type()
             if continues:
+                data = tag_type()
                 self.has_list_type = str(type(data)).split(".")[-1][:-2]
                 try:
                     self.edit_dialog.Destroy()
@@ -912,8 +895,26 @@ class NBTEditor(wx.Panel):
                 self.edit_dialog.SetWindowStyle(style | wx.STAY_ON_TOP)
                 self.edit_dialog.Show()
 
-        # if op_name == "add":
-        #     self.add_tag()
+        elif op_name == "copy":
+            self.copy_data = self.tree.SaveItemsToList(self.tree.GetFocusedItem())
+
+        elif op_name == "[paste]":
+
+            self.tree.InsertItemsFromList(self.copy_data,self.tree.GetFocusedItem())
+            self.tree.UnselectAll()
+
+        elif op_name == "edit_as":
+            try:
+                self.edit_dialog.Destroy()
+            except:
+                pass
+            item = self.tree.GetFocusedItem()
+            self.edit_dialog = SmallEditDialog(self, "Edit_As", "SNBT", item, self.tree, None,
+                                               self.image_map)
+            style = self.edit_dialog.GetWindowStyle()
+            self.edit_dialog.SetWindowStyle(style | wx.STAY_ON_TOP)
+            self.edit_dialog.Show()
+
         elif op_name == "edit":
             item = self.tree.GetFocusedItem()
             try:
@@ -922,7 +923,7 @@ class NBTEditor(wx.Panel):
                 pass
             if isinstance(self.tree.GetItemData(item), tuple):
                 name, data = self.tree.GetItemData(item)
-                print(name, data)
+
             else:
                 data = self.tree.GetItemData(item)
 
@@ -930,7 +931,7 @@ class NBTEditor(wx.Panel):
                 datat = type(data())
             else:
                 datat = type(data)
-            print(datat, data, ">>>")
+
 
             self.has_list_type = str(datat).split(".")[-1][:-2]
             icon = self.image_list.GetBitmap(self.image_map[datat])
@@ -944,14 +945,11 @@ class NBTEditor(wx.Panel):
             self.edit_dialog.SetWindowStyle(style | wx.STAY_ON_TOP)
             self.edit_dialog.Show()
 
-
-
         elif op_name == "delete":
             selected_tag = self.tree.GetFocusedItem()
             self.tree.Delete(selected_tag)
         else:
             if op_name == "bytetag":
-                print("OK")
                 selected_tag = self.tree.GetFocusedItem()
                 name , data = self.tree.GetItemData(selected_tag)
                 edit_dialog = SmallEditDialog(self,op_name,data, selected_tag, self.tree, None)
@@ -962,12 +960,16 @@ class NBTEditor(wx.Panel):
     def _generate_menu(self, include_add_tag=False):
         menu = wx.Menu()
         s_menu = wx.Menu()
-        print(include_add_tag)
+
         path_list = [ nbt_resources.path +"\\" + x + ".png" for x in dir(nbt_resources) ]
         menu_items = [
-            wx.MenuItem(menu, text="Edit Tag", id=wx.ID_ANY),
-            wx.MenuItem(menu, text="Delete Tag", id=wx.ID_ANY),
+            wx.MenuItem(menu, text="Edit", id=wx.ID_ANY),
+            wx.MenuItem(menu, text="Copy", id=wx.ID_ANY),
+            wx.MenuItem(menu, text="Edit_As SNBT", id=wx.ID_ANY),
+            wx.MenuItem(menu, text="Delete", id=wx.ID_ANY),
         ]
+        if self.copy_data:
+            menu_items.insert(2, wx.MenuItem(menu, text="[Paste]", id=wx.ID_ANY))
         sub_menu = [
             wx.MenuItem(s_menu, text="Byte Tag", id=wx.ID_ANY),
             wx.MenuItem(s_menu, text="Short Tag", id=wx.ID_ANY),
@@ -996,8 +998,6 @@ class NBTEditor(wx.Panel):
         sub_menu[10].SetBitmap(wx.Bitmap(path_list[0]))
         sub_menu[11].SetBitmap(wx.Bitmap(path_list[0]))
 
-
-
         if include_add_tag:
             selected_tag = self.tree.GetFocusedItem()
             data_ = self.tree.GetItemData(selected_tag)
@@ -1016,9 +1016,9 @@ class NBTEditor(wx.Panel):
             else:
                 tag_type = None
                 cnt = 0
-            print(tag_type, type(tag_type), type(data))
+
             if isinstance(data, nbt.ListTag) and cnt > 0:
-                print("YES")
+
                 self.has_list_type = str(type(tag_type)).split(".")[-1][:-2]
                 for s_menu_item in sub_menu:
                     has_tag = s_menu_item.GetItemLabel().replace(" ", "")
@@ -1091,16 +1091,23 @@ class NBTEditor(wx.Panel):
 
         # One of the following methods of inserting will be called...
         def MoveHere(event):
-            print("SD")
+
             # Save + delete the source
             save = self.tree.SaveItemsToList(source)
 
             self.tree.Delete(source)
             newitems = self.tree.InsertItemsFromList(save, targetparent, target)
             self.tree.UnselectAll()
-            # for item in newitems:
-            #     self.tree.SelectItem(item)
-            print("NOPE")
+            for item in newitems:
+                self.tree.SelectItem(item)
+        def CopyHere(event):
+
+            # Save + delete the source
+            save = self.tree.SaveItemsToList(source)
+            newitems = self.tree.InsertItemsFromList(save, target)
+            self.tree.UnselectAll()
+            for item in newitems:
+                self.tree.SelectItem(item)
 
         def InsertInToThisGroup(event):
             # Save + delete the source
@@ -1113,14 +1120,16 @@ class NBTEditor(wx.Panel):
 
 
         # ---------------------------------------
-        print(self.tree.GetItemData(target))
+
         if self.tree.GetItemData(target) and self.dragType == "right button":
             menu = wx.Menu()
             menu.Append(101, "Move to after this group", "")
             menu.Append(102, "Insert into this group", "")
+            menu.Append(103, "Copy into this group", "")
             menu.UpdateUI()
             menu.Bind(wx.EVT_MENU, MoveHere, id=101)
             menu.Bind(wx.EVT_MENU, InsertInToThisGroup, id=102)
+            menu.Bind(wx.EVT_MENU, CopyHere, id=103)
             self.PopupMenu(menu)
         else:
             if self.tree.IsExpanded(target):
@@ -1168,6 +1177,7 @@ class NBTEditor(wx.Panel):
         w, h = self.GetClientSize()
         self.tree.SetSize(0, 0, w, h)
 
+
 class BedRock(wx.Panel):
     def __int__(self, world, canvas):
         wx.Panel.__init__(self, parent)
@@ -1198,29 +1208,33 @@ class BedRock(wx.Panel):
 
                         for raw in self.actors.get(x):
                             try:
-                                nbt = self.nbt_loder(raw)
+                                nbt_ = self.nbt_loder(raw)
                             except:
-                                nbt = nbt.from_snbt(raw)
-                            name = str(nbt['identifier']).replace("minecraft:", "")
+                                nbt_ = nbt.from_snbt(raw)
+                            # print(nbt_)
+                            try:
+                                name = str(nbt_['identifier']).replace("minecraft:", "")
+                            except:
+                                name="unknown"
                             custom_name= ''
-                            if nbt.get("CustomName"):
-                                custom_name = str(nbt['CustomName'])
+                            if nbt_.get("CustomName"):
+                                custom_name = str(nbt_['CustomName'])
                             print(custom_name)
 
 
                             if exclude_filter != [''] or include_filter != ['']:
                                 if name not in exclude_filter and exclude_filter != ['']:
                                     self.lstOfE.append(name +":"+custom_name)
-                                    self.EntyData.append(nbt.to_snbt(1))
+                                    self.EntyData.append(nbt_.to_snbt(1))
                                     self.Key_tracker.append(x)
                                 for f in include_filter:
                                     if f in name:
                                         self.lstOfE.append(name +":"+custom_name)
-                                        self.EntyData.append(nbt.to_snbt(1))
+                                        self.EntyData.append(nbt_.to_snbt(1))
                                         self.Key_tracker.append(x)
                             else:
                                 self.lstOfE.append(name +":"+custom_name)
-                                self.EntyData.append(nbt.to_snbt(1))
+                                self.EntyData.append(nbt_.to_snbt(1))
                                 self.Key_tracker.append(x)
         if is_export:
             print("Exporting")
@@ -1245,15 +1259,15 @@ class BedRock(wx.Panel):
             chunks = selection.chunk_locations()
             for c in chunks:
                 self.world.get_chunk(c[0], c[1], self.canvas.dimension)
-        except amulet.api.errors.ChunkDoesNotExist:
-            responce = self.con_boc("Chuck Error", "Empty chunk selected, \n Continue any Ways?")
+        except ChunkDoesNotExist:
+            responce = EntitiePlugin.con_boc(self,"Chuck Error", "Empty chunk selected, \n Continue any Ways?")
             if responce:
                 print("Exiting")
                 return
             else:
                 pass
         if "[((0, 0, 0), (0, 0, 0))]" == str(selection):
-            responce = self.con_boc("No selection",
+            responce = EntitiePlugin.con_boc(self,"No selection",
                                     "All Entities will be deleted in " + str(self.canvas.dimension) + " \n Continue?")
             if responce:
                 print("Exiting")
@@ -1421,30 +1435,30 @@ class BedRock(wx.Panel):
                 if pallet_key_map.get((block.namespaced_name, str(block.properties))) == None:
                     pallet_key_map[(block.namespaced_name, str(block.properties))] = indx
                     indx += 1
-                    palette_Properties = amulet_nbt.TAG_Compound(
-                        {'Properties': amulet_nbt.from_snbt(str(block.properties)),
-                         'Name': amulet_nbt.TAG_String(block.namespaced_name)})
+                    palette_Properties = nbt.CompoundTag(
+                        {'Properties': nbt.from_snbt(str(block.properties)),
+                         'Name': nbt.StringTag(block.namespaced_name)})
                     palette.append(palette_Properties)
                 state = pallet_key_map[(block.namespaced_name, str(block.properties))]
 
                 if blockEntity == None:
                     blocks_pos = amulet_nbt.TAG_Compound({'pos': amulet_nbt.TAG_List(
-                        [amulet_nbt.TAG_Int(b[0]), amulet_nbt.TAG_Int(b[1]),
-                         amulet_nbt.TAG_Int(b[2])]), 'state': amulet_nbt.TAG_Int(state)})
+                        [nbt.IntTag(b[0]), nbt.IntTag(b[1]),
+                         nbt.IntTag(b[2])]), 'state': nbt.IntTag(state)})
                     blocks.append(blocks_pos)
                 else:
-                    blocks_pos = amulet_nbt.TAG_Compound({'nbt': amulet_nbt.from_snbt(blockEntity.nbt.to_snbt()),
-                                                          'pos': amulet_nbt.TAG_List(
-                                                              [amulet_nbt.TAG_Int(b[0]),
-                                                               amulet_nbt.TAG_Int(b[1]),
-                                                               amulet_nbt.TAG_Int(b[2])]),
+                    blocks_pos = nbt.CompoundTag({'nbt': nbt.from_snbt(blockEntity.nbt.to_snbt()),
+                                                          'pos': nbt.ListTag(
+                                                              [nbt.IntTag(b[0]),
+                                                               nbt.IntTag(b[1]),
+                                                               nbt.IntTag(b[2])]),
                                                           'state': amulet_nbt.TAG_Int(state)})
                     blocks.append(blocks_pos)
         prg_pre = 99
         self.prog.Update(prg_pre, "Finishing Up " + str(i) + " of " + str(prg_max))
-        size = amulet_nbt.TAG_List([amulet_nbt.TAG_Int(mx), amulet_nbt.TAG_Int(my), amulet_nbt.TAG_Int(mz)])
+        size = nbt.ListTag([nbt.IntTag(mx), nbt.IntTag(my), nbt.IntTag(mz)])
 
-        save_it = amulet_nbt.NBTFile()
+        save_it = nbt.CompoundTag({})
         save_it['size'] = size
         save_it['entities'] = entities
         save_it['blocks'] = blocks
@@ -1474,13 +1488,13 @@ class BedRock(wx.Panel):
             return False
         if the_id == wx.ID_OK:
             pathto = fdlg.GetPath()
-            nbt = amulet_nbt.load(pathto, compressed=True, little_endian=False, )
+            nbt_ = amulet_nbt.load(pathto, compressed=True, little_endian=False, )
             block_platform = "java"
             block_version = (1, 18, 0)
             b_pos = []
             palette = []
             Name = []
-            enbt = []
+            enbt_ = []
             xx = self.canvas.selection.selection_group.min_x
             yy = self.canvas.selection.selection_group.min_y
             zz = self.canvas.selection.selection_group.min_z
@@ -1532,7 +1546,7 @@ class BedRock(wx.Panel):
                 e_nbt_list = []
                 for x in nbt.get('entities'):
                     if str(x) != '':
-                        e_nbt = x.get('nbt')
+                        e_nbt_ = x.get('nbt')
                         nxx, nyy, nzz = x.get('pos').value
                         if 'Float' in str(type(nxx)):
                             x['nbt']['Pos'] = amulet_nbt.TAG_List([amulet_nbt.TAG_Float(float(nxx + xx)),
@@ -1607,7 +1621,7 @@ class BedRock(wx.Panel):
                                                                  amulet_nbt.TAG_Int(new_pos[2])])
                             # nbt_data.pop('internalComponents')
                             # nbt_data.pop('UniqueID')
-                            nbt_nbt = amulet_nbt.from_snbt(nbt_data.to_snbt())
+                            nbt_nbt_ = amulet_nbt.from_snbt(nbt_data.to_snbt())
                             main_entry = amulet_nbt.TAG_Compound()
                             main_entry['nbt'] = nbt_nbt
                             main_entry['blockPos'] = nbt_block_pos
@@ -1645,7 +1659,7 @@ class BedRock(wx.Panel):
                                                                      amulet_nbt.TAG_Int(new_pos[2])])
                                 # nbt_data.pop('internalComponents')
                                 # nbt_data.pop('UniqueID')
-                                nbt_nbt = amulet_nbt.from_snbt(nbt_data.to_snbt())
+                                nbt_nbt_ = amulet_nbt.from_snbt(nbt_data.to_snbt())
                                 main_entry = amulet_nbt.TAG_Compound()
                                 main_entry['nbt'] = nbt_nbt
                                 main_entry['blockPos'] = nbt_block_pos
@@ -1661,12 +1675,13 @@ class BedRock(wx.Panel):
             if self.world.level_wrapper.version >= (1, 18, 30, 4, 0):
                 for x in entities_list:
                     xc, zc = block_coords_to_chunk_coords(x.get('Pos')[0], x.get('Pos')[2])
-                    print(xc, zc)
+
                     world_count = int(str(self.world.level_wrapper.root_tag.get('worldStartCount')).replace('L', ''))
                     start_count = 4294967295 - world_count
                     entcnt += 1
                     actorKey = struct.pack('>LL', start_count, entcnt)
                     put_key = b''.join([b'actorprefix', actorKey])
+
                     digp = b''.join([b'digp', struct.pack('<ii', xc, zc), self.get_dim_value_bytes()])
                     # try:
                     #     # print(self.level_db.get(digp))
@@ -1679,7 +1694,8 @@ class BedRock(wx.Panel):
                     # except:
                     #     new_actor = b''
                     # new_digp += actorKey
-                    new_actor += amulet_nbt.NBTFile(x).save_to(compressed=False, little_endian=True)
+                    new_actor += x.save_to(compressed=False, little_endian=True)
+
                     self.level_db.put(put_key, new_actor)
                     self.level_db.put(digp, new_digp)
 
@@ -1708,7 +1724,7 @@ class BedRock(wx.Panel):
                 pathto = fdlg.GetPath()
             else:
                 return
-            anbt = amulet_nbt.load(pathto, compressed=False, little_endian=True)
+            anbt_ = amulet_nbt.load(pathto, compressed=False, little_endian=True)
             sx, sy, sz = anbt.get("structure_world_origin")
             egx, egy, egz = anbt.get("size")
             ex, ey, ez = sx + egx, sy + egy, sz + egz
@@ -1721,8 +1737,8 @@ class BedRock(wx.Panel):
             self.canvas.selection.set_selection_group(sel_grp)
             for xx in self.canvas.selection.selection_group.blocks:
                 for nbtlist in self.actors.values():
-                    for nbt in nbtlist:
-                        nbtd = amulet_nbt.load(nbt, compressed=False, little_endian=True)
+                    for anbt in nbtlist:
+                        nbtd = amulet_nbt.load(anbt, compressed=False, little_endian=True)
                         x,y,z = nbtd.get('Pos').value
                         ex,ey,ez = math.floor(x),math.floor(y),math.floor(z)
                         if (ex,ey,ez) == xx:
@@ -1754,14 +1770,17 @@ class BedRock(wx.Panel):
                 ent_cnt = 2
                 print("Importing...")
                 self._set_list_of_actors_digp
+                xxxx = 0
                 for snbt_line in snbt_loaded_list:
+                    print(xxxx)
+                    xxxx+=1
                     nbt_from_snbt = nbt.from_snbt(snbt_line)
                     cx, cz = block_coords_to_chunk_coords(nbt_from_snbt.get('Pos')[0], nbt_from_snbt.get('Pos')[2])
                     chunk_dict[(cx, cz)].append(nbt_from_snbt)
 
                 d = 0
                 for lk_data in chunk_dict.keys():
-                   # print(lk_data)
+
                     key = self.build_digp_chunk_key(lk_data[0], lk_data[1])  # build the digp key for the chunk
                     dig_p_dic = {}
                     dig_byte_list = b''
@@ -1771,21 +1790,23 @@ class BedRock(wx.Panel):
                         ent_cnt += 1
                         ent_data["UniqueID"] = self._genorate_uid(ent_cnt)
                         try:
+                            print( nbt.ByteArrayTag(bytearray(new_prefix[len(b'actorprefix'):])),"___________________________________")
                             ent_data['internalComponents']['EntityStorageKeyComponent']['StorageKey'] = \
-                                amulet_nbt.TAG_String(new_prefix[len(b'actorprefix'):])
+                                nbt.ByteArrayTag(bytearray(new_prefix[len(b'actorprefix'):]))
                         except:
                             pass
                         dig_byte_list += new_prefix[len(b'actorprefix'):]
-                        final_data = amulet_nbt.NBTFile(ent_data).save_to(compressed=False, little_endian=True)
+                        final_data = ent_data.save_to(compressed=False, little_endian=True).replace(b'\x07\n\x00StorageKey\x08\x00\x00\x00', b'\x08\n\x00StorageKey\x08\x00')
                        # print(new_prefix, final_data)
                         self.level_db.put(new_prefix, final_data)
-
+                        print(new_prefix, "New")
                     self.level_db.put(key, dig_byte_list)
+
 
             else:
                 cnt = 0
                 for snbt in snbt_loaded_list:
-                    nbt_from_snbt = nbt.from_snbt(snbt)
+                    nbt_from_snbt_ = nbt.from_snbt(snbt)
                     cx, cz = block_coords_to_chunk_coords(nbt_from_snbt.get('Pos')[0], nbt_from_snbt.get('Pos')[2])
                     chunk_dict[(cx, cz)].append(nbt_from_snbt)
                 for k in chunk_dict.keys():
@@ -1796,7 +1817,7 @@ class BedRock(wx.Panel):
                     for ent in chunk_dict[k]:
                         cnt += 1
                         ent["UniqueID"] = self._genorate_uid(cnt)
-                        NewRawB.append(nbt.NBTFile(ent).save_to(compressed=False, little_endian=True))
+                        NewRawB.append(ent.save_to(compressed=False, little_endian=True))
 
                     if chunk.get(b'2'):
                         chunk[b'2'] += b''.join(NewRawB)
@@ -1842,8 +1863,17 @@ class BedRock(wx.Panel):
         x = self._X.GetValue().replace(" X", "")
         y = self._Y.GetValue().replace(" Y", "")
         z = self._Z.GetValue().replace(" Z", "")
+        xx,yy, zz = 0, 0,0
+
+        if float(x) >= 0.0:
+            xx = 1
+        if float(y) >= 0.0:
+            yy = 1
+        if float(z) >= 0.0:
+            zz = 1
+
         dim = struct.unpack("<i", self.get_dim_value())[0]
-        location = nbt.TAG_List([nbt.TAG_Float(float(x)), nbt.TAG_Float(float(y)), nbt.TAG_Float(float(z))])
+        location = nbt.ListTag([nbt.FloatTag(float(x)-xx ), nbt.FloatTag(float(y)-yy), nbt.FloatTag(float(z)-zz)])
 
         if data != '':
             if copy:
@@ -1977,11 +2007,11 @@ class BedRock(wx.Panel):
 
         NewRawB = b''
         selection = self.ui_entitie_choice_list.GetSelection()
-        # newData = self._snbt_edit_data.GetValue()
+        # newData = self.nbt_editor_instance.GetValue()
         res = EntitiePlugin.important_question(self)
         if res == False:
             return
-        new_data = NBTEditor.commit(self._snbt_edit_data, _)
+        new_data = NBTEditor.build_to(self.nbt_editor_instance, _)
         self.EntyData[selection] = new_data.to_snbt(1)
         if self.world.level_wrapper.version >= (1, 18, 30, 4, 0):
             for snbt, key in zip(self.EntyData, self.Key_tracker):
@@ -2174,7 +2204,8 @@ class BedRock(wx.Panel):
                     done_actors = True
                 else:
                     if  b"actorprefixb'\\" not in k:
-                      # print(k)
+                        # print(k, v)
+                        # self.level_db.delete(k)
                         self.actors[struct.unpack('>II', k[11:])].append(v)
 
             while not done_digps:
@@ -2195,7 +2226,7 @@ class BedRock(wx.Panel):
         else:
 
             self.EntyData.clear()  # make sure to start fresh
-            nbt = nbt.NBTFile()
+            nbt_ = amulet_nbt.NBTFile()
             dim = dim = struct.unpack("<i", self.get_dim_value())[0]
             world_start_count = self.world.level_wrapper.root_tag["worldStartCount"]
             all_chunks = [x for x in self.world.level_wrapper.all_chunk_coords(self.canvas.dimension)]
@@ -2230,7 +2261,7 @@ class BedRock(wx.Panel):
             if dv not in self.not_to_remove:
                 key = b''.join([b'actorprefix', struct.pack('>II', dv[0], dv[1])])
                 data = self.level_db.get(key)
-                nbt = nbt.load(data.replace(b'\x08\n\x00StorageKey\x08\x00',
+                nbt_ = nbt.load(data.replace(b'\x08\n\x00StorageKey\x08\x00',
                                             b'\x07\n\x00StorageKey\x08\x00\x00\x00'), little_endian=True)
                 self.the_dead[key].append(nbt)
 
@@ -2288,7 +2319,7 @@ class BedRock(wx.Panel):
             bring_back["Dead"] = nbt.TAG_Byte(0)
         except:
             pass
-        raw_nbt = nbt.NBTFile(bring_back).save_to(compressed=False, little_endian=True) \
+        raw_nbt_ = nbt.NBTFile(bring_back).save_to(compressed=False, little_endian=True) \
             .replace(b'\x07\n\x00StorageKey\x08\x00\x00\x00', b'\x08\n\x00StorageKey\x08\x00')
         self.level_db.put(raw_dead_actor_key, raw_nbt)
         for popoff in self.digp.keys():
@@ -2412,7 +2443,7 @@ class Java(wx.Panel):
         else:
             chunks = [x for x in self.world.level_wrapper.all_chunk_coords(self.canvas.dimension)]
         rcords = collections.defaultdict(list)
-        self.found_entities = nbt.TAG_List()
+        self.found_entities = nbt.ListTag()
         for xc , xz in chunks:
             rx, rz = world_utils.chunk_coords_to_region_coords(xc , xz)
             rcords[(rx, rz)].append((xc , xz))
@@ -2435,21 +2466,21 @@ class Java(wx.Panel):
                         for x in self.nbt_data:
                             self.found_entities.append(x)
 
-        for nbt in self.found_entities:
+        for nbt_ in self.found_entities:
             exclude_filter = self.exclude_filter.GetValue().split(",")
             include_filter = self.include_filter.GetValue().split(",")
-            name = str(nbt['id']).replace("minecraft:", "")
+            name = str(nbt_['id']).replace("minecraft:", "")
             if exclude_filter != ['']:
                 if name not in exclude_filter:
                     self.lstOfE.append(name)
-                    self.EntyData.append(nbt.to_snbt(1))
+                    self.EntyData.append(nbt_.to_snbt(1))
             if include_filter != ['']:
                 if name in include_filter:
                     self.lstOfE.append(name)
-                    self.EntyData.append(nbt.to_snbt(1))
+                    self.EntyData.append(nbt_.to_snbt(1))
             else:
                 self.lstOfE.append(name)
-                self.EntyData.append(nbt.to_snbt(1))
+                self.EntyData.append(nbt_.to_snbt(1))
 
         if len(self.EntyData) > 0:
             zipped_lists = zip(self.lstOfE, self.EntyData)
@@ -2476,7 +2507,7 @@ class Java(wx.Panel):
         location = nbt.TAG_List([nbt.TAG_Double(float(nx)), nbt.TAG_Double(float(ny)), nbt.TAG_Double(float(nz))])
 
         setdata["Pos"] = location
-        data_nbt = setdata
+        data_nbt_ = setdata
 
         cx, cz = block_coords_to_chunk_coords(float(ox), float(oz))
         rx, rz = world_utils.chunk_coords_to_region_coords(cx, cz)
@@ -2644,17 +2675,17 @@ class Java(wx.Panel):
                 snbt_list = tfile.readlines()
             loaction_dict = collections.defaultdict(list)
             for line in snbt_list:
-                nbt = amulet_nbt.from_snbt(line)
-                x,y,z = nbt.get('Pos').value
+                nbt_ = amulet_nbt.from_snbt(line)
+                x,y,z = nbt_.get('Pos').value
                 uu_id = uuid.uuid4()
                 q, w, e, r = struct.unpack('>iiii', uu_id.bytes)
-                nbt['UUID'] = amulet_nbt.TAG_Int_Array(
+                nbt_['UUID'] = amulet_nbt.TAG_Int_Array(
                     [amulet_nbt.TAG_Int(q), amulet_nbt.TAG_Int(w), amulet_nbt.TAG_Int(e), amulet_nbt.TAG_Int(r)])
                 bc,bz = block_coords_to_chunk_coords(x,z)
                 rx,rz = world_utils.chunk_coords_to_region_coords(bc,bz)
-                l_nbt = {}
-                l_nbt[(bc,bz)] = nbt
-                loaction_dict[(rx,rz)].append(l_nbt)
+                l_nbt_ = {}
+                l_nbt_[(bc,bz)] = nbt_
+                loaction_dict[(rx,rz)].append(l_nbt_)
 
             for rx,rz in loaction_dict.keys():
                 file_exists = exists(self.get_dim_vpath_java_dir(rx,rz))
@@ -2701,7 +2732,7 @@ class Java(wx.Panel):
             with open(pathto, "rb") as tfile:
                 snbt_list = tfile.read()
                 tfile.close()
-            anbt = amulet_nbt.load(snbt_list, compressed=False, little_endian=True)
+            anbt_ = amulet_nbt.load(snbt_list, compressed=False, little_endian=True)
             sx,sy,sz = anbt.get("structure_world_origin")
             egx,egy,egz = anbt.get("size")
             ex, ey, ez = sx-egx,sy-egy,sz-egz
@@ -2758,8 +2789,10 @@ class Java(wx.Panel):
         res = EntitiePlugin.important_question(self)
         if res == False:
             return
-        # newData = self._snbt_edit_data.GetValue()  # get new data
-        data = nbt.from_snbt(newData)  # convert to nbt
+        # newData = self.nbt_editor_instance.GetValue()  # get new data
+        newData = NBTEditor.build_to(self.nbt_editor_instance, _)
+        data = newData
+        # data = nbt.from_snbt(newData)  # convert to nbt
         cx , cz = block_coords_to_chunk_coords(data.get("Pos")[0].value,data.get("Pos")[2].value)
         loc = data.get("Pos")
         uuid = data.get("UUID")
@@ -2876,13 +2909,13 @@ class Java(wx.Panel):
         fdlg = wx.FileDialog(self, "Load .nbt", "", "", "nbt files(*.nbt)|*.*", wx.FD_OPEN)
         if fdlg.ShowModal() == wx.ID_OK:
             pathto = fdlg.GetPath()
-            nbt = amulet_nbt.load(pathto, compressed=True, little_endian=False, )
+            nbt_ = amulet_nbt.load(pathto, compressed=True, little_endian=False, )
             block_platform = "java"
             block_version = (1, 18, 0)
             b_pos = []
             palette = []
             Name = []
-            enbt = []
+            enbt_ = []
             xx = self.canvas.selection.selection_group.min_x
             yy = self.canvas.selection.selection_group.min_y
             zz = self.canvas.selection.selection_group.min_z
@@ -2919,7 +2952,7 @@ class Java(wx.Panel):
             e_nbt_list = []
             for x in nbt.get('entities'):
                 if str(x) != '':
-                    e_nbt = x.get('nbt')
+                    e_nbt_ = x.get('nbt')
                     nxx, nyy, nzz = x.get('pos').value
 
                     x['nbt']['Pos'] = amulet_nbt.TAG_List([amulet_nbt.TAG_Double(float(nxx + xx)),
@@ -2988,7 +3021,7 @@ class Java(wx.Panel):
                 nbt_block_pos = amulet_nbt.TAG_List([amulet_nbt.TAG_Int(new_pos[0]),
                                                      amulet_nbt.TAG_Int(new_pos[1]),
                                                      amulet_nbt.TAG_Int(new_pos[2])])
-                nbt_nbt = amulet_nbt.from_snbt(nbt_data.to_snbt())
+                nbt_nbt_ = amulet_nbt.from_snbt(nbt_data.to_snbt())
                 main_entry = amulet_nbt.TAG_Compound()
                 main_entry['nbt'] = nbt_nbt
                 main_entry['blockPos'] = nbt_block_pos
@@ -3246,8 +3279,8 @@ class EntitiePlugin(wx.Panel, DefaultOperationUI):
 
         self.operation.ui_entitie_choice_list = wx.ListBox(self, style=wx.LB_HSCROLL, choices=self.lstOfE, pos=(0, 20),
                                                  size=(140, 800))
-        self.operation._snbt_edit_data = NBTEditor(self)
-        self.bottom_h.Add(self.operation._snbt_edit_data, 130, wx.EXPAND,21)
+        self.operation.nbt_editor_instance = NBTEditor(self)
+        self.bottom_h.Add(self.operation.nbt_editor_instance, 130, wx.EXPAND,21)
         self.operation.ui_entitie_choice_list.SetFont(self.font)
         self.operation.ui_entitie_choice_list.Bind(wx.EVT_LISTBOX, lambda event: self.on_focus(event))
 
@@ -3260,7 +3293,7 @@ class EntitiePlugin(wx.Panel, DefaultOperationUI):
         self.Layout()
         self.Thaw()
 
-    # self._snbt_edit_data.Bind(wx.EVT_KEY_UP, self.autoSaveOnKeyPress)
+    # self.nbt_editor_instance.Bind(wx.EVT_KEY_UP, self.autoSaveOnKeyPress)
     def bind_events(self):
         super().bind_events()
         self.canvas.Bind(EVT_SELECTION_CHANGE, self._set_new_block)
@@ -3268,7 +3301,7 @@ class EntitiePlugin(wx.Panel, DefaultOperationUI):
         self._selection.enable()
 
     def enable(self):
-        self.canvas.camera.projection_mode = Projection.TOP_DOWN
+        #self.canvas.camera.projection_mode = Projection.TOP_DOWN
         self._selection = BlockSelectionBehaviour(self.canvas)
         self._selection.enable()
 
@@ -3282,6 +3315,134 @@ class EntitiePlugin(wx.Panel, DefaultOperationUI):
             return True
         else:
             return False
+
+    def update_player_data(self, new_data):
+        self_ = self.Parent.Parent
+        # nbt.from_snbt(self.operation.EntyData[self.operation.ui_entitie_choice_list.GetSelection()])
+        save_expanded = []
+        f_root = self_.operation.nbt_editor_instance.tree.GetRootItem()
+        r_c = self_.operation.nbt_editor_instance.tree.GetChildrenCount(f_root, 0)
+
+        def get_full_path(child):
+            tree = self_.operation.nbt_editor_instance.tree
+            index = 0
+            p_type = None
+            the_sib_items = None
+            nbt_path_keys = []
+            if isinstance(tree.GetItemData(child), tuple):
+                name, data = tree.GetItemData(child)
+                nbt_path_keys.append(name)
+            sibl = tree.GetItemParent(child)
+            while sibl.IsOk():
+                the_sib_items = sibl
+                if isinstance(tree.GetItemData(sibl), tuple):
+                    p_type = type(tree.GetItemData(sibl)[1])
+                else:
+                    p_type = tree.GetItemData(sibl)
+
+
+                if p_type == nbt.ListTag or p_type == nbt.CompoundTag:
+
+                    item_num = tree.GetChildrenCount(sibl, recursively=False)
+                    f_child, f_c = tree.GetFirstChild(sibl)
+                    f_item = child
+                    for c in range(item_num):
+                        if f_child == f_item:
+                            index = c
+                            break
+                        f_child, f_c = tree.GetNextChild(f_child, f_c)
+                    nbt_path_keys.append(index)
+                if isinstance(tree.GetItemData(sibl), tuple):
+                    nname, ddata = tree.GetItemData(sibl)
+                    nbt_path_keys.append(nname)
+                sibl = tree.GetItemParent(sibl)
+            nbt_path_keys.reverse()
+            return nbt_path_keys[1:]
+
+        def root_path(child):
+            tree = self_.operation.nbt_editor_instance.tree
+            nbt_path_keys = []
+            if isinstance(tree.GetItemData(child), tuple):
+                name, data = tree.GetItemData(child)
+                nbt_path_keys.append(name)
+            sibl = tree.GetItemParent(child)
+            while sibl.IsOk():
+                if isinstance(tree.GetItemData(sibl), tuple):
+                    nname, ddata = tree.GetItemData(sibl)
+                    if ddata == nbt.ListTag:
+                        index = 0
+                        item_num = tree.GetChildrenCount(sibl, recursively=False)
+                        f_child, f_c = tree.GetFirstChild(sibl)
+                        f_item = child
+                        f_par = tree.GetItemParent(f_item)
+                        if len(nbt_path_keys) > 0:
+                            for xx in range(len(nbt_path_keys)-1):
+                                f_par = tree.GetItemParent(f_par)
+                        else:
+                            f_par = child
+                        for c in range(item_num):
+                            if f_child == f_par:
+                                index = c
+                                nbt_path_keys.append(index)
+                            f_child, f_c = tree.GetNextChild(f_child, f_c)
+                    nbt_path_keys.append(nname)
+                sibl = tree.GetItemParent(sibl)
+            nbt_path_keys.reverse()
+            return nbt_path_keys[1:]
+
+        def recurtree(item):
+            # for c in range(r_c):
+            if item.IsOk():
+                i_c = self_.operation.nbt_editor_instance.tree.GetChildrenCount(item, recursively=True)
+                f_ic, cc_i = self_.operation.nbt_editor_instance.tree.GetFirstChild(item)
+                for ci in range(i_c):
+                    if f_ic.IsOk():
+
+                        if self_.operation.nbt_editor_instance.tree.IsExpanded(f_ic):
+                            save_expanded.append(copy.copy(root_path(f_ic)))
+                        if self_.operation.nbt_editor_instance.tree.GetChildrenCount(f_ic) > 0:
+                            recurtree(f_ic)
+                    f_ic, cc_i = self_.operation.nbt_editor_instance.tree.GetNextChild(f_ic, cc_i)
+
+
+
+        recurtree(f_root)
+        current_scr_h = self_.operation.nbt_editor_instance.tree.GetScrollPos(orientation=wx.VERTICAL)
+
+        self_.bottom_h.Detach(self_.operation.nbt_editor_instance)
+        self_.bottom_h.Detach(self_.operation.ui_entitie_choice_list)
+        self_.operation.nbt_editor_instance.Hide()
+        NBTEditor.close(self_.operation.nbt_editor_instance, None, self_.GetParent())
+        self_.operation.nbt_editor_instance = NBTEditor(self_, new_data)
+        self_.bottom_h.Add(self_.operation.nbt_editor_instance, 130, wx.EXPAND, 21)
+        self_.bottom_h.Add(self_.operation.ui_entitie_choice_list, 50, wx.RIGHT, 0)
+
+        self_.nbt_editor_instance = NBTEditor(self_, new_data)
+        root = self_.operation.nbt_editor_instance.tree.GetRootItem()
+        first_c ,c = self_.operation.nbt_editor_instance.tree.GetFirstChild(root)
+        def re_expand(item):
+            if item.IsOk():
+                i_c = self_.operation.nbt_editor_instance.tree.GetChildrenCount(item)
+                f_ic, cc_i = self_.operation.nbt_editor_instance.tree.GetFirstChild(item)
+                for ci in range(i_c):
+                    if f_ic.IsOk():
+                        if root_path(f_ic) in save_expanded:
+                            self_.operation.nbt_editor_instance.tree.Expand(f_ic)
+                        if self_.operation.nbt_editor_instance.tree.GetChildrenCount(f_ic) > 0:
+                            re_expand(f_ic)
+                    f_ic, cc_i = self_.operation.nbt_editor_instance.tree.GetNextChild(f_ic, cc_i)
+        self_.operation.nbt_editor_instance.tree.Expand(first_c)
+        re_expand(root)
+        self_.operation.nbt_editor_instance.tree.SetScrollPos(wx.VERTICAL, current_scr_h)
+        self_.bottom_h.Layout()
+        self_.bottom_h.Fit(self_)
+        self_._sizer_v_main.Fit(self_)
+        self_._sizer_v_main.Layout()
+        self_.Fit()
+        self_.Layout()
+
+        self.Close()
+
 
     def get_dir_path(self, foldername, cx, cz):
         return os.path.join(os.getcwd(), "plugins", "operations", foldername,
@@ -3298,41 +3459,37 @@ class EntitiePlugin(wx.Panel, DefaultOperationUI):
     def autoSaveOnKeyPress(self, _):
 
         selection = self.operation.ui_entitie_choice_list.GetSelection()
-        # newData = self.operation._snbt_edit_data.GetValue()
+        # newData = self.operation.nbt_editor_instance.GetValue()
         try:
             self.operation.EntyData[selection] = nbt.NBTFile(nbt.from_snbt(newData))
         except:
             self.Onmsgbox("syntax error", "Try agian")
             setdata = self.operation.EntyData[selection]
             # try:
-            #     self.operation._snbt_edit_data.SetValue(nbt.from_snbt(setdata).to_snbt(1))
+            #     self.operation.nbt_editor_instance.SetValue(nbt.from_snbt(setdata).to_snbt(1))
             # except:
-            #     self.operation._snbt_edit_data.SetValue(setdata.to_snbt(1))
+            #     self.operation.nbt_editor_instance.SetValue(setdata.to_snbt(1))
 
 
     def on_focus(self, evt):
 
         setdata = nbt.from_snbt(self.operation.EntyData[self.operation.ui_entitie_choice_list.GetSelection()])
-        self.bottom_h.Detach(self.operation._snbt_edit_data)
+        self.bottom_h.Detach(self.operation.nbt_editor_instance)
         self.bottom_h.Detach(self.operation.ui_entitie_choice_list)
-        self.operation._snbt_edit_data.Hide()
-        # self.bottom_h.Clear(True)
-        NBTEditor.close(self.operation._snbt_edit_data, evt, self.GetParent())
-        self.operation._snbt_edit_data = NBTEditor(self, setdata)
-
-        self.bottom_h.Add(self.operation._snbt_edit_data, 130, wx.EXPAND, 21)
+        self.operation.nbt_editor_instance.Hide()
+        NBTEditor.close(self.operation.nbt_editor_instance, evt, self.GetParent())
+        self.operation.nbt_editor_instance = NBTEditor(self, setdata)
+        self.bottom_h.Add(self.operation.nbt_editor_instance, 130, wx.EXPAND, 21)
         self.bottom_h.Add(self.operation.ui_entitie_choice_list, 50, wx.RIGHT, 0)
-
         self.bottom_h.Layout()
         self.bottom_h.Fit(self)
-
         self._sizer_v_main.Fit(self)
         self._sizer_v_main.Layout()
         self.Fit()
         self.Layout()
 
-        # self.operation._snbt_edit_data.SetValue(setdata.to_snbt(1))
-        # self.operation._snbt_edit_data.
+        # self.operation.nbt_editor_instance.SetValue(setdata.to_snbt(1))
+        # self.operation.nbt_editor_instance.
         (x, y, z) = setdata.get('Pos')[0], setdata.get('Pos')[1], setdata.get('Pos')[2]
         self.operation._X.SetLabel(str(x).replace("f", " X").replace("d", " X"))
         self.operation._Y.SetLabel(str(y).replace("f", " Y").replace("d", " Y"))
@@ -3342,19 +3499,24 @@ class EntitiePlugin(wx.Panel, DefaultOperationUI):
         Z = int(str(self.operation._Z.GetValue()).replace(" Z", "").split(".")[0])
         blockPosdata = {}
         group = []
+        xx,zz = 1,1
         v = (
-            X + 1,
-            Y,
-            Z - 1)
-        vv = (X,
-              Y+1,
-              Z)
+            (X),
+            (Y),
+            (Z))
+        if X < 0:
+            xx = -1
+        if Z < 0:
+            zz = -1
+        vv = ((X+xx),
+              (Y+1),
+               (Z+zz))
         group.append(SelectionBox(v, vv))
         sel = SelectionGroup(group)
         self.canvas.selection.set_selection_group(sel)
         if self._teleport_check.GetValue():
             x, y, z = (x, y, z)
-            self.canvas.camera.set_location((x, 320, z))
+            self.canvas.camera.set_location((x, Y+10, z))
             self.canvas.camera.set_rotation((34.720000000000006, 90))
             self.canvas.camera._notify_moved()
 
@@ -3551,4 +3713,6 @@ class ExportImportCostomDialog(wx.Dialog):
         self.nbt_file_option.SetValue(False)
         self.Destroy()
 
-export = dict(name="# The Entitie's Plugin v2.00b", operation=EntitiePlugin) #PremiereHell
+
+
+export = dict(name="# The Entitie's Plugin nbt v2.10b", operation=EntitiePlugin) #PremiereHell
