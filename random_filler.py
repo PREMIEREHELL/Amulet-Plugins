@@ -16,7 +16,6 @@ from amulet.api.data_types import Dimension
 from amulet.api.selection import SelectionBox
 from amulet.api.selection import SelectionGroup
 from amulet.api.wrapper import Interface, EntityIDType, EntityCoordType
-from amulet.libs.leveldb.leveldb import LevelDB
 from amulet.utils import block_coords_to_chunk_coords
 from amulet_map_editor.api import image
 from amulet_map_editor.api.wx.ui.base_select import BaseSelect
