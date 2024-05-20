@@ -33,7 +33,6 @@ from amulet.utils import block_coords_to_chunk_coords
 from amulet.api.block import Block
 import PyMCTranslate
 from amulet_map_editor.api.wx.ui.base_select import BaseSelect
-from amulet.libs.leveldb.leveldb import LevelDB
 import datetime
 from pathlib import Path
 from ctypes import windll
