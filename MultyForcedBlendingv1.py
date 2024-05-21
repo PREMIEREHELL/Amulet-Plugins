@@ -91,10 +91,11 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
         self._sizer.Add(top_sizer, 0, wx.TOP | wx.LEFT, 290)
         # choicebox for operation mode selection.
 
-        self._delete_unselected_chunks = wx.Button(self, label="Delete Unselected Chunks", size=(160, 40))
-        self._force_blending = wx.Button(self, label="Force Blending", size=(160, 40))
+        self._delete_unselected_chunks = wx.Button(self, label="Delete \n Unselected \nChunks", size=(100, 40))
+        self._force_blending = wx.Button(self, label="Force \n Blending", size=(100, 40))
         self._force_blending.Bind(wx.EVT_BUTTON, self._force_blening_window)
-
+        self._force_relighting = wx.Button(self, label="Force\n Relighting", size=(100, 40))
+        self._force_relighting.Bind(wx.EVT_BUTTON, self.force_relighting)
         self._delete_unselected_chunks.Bind(wx.EVT_BUTTON, self.delete_unselected)
 
         self._run_button = wx.Button(self, label="Set \n Selection Boxs", size=(60, 50))
@@ -209,7 +210,13 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
         side_sizer.Add(self.boxgrid_d, 0, wx.TOP | wx.LEFT, 1)
         side_sizer.Add(self.boxgrid_u, 0, wx.TOP | wx.LEFT, 1)
         side_sizer.Add(self.boxgrid_down, 0, wx.TOP | wx.LEFT, 1)
-        self.box_mid = wx.GridSizer(1, 2, 1, 1)
+
+        if self.world.level_wrapper.platform == "java":
+
+            self.box_mid = wx.GridSizer(1, 3, 1, -11)
+            self.box_mid.Add(self._force_relighting)
+        else:
+            self.box_mid = wx.GridSizer(1, 2, 1, 1)
         self.box_mid.Add(self._delete_unselected_chunks)
         self.box_mid.Add(self._force_blending)
 
@@ -232,17 +239,44 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
         self.Layout()
         self.Thaw()
 
+    def force_relighting(self, _):
+        self._gsel(_)
+        self.merge(_)
+        self._set_seletion()
+        selected_chunks = self.canvas.selection.selection_group.chunk_locations()
+        if len(selected_chunks) == 0:
+            wx.MessageBox(" You Must Select An area or have an area in the list",
+                          "Information", style=wx.OK | wx.STAY_ON_TOP | wx.CENTRE,
+                          parent=self.Parent)
+
+        loaction_dict = collections.defaultdict(list)
+        if self.world.level_wrapper.platform == "java":
+
+            for xx, zz in selected_chunks:
+                rx, rz = world_utils.chunk_coords_to_region_coords(xx, zz)
+                loaction_dict[(rx, rz)].append((xx, zz))
+
+            for rx, rz in loaction_dict.keys():
+                file_exists = exists(self.get_dim_vpath_java_dir(rx, rz))
+                if file_exists:
+                    for di in loaction_dict[(rx, rz)]:
+                        cx, cz = di
+
+                        self.raw_data = AnvilRegion(self.get_dim_vpath_java_dir(rx, rz))
+                        if self.raw_data.has_chunk(cx % 32, cz % 32):
+                            nbt_data = self.raw_data.get_chunk_data(cx % 32, cz % 32)
+                            nbt_data.pop('isLightOn', None)
+                            for sections in nbt_data['sections']:
+                                sections.pop("BlockLight", None)
+                                sections.pop("SkyLight", None)
+                            self.raw_data.put_chunk_data(cx % 32, cz % 32, nbt_data)
+                        self.raw_data.save()
+            self.world.save()
+            wx.MessageBox(" Lighting will now regenerate in the selected chunk\s",
+                          "Information", style=wx.OK | wx.STAY_ON_TOP | wx.CENTRE,
+                          parent=self.Parent)
 
 
-
-    # @property
-    # def wx_add_options(self) -> Tuple[int, ...]:
-    #
-    #     return (0,)
-    #
-    # def _cls(self):
-    #
-    #     print("\033c\033[3J", end='')
     def delete_unselected(self, _):
         try:
             self.frame.Hide()
@@ -1010,4 +1044,4 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
 
     pass
 
-export = dict(name="# Multi Forced Blending 1.1", operation=MultiForcedBlending) #By PremiereHell
+export = dict(name="# Multi Forced Blending 1.0", operation=MultiForcedBlending) #By PremiereHell
