@@ -1,6 +1,6 @@
 import math
 from typing import TYPE_CHECKING, Tuple
-
+from amulet.utils import world_utils
 import amulet_nbt
 from amulet.api.wrapper import Interface, EntityIDType, EntityCoordType
 import re
@@ -9,6 +9,8 @@ import urllib.request
 import wx
 import ast
 import os
+from os.path import exists
+from amulet.level.formats.anvil_world.region import AnvilRegion
 import string
 import os.path
 from os import path
@@ -713,7 +715,7 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
                                                            "Requires at least one chunk border of deleted chunks"
                                                            " Blending happens when existing terrain blends in with seed "
                                                            "generated terrain.\n Water surrounds if below 62 and the cut off is 255\n"
-                                                            "The Nether:\n"
+                                                            "The Nether:  !Untested In Java\n"
                                                            "You will want chunks to be around your builds. "
                                                            "Not Really blending, But it looks better than 16x16 flat walls.  "
                                                            "The End:\n"
@@ -757,6 +759,8 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
             if self.world.level_wrapper.platform == "java":
                 self.seed_input.SetValue(
                     str(self.world.level_wrapper.root_tag['Data']['WorldGenSettings']['seed']))
+                self._recal_heightmap.Hide()
+
             else:
                 self.seed_input.SetValue(str(self.world.level_wrapper.root_tag['RandomSeed']))
         self._run_button.Bind(wx.EVT_BUTTON, self._refresh_chunk)
@@ -1006,4 +1010,4 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
 
     pass
 
-export = dict(name="# Multi Forced Blending 1.0", operation=MultiForcedBlending) #By PremiereHell
+export = dict(name="# Multi Forced Blending 1.1", operation=MultiForcedBlending) #By PremiereHell
