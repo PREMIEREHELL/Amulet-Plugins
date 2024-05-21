@@ -708,24 +708,25 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
         self.font2 = wx.Font(16, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
 
         self.info_label = wx.StaticText(self.frame, label="There is No Undo Make a backup!", size=(440, 20))
-        self.info_label2 = wx.StaticText(self.frame, label="Who It Works:\n"
+        self.info_label2 = wx.StaticText(self.frame, label="How It Works:\n"
                                                            "The Overworld:\n "
                                                            "Requires at least one chunk border of deleted chunks"
-                                                           "Blending happens when existing terrain blends in with seed "
-                                                           "generated terrain.\n"
+                                                           " Blending happens when existing terrain blends in with seed "
+                                                           "generated terrain.\n Water surrounds if below 62 and the cut off is 255\n"
                                                             "The Nether:\n"
                                                            "You will want chunks to be around your builds. "
-                                                           "Not Really blending, But it looks better than 16x16 flat walls\n "
+                                                           "Not Really blending, But it looks better than 16x16 flat walls.  "
                                                            "The End:\n"
-                                                           "Has not been updated yes and does not appear to have any "
+                                                           "Has not been updated yet and does not appear to have any "
                                                            "blending options as of yet.\n"
-                                                           "Blending Does not require seed changes,\n"
+                                                           "Blending Does not require a seed change,\n"
                                                            "A simple biome change, pasted in chunks, higher terrain blocks "
                                                            "or structures(Recalculate Heightmap)\n "
                                                            "Terrain blocks are also required for the overworld it will "
                                                            "blend from them, it wont blend from none terrain type blocks"
                                                            "\nManual Seed changes or algorithmic seed changes are what make old "
-                                                           "terrain not match up to existing chunks without blending."
+                                                           "terrain not match up to existing chunks without blending.\n"
+
                                                            , size=(440, 492))
 
         self.info_label2.SetFont(self.font2)
@@ -1005,4 +1006,4 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
 
     pass
 
-export = dict(name="Multi Forced Blending 1.0", operation=MultiForcedBlending) #By PremiereHell
+export = dict(name="# Multi Forced Blending 1.0", operation=MultiForcedBlending) #By PremiereHell
