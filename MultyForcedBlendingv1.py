@@ -216,6 +216,7 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
             self.box_mid = wx.GridSizer(1, 3, 1, -11)
             self.box_mid.Add(self._force_relighting)
         else:
+            self._force_relighting.Hide()
             self.box_mid = wx.GridSizer(1, 2, 1, 1)
         self.box_mid.Add(self._delete_unselected_chunks)
         self.box_mid.Add(self._force_blending)
@@ -266,9 +267,7 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
                         if self.raw_data.has_chunk(cx % 32, cz % 32):
                             nbt_data = self.raw_data.get_chunk_data(cx % 32, cz % 32)
                             nbt_data.pop('isLightOn', None)
-                            for sections in nbt_data['sections']:
-                                sections.pop("BlockLight", None)
-                                sections.pop("SkyLight", None)
+                            
                             self.raw_data.put_chunk_data(cx % 32, cz % 32, nbt_data)
                         self.raw_data.save()
             self.world.save()
