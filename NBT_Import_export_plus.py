@@ -1,11 +1,13 @@
 import math
 import os
 from os.path import exists
+
+import amulet_nbt
 import wx
 import struct
 from typing import TYPE_CHECKING
 from amulet_map_editor.programs.edit.api.operations import DefaultOperationUI
-import amulet_nbt
+from amulet_nbt import *
 from amulet_map_editor.api.wx.ui.base_select import BaseSelect
 from amulet.api.block_entity import BlockEntity
 from amulet.api.block import Block
@@ -60,10 +62,10 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
 
 
     def _export_nbt(self, _):
-        entities = amulet_nbt.TAG_List()
-        blocks = amulet_nbt.TAG_List()
-        palette = amulet_nbt.TAG_List()
-        DataVersion = amulet_nbt.TAG_Int(2975)
+        entities = ListTag()
+        blocks = ListTag()
+        palette = ListTag()
+        DataVersion = IntTag(2975)
         selection = self.canvas.selection.selection_group.to_box()
         pallet_key_map = collections.defaultdict(list)
         nbt_state_map = collections.defaultdict(list)
@@ -80,7 +82,7 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
 
         print(self.entitie_check.GetValue())
         if self.entitie_check.GetValue() == False:
-            entities = amulet_nbt.TAG_List()
+            entities = ListTag()
         else:
             entities = self.get_entities_nbt(block_pos)
         prg_max = len(block_pos)
@@ -106,33 +108,33 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
             else:
                 check_string = 'minecraft:air'
             if str(block) != check_string:
-                if pallet_key_map.get((block.namespaced_name, str(block.properties))) == None:
-                    pallet_key_map[(block.namespaced_name, str(block.properties))] = indx
+                if pallet_key_map.get((block.namespaced_name, CompoundTag(block.properties).to_snbt())) == None:
+                    pallet_key_map[(block.namespaced_name, CompoundTag(block.properties).to_snbt())] = indx
                     indx += 1
-                    palette_Properties = amulet_nbt.TAG_Compound(
-                        {'Properties': amulet_nbt.from_snbt(str(block.properties)),
-                         'Name': amulet_nbt.TAG_String(block.namespaced_name)})
+                    palette_Properties = CompoundTag(
+                        {'Properties': from_snbt(CompoundTag(block.properties).to_snbt()),
+                         'Name': StringTag(block.namespaced_name)})
                     palette.append(palette_Properties)
-                state = pallet_key_map[(block.namespaced_name, str(block.properties))]
+                state = pallet_key_map[(block.namespaced_name, CompoundTag(block.properties).to_snbt())]
 
                 if blockEntity == None:
-                    blocks_pos = amulet_nbt.TAG_Compound({'pos': amulet_nbt.TAG_List(
-                        [amulet_nbt.TAG_Int(b[0]), amulet_nbt.TAG_Int(b[1]),
-                         amulet_nbt.TAG_Int(b[2])]), 'state': amulet_nbt.TAG_Int(state)})
+                    blocks_pos = CompoundTag({'pos': ListTag(
+                        [IntTag(b[0]), IntTag(b[1]),
+                         IntTag(b[2])]), 'state': IntTag(state)})
                     blocks.append(blocks_pos)
                 else:
-                    blocks_pos = amulet_nbt.TAG_Compound({'nbt': amulet_nbt.from_snbt(blockEntity.nbt.to_snbt()),
-                                                          'pos': amulet_nbt.TAG_List(
-                                                              [amulet_nbt.TAG_Int(b[0]),
-                                                               amulet_nbt.TAG_Int(b[1]),
-                                                               amulet_nbt.TAG_Int(b[2])]),
-                                                          'state': amulet_nbt.TAG_Int(state)})
+                    blocks_pos = CompoundTag({'nbt': from_snbt(blockEntity.nbt.to_snbt()),
+                                                          'pos': ListTag(
+                                                              [IntTag(b[0]),
+                                                               IntTag(b[1]),
+                                                               IntTag(b[2])]),
+                                                          'state': IntTag(state)})
                     blocks.append(blocks_pos)
         prg_pre = 99
         self.prog.Update(prg_pre, "Finishing Up " + str(i) + " of " + str(prg_max))
-        size = amulet_nbt.TAG_List([amulet_nbt.TAG_Int(mx), amulet_nbt.TAG_Int(my), amulet_nbt.TAG_Int(mz)])
+        size = ListTag([IntTag(mx), IntTag(my), IntTag(mz)])
 
-        save_it = amulet_nbt.NBTFile()
+        save_it = CompoundTag()
         save_it['size'] = size
         save_it['entities'] = entities
         save_it['blocks'] = blocks
@@ -159,9 +161,9 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
         fdlg = wx.FileDialog(self, "Load .nbt", "", "", "nbt files(*.nbt)|*.*", wx.FD_OPEN)
         if fdlg.ShowModal() == wx.ID_OK:
             pathto = fdlg.GetPath()
-            nbt = amulet_nbt.load(pathto, compressed=True, little_endian=False, )
+            nbt = load(pathto, compressed=True, little_endian=False)
             block_platform = "java"
-            block_version = (1, 18, 0)
+            block_version = (1, 21, 0)
             b_pos = []
             palette = []
             Name = []
@@ -169,11 +171,13 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
             xx = self.canvas.selection.selection_group.min_x
             yy = self.canvas.selection.selection_group.min_y
             zz = self.canvas.selection.selection_group.min_z
+
             if self.only_e.GetValue() == False:
-                for x in nbt.get('blocks'):
+                for i, x in enumerate(nbt.get('blocks')):
+                    print(i)
                     if nbt['palette'][int(x.get('state'))].get('Properties') != None:
                         palette.append(
-                            dict(amulet_nbt.from_snbt(nbt['palette'][int(x.get('state'))]['Properties'].to_snbt())))
+                            dict(from_snbt(nbt['palette'][int(x.get('state'))]['Properties'].to_snbt())))
                     else:
                         palette.append(None)
                     b_pos.append(x.get('pos'))
@@ -182,7 +186,7 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
                         name = str(nbt['palette'][int(x.get('state'))]['Name']).split(':')
 
                         blockEntity = BlockEntity(name[0], name[1].replace('_', '').capitalize(), 0, 0, 0,
-                                                  amulet_nbt.NBTFile(x.get('nbt')))
+                                                  NamedTag(x.get('nbt')))
                         enbt.append(blockEntity)
                     else:
                         enbt.append(None)
@@ -196,9 +200,10 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
                         block = Block(str(x[2]).split(':')[0], str(x[2]).split(':')[1], x[1])
                         self.world.set_version_block(xx + x[0][0], yy + x[0][1], zz + x[0][2], self.canvas.dimension,
                                                      (block_platform, block_version), block, x[3])
+                print("done")
                 self.canvas.run_operation(lambda: self._refresh_chunk_now(self.canvas.dimension, self.world, xx, zz))
             if self.entitie_check.GetValue() == False:
-                entities = amulet_nbt.TAG_List()
+                entities = ListTag()
                 responce = None
             else:
                 dialog = wx.MessageDialog(self,  "Including entities directly edits the world and there is no Undo."
@@ -224,13 +229,13 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
                         e_nbt = x.get('nbt')
                         nxx, nyy, nzz = x.get('pos').value
                         if 'Float' in str(type(nxx)):
-                            x['nbt']['Pos'] = amulet_nbt.TAG_List([amulet_nbt.TAG_Float(float(nxx + xx)),
-                                                                   amulet_nbt.TAG_Float(float(nyy + yy)),
-                                                                   amulet_nbt.TAG_Float(float(nzz + zz))])
+                            x['nbt']['Pos'] = ListTag([FloatTag(float(nxx + xx)),
+                                                                   FloatTag(float(nyy + yy)),
+                                                                   FloatTag(float(nzz + zz))])
                         if 'Double' in str(type(nxx)):
-                            x['nbt']['Pos'] = amulet_nbt.TAG_List([amulet_nbt.TAG_Double(float(nxx + xx)),
-                                                                   amulet_nbt.TAG_Double(float(nyy + yy)),
-                                                                   amulet_nbt.TAG_Double(float(nzz + zz))])
+                            x['nbt']['Pos'] = ListTag([DoubleTag(float(nxx + xx)),
+                                                                   DoubleTag(float(nyy + yy)),
+                                                                   DoubleTag(float(nzz + zz))])
                         e_nbt_list.append(x['nbt'])
                 self.set_entities_nbt(e_nbt_list)
 
@@ -289,7 +294,7 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
                         x, y, z = math.floor(pos[0]), math.floor(pos[1]), math.floor(pos[2])
 
                         if (x, y, z) in selection:
-                            nbt_entitie = amulet_nbt.TAG_List()
+                            nbt_entitie = ListTag()
                             new_pos = mapdic[(x, y, z)]
                             nbt_pos = amulet_nbt.TAG_List(
                                 [amulet_nbt.TAG_Float(sum([new_pos[0],
@@ -299,13 +304,13 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
                                 amulet_nbt.TAG_Float(sum([new_pos[2],
                                 math.modf(abs(nbt_data.get("Pos")[2].value))[0]]))])
 
-                            nbt_block_pos = amulet_nbt.TAG_List([amulet_nbt.TAG_Int(new_pos[0]),
-                                                                 amulet_nbt.TAG_Int(new_pos[1]),
-                                                                 amulet_nbt.TAG_Int(new_pos[2])])
+                            nbt_block_pos = ListTag([IntTag(new_pos[0]),
+                                                                 IntTag(new_pos[1]),
+                                                                 IntTag(new_pos[2])])
                             nbt_data.pop('internalComponents')
                             nbt_data.pop('UniqueID')
-                            nbt_nbt = amulet_nbt.from_snbt(nbt_data.to_snbt())
-                            main_entry = amulet_nbt.TAG_Compound()
+                            nbt_nbt = from_snbt(nbt_data.to_snbt())
+                            main_entry = CompoundTag()
                             main_entry['nbt'] = nbt_nbt
                             main_entry['blockPos'] = nbt_block_pos
                             main_entry['pos'] = nbt_pos
@@ -315,7 +320,7 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
             elif self.world.level_wrapper.version < (1, 18, 30, 4, 0):
 
 
-                entitie = amulet_nbt.TAG_List()
+                entitie = ListTag()
                 for cx, cz in self.canvas.selection.selection_group.chunk_locations():
                     chunk = self.world.level_wrapper.get_raw_chunk_data(cx, cz, self.canvas.dimension)
                     if chunk.get(b'2') != None:
@@ -331,20 +336,20 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
                             print((x, y, z) in selection)
                             if (x, y, z) in selection:
                                 new_pos = mapdic[(x, y, z)]
-                                nbt_pos = amulet_nbt.TAG_List(
-                                    [amulet_nbt.TAG_Float(sum([new_pos[0],
+                                nbt_pos = ListTag(
+                                    [FloatTag(sum([new_pos[0],
                                      math.modf(abs(nbt_data.get("Pos")[0].value))[0]])),
-                                     amulet_nbt.TAG_Float(sum([new_pos[1],
+                                     FloatTag(sum([new_pos[1],
                                      math.modf(abs(nbt_data.get("Pos")[1].value))[0]])),
-                                     amulet_nbt.TAG_Float(sum([new_pos[2],
+                                     FloatTag(sum([new_pos[2],
                                      math.modf(abs(nbt_data.get("Pos")[2].value))[0]]))])
-                                nbt_block_pos = amulet_nbt.TAG_List([amulet_nbt.TAG_Int(new_pos[0]),
-                                                                     amulet_nbt.TAG_Int(new_pos[1]),
-                                                                     amulet_nbt.TAG_Int(new_pos[2])])
+                                nbt_block_pos = ListTag([IntTag(new_pos[0]),
+                                                                     IntTag(new_pos[1]),
+                                                                     IntTag(new_pos[2])])
                                 nbt_data.pop('internalComponents')
                                 nbt_data.pop('UniqueID')
-                                nbt_nbt = amulet_nbt.from_snbt(nbt_data.to_snbt())
-                                main_entry = amulet_nbt.TAG_Compound()
+                                nbt_nbt = from_snbt(nbt_data.to_snbt())
+                                main_entry = CompoundTag()
                                 main_entry['nbt'] = nbt_nbt
                                 main_entry['blockPos'] = nbt_block_pos
                                 main_entry['pos'] = nbt_pos
@@ -354,7 +359,7 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
 
         elif self.world.level_wrapper.platform == "java":
             cl  = self.canvas.selection.selection_group.chunk_locations()
-            self.found_entities = amulet_nbt.TAG_List()
+            self.found_entities = ListTag()
             self.nbt_data = []
             for cx , cz in cl:
                 rx, rz = world_utils.chunk_coords_to_region_coords(cx, cz)  # need region cords for file
@@ -391,17 +396,17 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
                     if (x, y, z) in selection:
 
                         new_pos = mapdic[(x, y, z)]
-                        nbt_pos = amulet_nbt.TAG_List([amulet_nbt.TAG_Double(sum([new_pos[0],
+                        nbt_pos = ListTag([DoubleTag(sum([new_pos[0],
                                   math.modf(abs(nbt_data.get("Pos")[0].value))[0]])),
-                                  amulet_nbt.TAG_Double(sum([new_pos[1],
+                                  DoubleTag(sum([new_pos[1],
                                   math.modf(abs(nbt_data.get("Pos")[1].value))[0]])),
-                                  amulet_nbt.TAG_Double(sum([new_pos[2],
+                                  DoubleTag(sum([new_pos[2],
                                   math.modf(abs(nbt_data.get("Pos")[2].value))[0]]))])
-                        nbt_block_pos = amulet_nbt.TAG_List([amulet_nbt.TAG_Int(new_pos[0]),
-                                                             amulet_nbt.TAG_Int(new_pos[1]),
-                                                             amulet_nbt.TAG_Int(new_pos[2])])
-                        nbt_nbt = amulet_nbt.from_snbt(nbt_data.to_snbt())
-                        main_entry = amulet_nbt.TAG_Compound()
+                        nbt_block_pos = amulet_nbt.TAG_List([IntTag(new_pos[0]),
+                                                             IntTag(new_pos[1]),
+                                                             IntTag(new_pos[2])])
+                        nbt_nbt = from_snbt(nbt_data.to_snbt())
+                        main_entry = CompoundTag()
                         main_entry['nbt'] = nbt_nbt
                         main_entry['blockPos'] = nbt_block_pos
                         main_entry['pos'] = nbt_pos
@@ -435,7 +440,7 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
                     except:
                         new_actor = b''
                     new_digp += actorKey
-                    new_actor += amulet_nbt.NBTFile(x).save_to(compressed=False, little_endian=True)
+                    new_actor += x.save_to(compressed=False, little_endian=True)
                     self.level_db.put(put_key, new_actor)
                     self.level_db.put(digp, new_digp)
 
@@ -463,7 +468,7 @@ class NbtImportExport(wx.Panel, DefaultOperationUI):
                 import uuid
                 uu_id = uuid.uuid4()
                 q,w,e,r = struct.unpack('>iiii', uu_id.bytes)
-                nbt_data['UUID'] = amulet_nbt.TAG_Int_Array([amulet_nbt.TAG_Int(q),amulet_nbt.TAG_Int(w),amulet_nbt.TAG_Int(e),amulet_nbt.TAG_Int(r)])
+                nbt_data['UUID'] = IntArrayTag([IntTag(q),amulet_nbt.TAG_Int(w),IntTag(e),IntTag(r)])
                 x, y, z = math.floor(nbt_data.get('Pos')[0].value), math.floor(
                     nbt_data.get('Pos')[1].value), math.floor(nbt_data.get('Pos')[2].value)
                 cx, cz = block_coords_to_chunk_coords(x,z)

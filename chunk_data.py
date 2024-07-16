@@ -3,6 +3,8 @@ import copy
 import gzip
 import struct
 import pickle
+import uuid
+
 import wx
 from amulet_map_editor.api.opengl.camera import Projection
 from amulet_map_editor.programs.edit.api.behaviour import BlockSelectionBehaviour
@@ -84,6 +86,13 @@ def _storage_key_(val):
 
 def split_bytes(data):
     return [data[i:i + 8] for i in range(0, len(data), 8)]
+def get_y_range(test_val):
+    if test_val == struct.pack('<i', 1)or 'minecraft:the_nether' == test_val:
+        return (0,127)
+    elif test_val == struct.pack('<i', 2) or 'minecraft:the_end' == test_val:
+        return (0,255)
+    elif test_val == b'' or 'minecraft:overworld' == test_val:
+        return (-64,319)
 
 class ChunkManager:
     def __init__(self, chunks, current_dim_key,platform, world_start_count, next_slot):
@@ -91,6 +100,7 @@ class ChunkManager:
         self.world_start_count = world_start_count
         self.next_slot = next_slot
         self.current_dim_key = current_dim_key
+        self.y_range = get_y_range(current_dim_key)
         self.chunks = chunks
         self.selection = self.create_selection_map()
         self.org_key = list(self.selection.keys())
@@ -107,22 +117,40 @@ class ChunkManager:
     def create_selection_map(self):
         if self.platform == 'bedrock':
             selection_map = {
-            (x, z): SelectionBox((x * 16, 0, z * 16), (x * 16 + 16, 200, z * 16 + 16))
+            (x, z): SelectionBox((x * 16, self.y_range[0], z * 16), (x * 16 + 16, self.y_range[1], z * 16 + 16))
             for k in self.chunks.keys() for x, z in [struct.unpack('<ii', k[0:8])]
             }
             return selection_map
         else: #"java"
             selection_map = {
-                (x, z): SelectionBox((x * 16, 0, z * 16), (x * 16 + 16, 200, z * 16 + 16))
+                (x, z): SelectionBox((x * 16, self.y_range[0], z * 16), (x * 16 + 16, self.y_range[1], z * 16 + 16))
                 for k in self.chunks.keys() for x, z in [k]
             }
             return selection_map
+
+    def outer_chunks(self, _range):
+
+        out_side_chunks = {}
+        inside = list(self.selection.keys())
+        surrounding_coords = []
+        _range -= 1
+        for xx, zz in self.selection.keys():
+            for i in range(xx - _range-1, xx + _range+2):
+                for j in range(zz - _range-1, zz + _range+2):
+                    surrounding_coords.append((i,j))
+
+        for x, z in surrounding_coords:
+            if (x, z) not in inside:
+                out_side_chunks[(x, z)] = SelectionBox((x * 16, self.y_range[0], z * 16),
+                                                       (x * 16 + 16, self.y_range[1], z * 16 + 16))
+
+        return out_side_chunks
 
     def apply_selection(self):
        tx,tz = self.last_offset_move
        self.move_all_chunks_to(tx,tz)
        self.org_key = list(self.selection.keys())
-       self.last_offset_move = min((x, z) for x, z in self.org_key)
+       # self.last_offset_move = min((x, z) for x, z in self.org_key)
 
 
     def move_all_chunks_to(self, target_x, target_z):
@@ -145,8 +173,11 @@ class ChunkManager:
         else:
             for key in list(self.chunks.keys()):
                 x, z = key
+
                 new_x, new_z = x + offset_x, z + offset_z
+
                 new_key = (new_x, new_z)
+                print(key, new_key)
                 new_chunk_data = self.java_chunk(self.chunks[key].pop('chunk_data')
                                                                  , new_key, new_x, new_z, x, z)
                 if self.chunks[key].get('entitie_data'):
@@ -161,7 +192,7 @@ class ChunkManager:
 
     def java_entities(self, _chunk_entities, new_key, new_x, new_z, x, z):
         chunk_entities = _chunk_entities
-        chunk_entities['Position'] = IntArrayTag([new_x % 32, new_z % 32])
+        chunk_entities['Position'] = IntArrayTag([new_x, new_z])
         for e in chunk_entities.get('Entities'):
             x,y,z = e.get('Pos')
             xc, zc = new_x * 16, new_z * 16
@@ -175,8 +206,8 @@ class ChunkManager:
 
     def java_chunk(self, _chunk_data, new_key, new_x, new_z, x, z ):
         chunk_data = _chunk_data
-        chunk_data['xPos'] = IntTag(new_x % 32)
-        chunk_data['zPos'] = IntTag(new_z % 32)
+        chunk_data['xPos'] = IntTag(new_x)
+        chunk_data['zPos'] = IntTag(new_z)
         for be in chunk_data.get('block_entities'):
             be['x'] = IntTag(new_x * 16)
             be['z'] = IntTag(new_z * 16)
@@ -297,7 +328,7 @@ class ChunkManager:
         for (x, z), selection_box in self.selection.items():
             new_x, new_z = x + offset_x, z + offset_z
             new_selection[(new_x, new_z)] = SelectionBox(
-                (new_x * 16, 0, new_z * 16), (new_x * 16 + 16, 200, new_z * 16 + 16)
+                (new_x * 16, self.y_range[0], new_z * 16), (new_x * 16 + 16, self.y_range[1], new_z * 16 + 16)
             )
         self.selection = new_selection
 
@@ -311,7 +342,7 @@ class ChunkManager:
         for (x, z), selection_box in self.selection.items():
             new_x, new_z = x + offset_x, z + offset_z
             new_selection[(new_x, new_z)] = SelectionBox(
-                (new_x * 16, 0, new_z * 16), (new_x * 16 + 16, 200, new_z * 16 + 16)
+                (new_x * 16, self.y_range[0], new_z * 16), (new_x * 16 + 16, self.y_range[1], new_z * 16 + 16)
             )
         self.selection = new_selection
 
@@ -327,6 +358,8 @@ class ChunkSaveAndLoad(wx.Panel, DefaultOperationUI):
 
         wx.Panel.__init__(self, parent)
         DefaultOperationUI.__init__(self, parent, canvas, world, options_path)
+
+        self.has_been_loaded = False
         self.raw_data_entities = None
         self.raw_data_chunks = None
         self.chunks_mg = None
@@ -341,14 +374,16 @@ class ChunkSaveAndLoad(wx.Panel, DefaultOperationUI):
         self._all_chunks.SetValue(False)
         self._sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self._sizer)
-        side_sizer = wx.BoxSizer(wx.VERTICAL)
-        self._sizer.Add(side_sizer)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.loaded_sizer = wx.BoxSizer(wx.VERTICAL)
+        self._sizer.Add(self.main_sizer)
+        self._sizer.Add(self.loaded_sizer)
 
         self._save_button = wx.Button(self, label="Save Chunks")
         self._save_button.Bind(wx.EVT_BUTTON, self.save_chunks)
         self._load_button = wx.Button(self, label="Load Chunks")
         self._load_button.Bind(wx.EVT_BUTTON, self.load_chunks)
-        self._move_chunks_into_view = wx.Button(self, label="Move Loaded Chunks Into Camera View")
+        self._move_chunks_into_view = wx.Button(self, label="Move Loaded Chunks \nInto Camera View", size=(180,20) )
         self._go_to_loaded = wx.Button(self, label="Go to loaded chunks")
         self._move_grid = wx.GridSizer(3, 3, 2, 1)
         self._move_n = wx.Button(self, label="North")
@@ -374,6 +409,21 @@ class ChunkSaveAndLoad(wx.Panel, DefaultOperationUI):
         self._move_grid.Add(self.space_3)
         self._move_grid.Add(self._move_s)
 
+        self.grid_for_outer = wx.GridSizer(2,2,5,3)
+        self._select_outer_l = wx.StaticText(self, label="  Outer select / delete range:\n"
+                                                         "(This is required for blending)")
+        self._select_outer_in = wx.TextCtrl(self, size=(40, 35))
+        self._select_outer_in.SetValue('2')
+        self._select_outer = wx.Button(self, label="Select Outer\n Chunks", size=(100,35))
+        self._select_outer.Bind(wx.EVT_BUTTON, self.select_outer)
+        self._delete_outer = wx.Button(self, label="Delete Outer\n Chunks", size=(100, 35))
+        self._delete_outer.Bind(wx.EVT_BUTTON, self.delete_outer)
+
+        self.grid_for_outer.Add(self._select_outer_l)
+        self.grid_for_outer.Add(self._select_outer_in)
+        self.grid_for_outer.Add(self._delete_outer)
+        self.grid_for_outer.Add(self._select_outer)
+
         self.l_range = wx.StaticText(self, label="Set Sub Chunk layer Range(min,max):")
         self.l_min = wx.StaticText(self, label="  min:")
         self.l_max = wx.StaticText(self, label="  max:")
@@ -388,7 +438,14 @@ class ChunkSaveAndLoad(wx.Panel, DefaultOperationUI):
         self._range_grid.Add(self._range_bottom)
         self._range_grid.Add(self.l_max)
         self._range_grid.Add(self._range_top)
+        self._grid_l_and_toggle = wx.GridSizer(1,2,2,2)
+
+        self._toggel_top_down = wx.Button(self, label="Toggle View")
+        self._toggel_top_down.Bind(wx.EVT_BUTTON, self.toggel_top_down)
         self.info_label2 = wx.StaticText(self, label="Position loaded chunks")
+        self._grid_l_and_toggle.Add(self.info_label2)
+        self._grid_l_and_toggle.Add(self._toggel_top_down)
+
         self._move_chunks_into_view.Bind(wx.EVT_BUTTON, self.move_int_view)
         self._go_to_loaded.Bind(wx.EVT_BUTTON, self.go_to_loaded)
         self._save_loaded_chunks = wx.Button(self, label="Save Loaded chunks:")
@@ -398,14 +455,14 @@ class ChunkSaveAndLoad(wx.Panel, DefaultOperationUI):
         self._save_grid.Add(self._save_button)
         self._save_grid.Add(self._all_chunks)
 
-        side_sizer.Add(self.info_label, 1, wx.LEFT, 12)
-        side_sizer.Add(self._save_grid, 1, wx.LEFT, 11)
+        self.main_sizer.Add(self.info_label, 1, wx.LEFT, 12)
+        self.main_sizer.Add(self._save_grid, 1, wx.LEFT, 11)
 
-        side_sizer.Add(self._load_button, 0, wx.LEFT, 11)
+        self.main_sizer.Add(self._load_button, 0, wx.LEFT, 11)
 
-        side_sizer.Add(self._move_chunks_into_view, 1, wx.TOP, 11)
-        side_sizer.Add(self.info_label2, 0, wx.LEFT, 11)
-        side_sizer.Add(self._move_grid, 2, wx.BOTTOM, 11)
+        self.loaded_sizer.Add(self._move_chunks_into_view, 1, wx.TOP, 11)
+        self.loaded_sizer.Add(self._grid_l_and_toggle, 0, wx.LEFT, 11)
+        self.loaded_sizer.Add(self._move_grid, 2, wx.BOTTOM, 11)
 
         self._group = wx.GridSizer(1, 2, 2, 4)
         self._group.Add(self._save_loaded_chunks)
@@ -417,14 +474,16 @@ class ChunkSaveAndLoad(wx.Panel, DefaultOperationUI):
         self.include_entities.SetValue(True)
         self._include.Add(self.include_blocks)
         self._include.Add(self.include_entities)
-        side_sizer.Add(self._include, 0, wx.LEFT, 11)
-        side_sizer.Add(self._group, 1, wx.LEFT, 11)
+        self.loaded_sizer.Add(self._include, 0, wx.LEFT, 11)
+        self.loaded_sizer.Add(self._group, 1, wx.LEFT, 11)
 
-        side_sizer.Add(self.l_range, 0, wx.LEFT, 11)
-        side_sizer.Add(self._range_grid, 0, wx.LEFT, 11)
-        side_sizer.Add(self.l_range_Info, 0, wx.LEFT, 11)
-
-        side_sizer.Layout()
+        self.loaded_sizer.Add(self.l_range, 0, wx.LEFT, 11)
+        self.loaded_sizer.Add(self._range_grid, 0, wx.LEFT, 11)
+        self.loaded_sizer.Add(self.l_range_Info, 0, wx.LEFT, 11)
+        self.loaded_sizer.Add(self.grid_for_outer, 0, wx.LEFT, 11)
+        self.main_sizer.Layout()
+        self._sizer.Hide(self.loaded_sizer)
+        self.loaded_sizer.Layout()
         self.Fit()
         self.Layout()
         self.Thaw()
@@ -435,7 +494,7 @@ class ChunkSaveAndLoad(wx.Panel, DefaultOperationUI):
         self._selection.enable()
 
     def enable(self):
-        #self.canvas.camera.projection_mode = Projection.TOP_DOWN
+
         self._selection = BlockSelectionBehaviour(self.canvas)
         self._selection.enable()
 
@@ -446,6 +505,60 @@ class ChunkSaveAndLoad(wx.Panel, DefaultOperationUI):
             return level_wrapper.level_db
         else:
             return level_wrapper._level_manager._db
+
+    def toggel_top_down(self, _):
+        mode = self.canvas.camera.projection_mode.value
+        if mode == 0:
+            self.canvas.camera.projection_mode = Projection.PERSPECTIVE
+        else:
+            self.canvas.camera.projection_mode = Projection.TOP_DOWN
+
+    def delete_outer(self, _):
+        chunk_values = list(self.chunks_mg.outer_chunks(int(self._select_outer_in.GetValue())).keys())
+        self.canvas.renderer.render_world.chunk_manager.unload()
+        self.canvas.renderer.render_world.unload()
+        for x,z in chunk_values:
+            self.canvas.world.level_wrapper.delete_chunk(x,z,self.canvas.dimension)
+
+        chunk_values_outer_chunks = list(self.chunks_mg.outer_chunks(int(self._select_outer_in.GetValue())+3).keys())
+        loaction_dict = collections.defaultdict(list)
+        if self.world.level_wrapper.platform == 'bedrock':
+            for xx,zz in chunk_values_outer_chunks:
+                chunkkey = self.get_dim_chunkkey(xx, zz)
+                self.level_db.delete(chunkkey+b'\x40')
+        else:
+            for xx, zz in chunk_values_outer_chunks:
+                rx, rz = chunk_coords_to_region_coords(xx, zz)
+                loaction_dict[(rx, rz)].append((xx, zz))
+
+            for rx, rz in loaction_dict.keys():
+                file_exists = exists(self.get_dim_vpath_java_dir(rx, rz))
+                if file_exists:
+                    for di in loaction_dict[(rx, rz)]:
+                        cx, cz = di
+                        self.raw_data = AnvilRegion(self.get_dim_vpath_java_dir(rx, rz))
+                        if self.raw_data.has_chunk(cx % 32, cz % 32):
+                            nbtdata = self.raw_data.get_chunk_data(cx % 32, cz % 32)
+
+                            if nbtdata['sections']:
+                                nbtdata['Heightmaps'] = CompoundTag({})
+                                nbtdata['blending_data'] = CompoundTag(
+                                    {"old_noise": ByteTag(1)})
+                                nbtdata['DataVersion'] = IntTag(2860)
+                                self.raw_data.put_chunk_data(cx % 32, cz % 32, nbtdata)
+                            self.raw_data.save()
+                        self.raw_data.unload()
+
+        self.world.save()
+        self.world.purge()
+        self.canvas.renderer.render_world.enable()
+        self.canvas.renderer.render_world.chunk_manager.rebuild()
+
+
+    def select_outer(self, _):
+        selection_values = list(self.chunks_mg.outer_chunks(int(self._select_outer_in.GetValue())).values())
+        merged = SelectionGroup(selection_values).merge_boxes()
+        self.canvas.selection.set_selection_group(merged)
 
     def go_to_loaded(self, _):
 
@@ -485,8 +598,10 @@ class ChunkSaveAndLoad(wx.Panel, DefaultOperationUI):
         merged = SelectionGroup(new_selection).merge_boxes()
         self.canvas.selection.set_selection_group(merged)
 
-        # print(self.chunks_mg.selection.values())
+
     def renderer(self, _):
+
+        #TODO add Status Updates
         # total_chunks = len(self.chunks_mg.chunks)
         # print(total_chunks)
         # for i,(c, v) in enumerate(self.chunks_mg.chunks.items()):
@@ -509,7 +624,6 @@ class ChunkSaveAndLoad(wx.Panel, DefaultOperationUI):
                 self.world.create_chunk(x,z,self.canvas.dimension)
                 self.world.get_chunk(x, z, self.canvas.dimension).changed = True
         self.world.save()
-
 
         _min, _max = -4,20
         if self.world.level_wrapper.platform == 'bedrock':
@@ -535,6 +649,10 @@ class ChunkSaveAndLoad(wx.Panel, DefaultOperationUI):
                             self.level_db.put(a, e)
         else: #java
             region_file_ready = collections.defaultdict(list)
+            self.world.level_wrapper.root_tag['Data']['DataVersion'] = IntTag(2860)
+            self.world.level_wrapper.root_tag['Data']['Version'] = CompoundTag(
+                {"Snapshot": ByteTag(0), "Id": IntTag(2860),
+                 "Name": StringTag("1.18.0")})
             if self._range_top.GetValue() != "":
                 _max = int(self._range_top.GetValue())
             if self._range_bottom.GetValue() != "":
@@ -595,14 +713,24 @@ class ChunkSaveAndLoad(wx.Panel, DefaultOperationUI):
                                 new_be_ready[k] = v
 
                             data['block_entities'] = ListTag([c for c in new_be_ready.values()])
+                            # TODO add check box
                             data['sections'] = ListTag([c for c in new_selection_ready.values()])
+
+                            data['DataVersion'] = IntTag(2860)
+                            data['Heightmaps'] = CompoundTag({})
+                            data['blending_data'] = CompoundTag(
+                                    {"old_noise": ByteTag(1)})
+
                             data.pop('isLightOn', None)
                             self.raw_data_chunks.put_chunk_data(cx % 32, cz % 32, data)
 
                         if self.include_entities.GetValue():
                             if d['data'].get('entitie_data'):
                                 data_e = d['data'].get('entitie_data')
-                                data_e.pop('UUID')
+                                for i, e in enumerate(data_e['Entities']):
+                                    data_e['Entities'][i]['UUID'] = IntArrayTag(
+                                        [ x for x in struct.unpack('>iiii', uuid.uuid4().bytes)])
+
                                 self.raw_data_entities.put_chunk_data(cx % 32, cz % 32, data_e)
 
                 if self.include_entities.GetValue():
@@ -634,15 +762,17 @@ class ChunkSaveAndLoad(wx.Panel, DefaultOperationUI):
             current_entites_values = []
             world_count = self.world.level_wrapper.root_tag.get('worldStartCount')
             start_count = 4294967294 - world_count
-            startKey = struct.pack('>L', start_count)
-            for k, v in self.world.level_wrapper.level_db.iterate(start=b'actorprefix' + startKey,
-                                                                  end=b'actorprefix' + startKey + b'\xff\xff\xff\xff'):
+            start_key = struct.pack('>L', start_count)
+            for k, v in self.world.level_wrapper.level_db.iterate(start=b'actorprefix' + start_key,
+                                                                  end=b'actorprefix' + start_key + b'\xff\xff\xff\xff'):
                 current_entites_values.append(int.from_bytes(k[15:], 'big'))
             entcnt = 0
             if len(current_entites_values) > 0:
                 entcnt = max(current_entites_values) + 1  # the next available slot for the last save
 
-            self.chunks_mg = ChunkManager(self.chunks, self.get_dim_bytes(), start_count, entcnt)
+            self.chunks_mg = ChunkManager(self.chunks, self.get_dim_bytes(),
+                                          self.world.level_wrapper.platform,
+                                          start_count, entcnt)
             selection_values = list(self.chunks_mg.selection.values())
             merged = SelectionGroup(selection_values).merge_boxes()
             self.canvas.selection.set_selection_group(merged)
@@ -650,9 +780,19 @@ class ChunkSaveAndLoad(wx.Panel, DefaultOperationUI):
             self.chunks_mg = ChunkManager(self.chunks, self.canvas.dimension,
                                           self.world.level_wrapper.platform, 0, 0)
 
+
             selection_values = list(self.chunks_mg.selection.values())
             merged = SelectionGroup(selection_values).merge_boxes()
             self.canvas.selection.set_selection_group(merged)
+        if not self.has_been_loaded:
+            self._sizer.Show(self.loaded_sizer)
+            self.loaded_sizer.Fit(self)
+            self._sizer.Fit(self)
+            self.loaded_sizer.Layout()
+            self._sizer.Layout()
+            self.has_been_loaded = True
+
+
 
     def save_chunks(self, _):
         if self._all_chunks.GetValue():
@@ -777,4 +917,4 @@ class ChunkSaveAndLoad(wx.Panel, DefaultOperationUI):
         return full_path
 
 
-export = dict(name="Chunk Data v1.0", operation=ChunkSaveAndLoad)  # By PremiereHell
+export = dict(name="Chunk Data v1.1", operation=ChunkSaveAndLoad)  # By PremiereHell
