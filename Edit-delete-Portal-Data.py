@@ -29,12 +29,11 @@ from amulet.utils import block_coords_to_chunk_coords
 from amulet.api.block import Block
 import PyMCTranslate
 from amulet_map_editor.api.wx.ui.base_select import BaseSelect
-from amulet.libs.leveldb.leveldb import LevelDB
 import amulet_nbt
 from amulet.level.formats import mcstructure
 import datetime
 from pathlib import Path
-#from amulet.level.formats.leveldb_world import  format
+ 
 
 if TYPE_CHECKING:
 
