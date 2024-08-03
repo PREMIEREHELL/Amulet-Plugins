@@ -1183,6 +1183,8 @@ class BedRock(wx.Panel):
         wx.Panel.__init__(self, parent)
         self.world = world
         self.canvas = canvas
+        self.actors = collections.defaultdict(list)
+        self.digp = collections.defaultdict(list)
 
     def get_raw_data_new_version(self, is_export=False, all_enty=False):
         self.get_all_flag = all_enty
@@ -1436,7 +1438,7 @@ class BedRock(wx.Panel):
                     pallet_key_map[(block.namespaced_name, str(block.properties))] = indx
                     indx += 1
                     palette_Properties = nbt.CompoundTag(
-                        {'Properties': nbt.from_snbt(str(block.properties)),
+                        {'Properties': nbt.CompoundTag(block.properties),
                          'Name': nbt.StringTag(block.namespaced_name)})
                     palette.append(palette_Properties)
                 state = pallet_key_map[(block.namespaced_name, str(block.properties))]
@@ -1500,8 +1502,8 @@ class BedRock(wx.Panel):
             zz = self.canvas.selection.selection_group.min_z
             if True:
                 reps = EntitiePlugin.con_boc(self, "Air Blocks", 'Do you want to encude air block?')
-                for x in nbt.get('blocks'):
-                    if nbt['palette'][int(x.get('state'))].get('Properties') != None:
+                for x in nbt_.get('blocks'):
+                    if x['palette'][int(x.get('state'))].get('Properties') != None:
                         palette.append(
                             dict(amulet_nbt.from_snbt(nbt['palette'][int(x.get('state'))]['Properties'].to_snbt())))
                     else:
@@ -1597,9 +1599,9 @@ class BedRock(wx.Panel):
                 for digps_key, digps_val in self.level_db.iterate(start=start, end=end):
                     for x in range(0, len(digps_val), 8):
                         key = b''.join([b'actorprefix', digps_val[x:x + 8]])
-                        actor = self.level_db.get(key)
-                        nbt_data = amulet_nbt.load(actor, compressed=False, little_endian=True).\
+                        actor = self.level_db.get(key).\
                             replace(b'\x08\n\x00StorageKey\x08\x00',b'\x07\n\x00StorageKey\x08\x00\x00\x00')
+                        nbt_data = amulet_nbt.load(actor, compressed=False, little_endian=True)
 
                         print(nbt_data)
                         pos = nbt_data.get("Pos")
@@ -1621,7 +1623,7 @@ class BedRock(wx.Panel):
                                                                  amulet_nbt.TAG_Int(new_pos[2])])
                             # nbt_data.pop('internalComponents')
                             # nbt_data.pop('UniqueID')
-                            nbt_nbt_ = amulet_nbt.from_snbt(nbt_data.to_snbt())
+                            nbt_nbt = amulet_nbt.from_snbt(nbt_data.to_snbt())
                             main_entry = amulet_nbt.TAG_Compound()
                             main_entry['nbt'] = nbt_nbt
                             main_entry['blockPos'] = nbt_block_pos
@@ -1716,7 +1718,7 @@ class BedRock(wx.Panel):
         dlg = ExportImportCostomDialog(None)
         dlg.InitUI(2)
         res = dlg.ShowModal()
-        # self._set_list_of_actors_digp
+        #self._set_list_of_actors_digp
         if dlg.ms_file.GetValue():
             fdlg = wx.FileDialog(self, "export Entities", "", "",
                                  f"SNBT (*.snbt_{self.world.level_wrapper.platform})|*.*", wx.FD_OPEN)
@@ -1724,7 +1726,7 @@ class BedRock(wx.Panel):
                 pathto = fdlg.GetPath()
             else:
                 return
-            anbt_ = amulet_nbt.load(pathto, compressed=False, little_endian=True)
+            anbt = amulet_nbt.load(pathto, compressed=False, little_endian=True)
             sx, sy, sz = anbt.get("structure_world_origin")
             egx, egy, egz = anbt.get("size")
             ex, ey, ez = sx + egx, sy + egy, sz + egz
@@ -1735,8 +1737,9 @@ class BedRock(wx.Panel):
             group.append(SelectionBox(s, e))
             sel_grp = SelectionGroup(group)
             self.canvas.selection.set_selection_group(sel_grp)
+            actors = self.actors
             for xx in self.canvas.selection.selection_group.blocks:
-                for nbtlist in self.actors.values():
+                for nbtlist in actors.values():
                     for anbt in nbtlist:
                         nbtd = amulet_nbt.load(anbt, compressed=False, little_endian=True)
                         x,y,z = nbtd.get('Pos').value
@@ -3715,4 +3718,4 @@ class ExportImportCostomDialog(wx.Dialog):
 
 
 
-export = dict(name="# The Entitie's Plugin nbt v2.10b", operation=EntitiePlugin) #PremiereHell
+export = dict(name="# The Entitie's Plugin nbt v2.11b", operation=EntitiePlugin) #PremiereHell
