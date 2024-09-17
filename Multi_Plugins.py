@@ -13287,6 +13287,11 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
             options_path: str,
 
     ):
+        self.version = 2
+        self.remote_version = self.get_top_of_remote_file(
+            r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py')
+        if self.remote_version > self.version:
+            self.download_latest_script()
 
         platform = world.level_wrapper.platform
         world_version = world.level_wrapper.version
@@ -13312,10 +13317,7 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
         self.Thaw()
         tools = Tools(self.parent, self.world, self.canvas)
         tools.Show()
-        self.version = 2
-        self.remote_version = self.get_top_of_remote_file(r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py')
-        if self.remote_version > self.version:
-            self.download_latest_script()
+
 
     def download_latest_script(self):
         response = requests.get(r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py')
