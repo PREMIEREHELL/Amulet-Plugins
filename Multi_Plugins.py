@@ -1,4 +1,4 @@
-# 100 v
+# 1002 v
 import collections
 import copy
 import zlib
@@ -13311,19 +13311,37 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
         self.Thaw()
         tools = Tools(self.parent, self.world, self.canvas)
         tools.Show()
-        print(self.get_top_of_remote_file(r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py'))
+        #print(self.get_top_of_remote_file(r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py'))
+
+        self.download_latest_script()
+
+    def download_latest_script(self):
+        response = requests.get(r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py')
+        if response.status_code == 200:
+            with open(self.get_script_path(), 'w') as file:
+                file.write(response.text)
+            print("Script updated to the latest version!")
+        else:
+            print("Failed to download the new version.")
+
+    def get_script_path(self):
+        return os.path.abspath(__file__)
 
     def get_top_of_remote_file(self, url, num_bytes=100):
         headers = {'Range': f'bytes=0-{num_bytes - 1}'}
         response = requests.get(url, headers=headers)
 
         if response.status_code == 206:  # HTTP 206 means partial content
-            return response.text
+            raw = str(response.text).split('#')
+            version = raw[1].split('v')
+            return int(version[0])
         elif response.status_code == 200:
             return response.text  # In case the server doesn't support ranges
         else:
             print(f"Error: {response.status_code}")
             return None
+
+
     def bind_events(self):
         super().bind_events()
         self._selection.bind_events()
