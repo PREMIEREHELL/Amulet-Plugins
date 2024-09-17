@@ -13300,7 +13300,7 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
             events_buttons = [x for x in parent.GetChildren() if isinstance(x, wx.BitmapButton)]
             for e in events_buttons:
                 if 'Reload Operations' in e.GetToolTip().GetTip():
-                    
+
                     custom_event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, e.GetId())
                     custom_event.SetEventObject(e)
                     e.GetEventHandler().ProcessEvent(custom_event)
@@ -13312,7 +13312,7 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
             self.SetSizer(self._sizer)
 
             self.font = wx.Font(13, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
-            self._force_blending = wx.Button(self, label="Force \n Blending", size=(70, 40))
+            self._force_blending = wx.Button(self, label="Multi \n Tools", size=(70, 40))
             self._force_blending.Bind(wx.EVT_BUTTON, self._force_blening_window)
             self._sizer.Add(self._force_blending)
             self.Layout()
