@@ -13106,7 +13106,7 @@ class Tools(wx.Frame):
         CustomToolTip(self, self._finder_replacer, text="FINDER.\n"
                                                          "Also provides the ability to quickly delete all other chunks.",
                       font_size=14)
-        CustomToolTip(self, self._protals_and_border_walls, text="Portals.\n"
+        CustomToolTip(self, self._protals_and_border_walls, text="2Portals.\n"
                                                         "Also provides the ability to quickly delete all other chunks.",
                       font_size=14)
         CustomToolTip(self, self._player_inventory, text="NBT Player Inventory Editor.\n"
