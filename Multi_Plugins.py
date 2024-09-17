@@ -13279,6 +13279,99 @@ class Tools(wx.Frame):
 
 class MultiForcedBlending(wx.Panel, DefaultOperationUI):
 
+    def __init__(
+            self,
+            parent: wx.Window,
+            canvas: "EditCanvas",
+            world: "BaseLevel",
+            options_path: str,
+
+    ):
+
+
+        wx.Panel.__init__(self, parent)
+        DefaultOperationUI.__init__(self, parent, canvas, world, options_path)
+
+        self.version = 1
+        self.remote_version = self.get_top_of_remote_file(
+            r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py')
+        if self.remote_version > self.version:
+            self.download_latest_script()
+            events_buttons = [x for x in parent.GetChildren() if isinstance(x, wx.BitmapButton)]
+            for e in events_buttons:
+                if 'Reload Operations' in e.GetToolTip().GetTip():
+                    custom_event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, e.GetId())
+                    custom_event.SetEventObject(e)
+                    e.GetEventHandler().ProcessEvent(custom_event)
+        else:
+            self.Freeze()
+            self._is_enabled = True
+            self._moving = True
+            self._sizer = wx.BoxSizer(wx.VERTICAL)
+            self.SetSizer(self._sizer)
+
+            self.font = wx.Font(13, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+            self._force_blending = wx.Button(self, label="Force \n Blending", size=(70, 40))
+            self._force_blending.Bind(wx.EVT_BUTTON, self._force_blening_window)
+            self._sizer.Add(self._force_blending)
+            self.Layout()
+            self.Thaw()
+            tools = Tools(self.parent, self.world, self.canvas)
+            tools.Show()
+
+
+    def download_latest_script(self):
+        response = requests.get(r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py')
+        if response.status_code == 200:
+            with open(self.get_script_path(), 'w', encoding='utf-8') as file:
+                file.write(response.text)
+            wx.MessageBox(f"A new version has been apply was v {self.version} now version"
+                          f" {self.remote_version}\n"
+                          f" Hit the reload button to start using",
+                          "Plugin has Been Updated", wx.OK | wx.ICON_INFORMATION)
+
+        else:
+            wx.MessageBox(f"A new version is available version {self.remote_version}"
+                          f" current version {self.version} \n"
+                          f" Goto PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py",
+                          "Plugin has Been Updated", wx.OK | wx.ICON_INFORMATION)
+
+    def get_script_path(self):
+        return os.path.abspath(__file__)
+
+    def get_top_of_remote_file(self, url, num_bytes=100):
+        headers = {'Range': f'bytes=0-{num_bytes - 1}'}
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 206:  # HTTP 206 means partial content
+            raw = str(response.text).split('#')
+            version = raw[1].split('v')
+            return int(version[0])
+        elif response.status_code == 200:
+            return response.text  # In case the server doesn't support ranges
+        else:
+            print(f"Error: {response.status_code}")
+            return None
+
+
+    def bind_events(self):
+        super().bind_events()
+        self._selection.bind_events()
+        self._selection.enable()
+
+    def enable(self):
+        self._selection = BlockSelectionBehaviour(self.canvas)
+        self._selection.enable()
+
+    def _force_blening_window(self, _):
+        # blending =  BlendingWindow(self.parent, self.world, self.canvas)
+        # blending.Show()
+        # selection_organizer = SelectionOrganizer(self.parent, self.world, self.canvas)
+        # selection_organizer.Show()
+        if self.version == self.remote_version:
+            tools = Tools(self.parent, self.world, self.canvas)
+            tools.Show()
+
 
 
 export = dict(name="# Multi TOOLS", operation=MultiForcedBlending)  # By PremiereHell
