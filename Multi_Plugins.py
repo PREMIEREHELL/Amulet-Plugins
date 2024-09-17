@@ -13298,7 +13298,7 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
                     custom_event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, e.GetId())
                     custom_event.SetEventObject(e)
                     e.GetEventHandler().ProcessEvent(custom_event)
-                    return 
+                    return
         platform = world.level_wrapper.platform
         world_version = world.level_wrapper.version
 
