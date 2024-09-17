@@ -1,4 +1,4 @@
-# 1002223 v
+# 2 v
 import collections
 import copy
 import zlib
@@ -13106,7 +13106,7 @@ class Tools(wx.Frame):
         CustomToolTip(self, self._finder_replacer, text="FINDER.\n"
                                                          "Also provides the ability to quickly delete all other chunks.",
                       font_size=14)
-        CustomToolTip(self, self._protals_and_border_walls, text="2Portals.\n"
+        CustomToolTip(self, self._protals_and_border_walls, text="Portals.\n"
                                                         "Also provides the ability to quickly delete all other chunks.",
                       font_size=14)
         CustomToolTip(self, self._player_inventory, text="NBT Player Inventory Editor.\n"
@@ -13287,7 +13287,7 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
             options_path: str,
 
     ):
-        self.download_latest_script()
+
         platform = world.level_wrapper.platform
         world_version = world.level_wrapper.version
 
@@ -13312,18 +13312,25 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
         self.Thaw()
         tools = Tools(self.parent, self.world, self.canvas)
         tools.Show()
-        print(self.get_top_of_remote_file(r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py'))
-
-
-
+        self.version = 2
+        self.remote_version = self.get_top_of_remote_file(r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py')
+        if self.remote_version > self.version:
+            self.download_latest_script()
+             
     def download_latest_script(self):
         response = requests.get(r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py')
         if response.status_code == 200:
             with open(self.get_script_path(), 'w', encoding='utf-8') as file:
                 file.write(response.text)
-            print("Script updated to the latest version!")
+            wx.MessageBox(f"A new version has been apply was v {self.version} now version"
+                          f" {self.remote_version}\n"
+                          f" Hit the reload button to start using",
+                          "Plugin has Been Updated", wx.OK | wx.ICON_INFORMATION)
         else:
-            print("Failed to download the new version.")
+            wx.MessageBox(f"A new version is available version {self.remote_version}"
+                          f" current version {self.version} \n"
+                          f" Goto PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py",
+                          "Plugin has Been Updated", wx.OK | wx.ICON_INFORMATION)
 
     def get_script_path(self):
         return os.path.abspath(__file__)
