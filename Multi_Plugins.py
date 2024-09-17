@@ -13295,14 +13295,10 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
             events_buttons = [ x  for x in parent.GetChildren() if isinstance(x, wx.BitmapButton)]
             for e in events_buttons:
                 if 'Reload Operations' in e.GetToolTip().GetTip():
-                    # Create a wx.CommandEvent to simulate a button click
                     custom_event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, e.GetId())
-
-                    # Set the event object to the button itself
                     custom_event.SetEventObject(e)
-
-                    # Process the event as if the button was clicked
                     e.GetEventHandler().ProcessEvent(custom_event)
+                    return 
         platform = world.level_wrapper.platform
         world_version = world.level_wrapper.version
 
