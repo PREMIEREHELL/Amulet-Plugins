@@ -42,6 +42,7 @@ from amulet.api.block_entity import BlockEntity
 from amulet.api.errors import ChunkDoesNotExist
 from amulet_map_editor.api.wx.ui import simple
 from amulet_map_editor.api import image
+
 nbt_resources = image.nbt
 from collections.abc import MutableMapping, MutableSequence
 import abc
@@ -58,9 +59,11 @@ from amulet_map_editor.api.wx.ui.block_select.properties import (
 from amulet_map_editor.programs.edit.api.events import (
     EVT_SELECTION_CHANGE,
 )
+
 if TYPE_CHECKING:
     from amulet.api.level import BaseLevel
     from amulet_map_editor.programs.edit.api.canvas import EditCanvas
+
 
 def find_end_of_compounds(data):
     def parse_compound(data, offset):
@@ -76,12 +79,12 @@ def find_end_of_compounds(data):
 
     def parse_tag(data, offset, tag_type):
         size_map = {
-            0x01: 1,   # Byte
-            0x02: 2,   # Short
-            0x03: 4,   # Int
-            0x04: 8,   # Long
-            0x05: 4,   # Float
-            0x06: 8,   # Double
+            0x01: 1,  # Byte
+            0x02: 2,  # Short
+            0x03: 4,  # Int
+            0x04: 8,  # Long
+            0x05: 4,  # Float
+            0x06: 8,  # Double
         }
         if tag_type in size_map:
             offset += size_map[tag_type]
@@ -123,9 +126,13 @@ def find_end_of_compounds(data):
             raise ValueError("Invalid NBT data")
 
     return offset
-def block_enty_raw_cords(x,y,z): #fast search
+
+
+def block_enty_raw_cords(x, y, z):  # fast search
     data = CompoundTag({'x': IntTag(), 'y': IntTag(), 'z': IntTag()}).to_nbt(compressed=False, little_endian=True)
     return data[3:-1]
+
+
 def unpack_nbt_list(raw_nbt: bytes):
     nbt_list = []
     while raw_nbt:
@@ -135,26 +142,31 @@ def unpack_nbt_list(raw_nbt: bytes):
             little_endian=True,
             read_context=read_context,
             string_decoder=utf8_escape_decoder,
-            )
+        )
         raw_nbt = raw_nbt[read_context.offset:]
         nbt_list.append(nbt)
     return nbt_list
+
+
 def pack_nbt_list(nbt_list):
     return b"".join(
-            [
-                nbt.save_to(
-                    compressed=False,
-                    little_endian=True,
-                    string_encoder=utf8_escape_encoder,
-                )
-                for nbt in nbt_list
-            ]
-        )
+        [
+            nbt.save_to(
+                compressed=False,
+                little_endian=True,
+                string_encoder=utf8_escape_encoder,
+            )
+            for nbt in nbt_list
+        ]
+    )
+
 
 def create_new_actor_prefix(start, cnt):
     actorKey = struct.pack('>LL', start, cnt)
     db_key = b''.join([b'actorprefix', actorKey])
     return db_key, actorKey
+
+
 def uniqueid_to_actorprefix_key(UniqueID: LongTag):
     packed_data = struct.pack('<q', UniqueID.py_data)
     cnt, worldstartcnt = struct.unpack('<LL', packed_data)
@@ -162,11 +174,15 @@ def uniqueid_to_actorprefix_key(UniqueID: LongTag):
     actorKey = struct.pack('>LL', start_cnt, cnt)
     db_key = b''.join([b'actorprefix', actorKey])
     return db_key
+
+
 def _genorate_uid(cnt, worldstartcount):
     start_c = worldstartcount
     new_gen = struct.pack('<LL', int(cnt), int(start_c))
     new_tag = LongTag(struct.unpack('<q', new_gen)[0])
     return new_tag
+
+
 def _storage_key_(val):
     if isinstance(val, bytes):
         return struct.unpack('>II', val)
@@ -176,15 +192,20 @@ def _storage_key_(val):
         data = b''
         for b in val: data += b
         return data
+
+
 def split_bytes(data):
     return [data[i:i + 8] for i in range(0, len(data), 8)]
+
+
 def get_y_range(test_val):
-    if test_val == struct.pack('<i', 1)or 'minecraft:the_nether' == test_val:
-        return (0,127)
+    if test_val == struct.pack('<i', 1) or 'minecraft:the_nether' == test_val:
+        return (0, 127)
     elif test_val == struct.pack('<i', 2) or 'minecraft:the_end' == test_val:
-        return (0,255)
+        return (0, 255)
     elif test_val == b'' or 'minecraft:overworld' == test_val:
-        return (-64,319)
+        return (-64, 319)
+
 
 class ChunkManager:
     def __init__(self, parent=None, world=None, canvas=None):
@@ -198,7 +219,7 @@ class ChunkManager:
         self.last_offset_move = None
         self.y_range = get_y_range(self.canvas.dimension)
         self.chunk_and_entities = {}
-        self.all_chunks =None
+        self.all_chunks = None
         if self.platform == 'bedrock':
             self.world_start_count = self.get_current_entity_count()
             self.next_slot = self.get_current_entity_count()
@@ -216,7 +237,7 @@ class ChunkManager:
         else:
             self.all_chunks = [x for x in self.canvas.selection.selection_group.chunk_locations()]
 
-        self.all_chunks = ((x,z) for x, z in self.all_chunks)
+        self.all_chunks = ((x, z) for x, z in self.all_chunks)
 
     def get_chunk_data(self):
         return copy.deepcopy(self.chunks)
@@ -231,11 +252,11 @@ class ChunkManager:
 
         if self.platform == 'bedrock':
             selection_map = {
-            (x, z): SelectionBox((x * 16, self.y_range[0], z * 16), (x * 16 + 16, self.y_range[1], z * 16 + 16))
-            for k in self.chunks.keys() for x, z in [struct.unpack('<ii', k[0:8])]
+                (x, z): SelectionBox((x * 16, self.y_range[0], z * 16), (x * 16 + 16, self.y_range[1], z * 16 + 16))
+                for k in self.chunks.keys() for x, z in [struct.unpack('<ii', k[0:8])]
             }
             return selection_map
-        else: #"java"
+        else:  # "java"
             selection_map = {
                 (x, z): SelectionBox((x * 16, self.y_range[0], z * 16), (x * 16 + 16, self.y_range[1], z * 16 + 16))
                 for k in self.chunks.keys() for x, z in [k]
@@ -249,9 +270,9 @@ class ChunkManager:
         surrounding_coords = []
         _range -= 1
         for xx, zz in self.selection.keys():
-            for i in range(xx - _range-1, xx + _range+2):
-                for j in range(zz - _range-1, zz + _range+2):
-                    surrounding_coords.append((i,j))
+            for i in range(xx - _range - 1, xx + _range + 2):
+                for j in range(zz - _range - 1, zz + _range + 2):
+                    surrounding_coords.append((i, j))
 
         for x, z in surrounding_coords:
             if (x, z) not in inside:
@@ -262,9 +283,9 @@ class ChunkManager:
 
     def apply_selection(self):
 
-       tx,tz = self.last_offset_move
-       self.move_all_chunks_to(tx,tz)
-       self.org_key = list(self.selection.keys())
+        tx, tz = self.last_offset_move
+        self.move_all_chunks_to(tx, tz)
+        self.org_key = list(self.selection.keys())
 
     def move_all_chunks_to(self, target_x, target_z):
         current_x, current_z = min((x, z) for x, z in self.org_key)
@@ -289,10 +310,10 @@ class ChunkManager:
                 new_x, new_z = x + offset_x, z + offset_z
                 new_key = (new_x, new_z)
                 new_chunk_data = self.java_chunk(self.chunks[key].pop('chunk_data')
-                                                                 , new_key, new_x, new_z, x, z)
+                                                 , new_key, new_x, new_z, x, z)
                 if self.chunks[key].get('entitie_data'):
                     new_entitie_data = self.java_entities(self.chunks[key].pop('entitie_data')
-                                                 , new_key, new_x, new_z, x, z)
+                                                          , new_key, new_x, new_z, x, z)
                 else:
                     new_entitie_data = None
                 new_chunks[new_key] = {'chunk_data': new_chunk_data, 'entitie_data': new_entitie_data}
@@ -307,17 +328,17 @@ class ChunkManager:
         chunk_entities = _chunk_entities
         chunk_entities['Position'] = IntArrayTag([new_x, new_z])
         for e in chunk_entities.get('Entities'):
-            x,y,z = e.get('Pos')
+            x, y, z = e.get('Pos')
             xc, zc = new_x * 16, new_z * 16
             x_pos = x % 16
             z_pos = z % 16
             raw_pos_x = (x_pos + xc)
             raw_pos_z = (z_pos + zc)
             x, z = raw_pos_x, raw_pos_z
-            e['Pos'] = ListTag([DoubleTag(x),DoubleTag(y),DoubleTag(z)])
+            e['Pos'] = ListTag([DoubleTag(x), DoubleTag(y), DoubleTag(z)])
         return chunk_entities
 
-    def java_chunk(self, _chunk_data, new_key, new_x, new_z, x, z ):
+    def java_chunk(self, _chunk_data, new_key, new_x, new_z, x, z):
         chunk_data = _chunk_data
         chunk_data['xPos'] = IntTag(new_x)
         chunk_data['zPos'] = IntTag(new_z)
@@ -326,7 +347,7 @@ class ChunkManager:
             be['z'] = IntTag(new_z * 16)
         return chunk_data
 
-    def update_chunk_keys_entities(self, chunk_dict, new_key, new_x, new_z, x_old, z_old): #bedrock
+    def update_chunk_keys_entities(self, chunk_dict, new_key, new_x, new_z, x_old, z_old):  # bedrock
         dim = self.current_dim_key
 
         new_dict = {}
@@ -389,7 +410,7 @@ class ChunkManager:
                     new_dict[new_key + dim + main_key] = chunk_dict.pop(ik)
         return new_dict
 
-    def update_entities(self, entity_dict, new_x, new_z): #bedrock
+    def update_entities(self, entity_dict, new_x, new_z):  # bedrock
 
         new_dict = {}
         new_digp = b''
@@ -400,8 +421,8 @@ class ChunkManager:
         if entity_dict:
             for digp_key, e in entity_dict.items():
                 for act, raw in e['actorprefix_dict'].items():
-                    actor_nbt = load(raw,compressed=False,little_endian=True
-                    ,string_decoder=utf8_escape_decoder)
+                    actor_nbt = load(raw, compressed=False, little_endian=True
+                                     , string_decoder=utf8_escape_decoder)
 
                     actor_pos = actor_nbt.get('Pos')
                     actor_nbt.pop('UniqueID')
@@ -414,12 +435,12 @@ class ChunkManager:
                     raw_pos_x = (x_pos + xc)
                     raw_pos_z = (z_pos + zc)
 
-                    x,z = raw_pos_x, raw_pos_z
+                    x, z = raw_pos_x, raw_pos_z
                     y = actor_pos[1]
 
                     actor_nbt.tag['Pos'] = ListTag([FloatTag(x),
-                                                FloatTag(y),
-                                                FloatTag(z)])
+                                                    FloatTag(y),
+                                                    FloatTag(z)])
 
                     raw_nbt = actor_nbt.to_nbt(compressed=False, little_endian=True, string_encoder=utf8_escape_encoder)
                     actorprefix, digp_actor = create_new_actor_prefix(self.world_start_count, self.next_slot)
@@ -482,7 +503,7 @@ class ChunkManager:
             chunkkey = struct.pack('<ii', xx, zz)
         return chunkkey
 
-    def get_dim_vpath_java_dir(self, regonx, regonz, folder='region' ):#entities
+    def get_dim_vpath_java_dir(self, regonx, regonz, folder='region'):  # entities
         file = "r." + str(regonx) + "." + str(regonz) + ".mca"
         path = self.world.level_wrapper.path
         full_path = ''
@@ -502,7 +523,6 @@ class ChunkManager:
         world_count = self.world.level_wrapper.root_tag.get('worldStartCount')
         start_count = 4294967294 - world_count
         start_key = struct.pack('>L', start_count)
-
 
         for k, v in self.world.level_wrapper.level_db.iterate(start=b'actorprefix' + start_key,
                                                               end=b'actorprefix' + start_key + b'\xff\xff\xff\xff'):
@@ -813,11 +833,14 @@ class ChunkManager:
                         self.chunk_and_entities[(cx, cz)]['entitie_data'] = nbtdata
 
                 self.raw_data.unload()
+
+
 class ChunkSaveAndLoad(wx.Frame):
     def __init__(self, parent, canvas, world):
         super().__init__(parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=(560, 400), title="Position selections",
-                         style=(wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX |
-                                wx.CLIP_CHILDREN | wx.FRAME_FLOAT_ON_PARENT | wx.ALIGN_CENTER | wx.STAY_ON_TOP))
+                         style=(
+                                 wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX |
+                                 wx.CLIP_CHILDREN | wx.FRAME_FLOAT_ON_PARENT | wx.ALIGN_CENTER | wx.STAY_ON_TOP))
         self.parent = parent
 
         self.canvas = canvas
@@ -835,7 +858,7 @@ class ChunkSaveAndLoad(wx.Frame):
         self.SetForegroundColour((0, 255, 0))
         self.SetBackgroundColour((0, 0, 0))
         self.info_label = wx.StaticText(self, label="\nThis Directly edited the world ! "
-                                                     "\n                     Make sure you have a backup! ")
+                                                    "\n                     Make sure you have a backup! ")
 
         self._all_chunks = wx.CheckBox(self, label="Save: All Chunks \n (can be slow)")
         self._all_chunks.SetValue(False)
@@ -926,7 +949,6 @@ class ChunkSaveAndLoad(wx.Frame):
         self._save_load_grid.Add(self._all_chunks)
         self._save_load_grid.Add(self._load_button)
 
-
         self.main_sizer.Add(self.info_label, 1, wx.LEFT, 0)
         self.main_sizer.Add(self._save_load_grid, 1, wx.LEFT, 0)
 
@@ -1007,6 +1029,7 @@ class ChunkSaveAndLoad(wx.Frame):
             with open(pathto, "wb") as file:
                 file.write(zlib.compress(pickle.dumps(self.chunks_mg.chunk_and_entities)))
 
+
 class MyTreeCtrl(wx.TreeCtrl):
     def __init__(self, parent, id, pos, size, style, nbt_data):
         wx.TreeCtrl.__init__(self, parent, id, pos, size, style)
@@ -1022,15 +1045,16 @@ class MyTreeCtrl(wx.TreeCtrl):
                 TraverseAux(child, depth + 1, func)
                 child, cookie = self.GetNextChild(node, cookie)
 
-
         func(startNode, 0)
         TraverseAux(startNode, 1, func)
 
     def ItemIsChildOf(self, item1, item2):
         self.result = False
+
         def test_func(node, depth):
             if node == item1:
                 self.result = True
+
         self.Traverse(test_func, item2)
         return self.result
 
@@ -1092,7 +1116,7 @@ class MyTreeCtrl(wx.TreeCtrl):
         child, cookie = self.GetFirstChild(root)
         orderit = []
         orderit.append(self.GetItemData(child)[0])
-            # In wxPython 2.5.4, GetFirstChild only takes 1 argument
+        # In wxPython 2.5.4, GetFirstChild only takes 1 argument
         for i in range(nc):
             child, cookie = self.GetNextChild(child, cookie)
             if child.IsOk():
@@ -1100,12 +1124,14 @@ class MyTreeCtrl(wx.TreeCtrl):
             else:
                 break
         return orderit
+
+
 class SmallEditDialog(wx.Frame):
     GRID_ROWS = 2
     GRID_COLUMNS = 2
 
     def __init__(
-            self, parent, oper_name, tag_type_name, item, tree, bitmap_icon,image_map
+            self, parent, oper_name, tag_type_name, item, tree, bitmap_icon, image_map
     ):
         super(SmallEditDialog, self).__init__(
             parent, title=f"{oper_name} {tag_type_name}", size=(400, 200)
@@ -1134,8 +1160,6 @@ class SmallEditDialog(wx.Frame):
             self.value_field = wx.TextCtrl(value_panel)
             name_panel.add_object(name_label, space=0, options=wx.ALL | wx.CENTER)
             name_panel.add_object(self.name_field, space=1, options=wx.ALL | wx.EXPAND)
-
-
 
             meta = False
             if isinstance(self.data, tuple):
@@ -1191,12 +1215,12 @@ class SmallEditDialog(wx.Frame):
             self.Layout()
         else:
             self.tree = tree
-            self.SetSize(600,700)
+            self.SetSize(600, 700)
             main_panel = simple.SimplePanel(self)
             button_panel = simple.SimplePanel(main_panel, sizer_dir=wx.HORIZONTAL)
             value_panel = simple.SimplePanel(main_panel, sizer_dir=wx.HORIZONTAL)
-            self.value_field = wx.TextCtrl(value_panel, style=wx.TE_MULTILINE, size=(577,640))
-            self.value_field.SetBackgroundColour((0,0,0))
+            self.value_field = wx.TextCtrl(value_panel, style=wx.TE_MULTILINE, size=(577, 640))
+            self.value_field.SetBackgroundColour((0, 0, 0))
             self.value_field.SetForegroundColour((0, 255, 255))
             font = wx.Font(14, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_MAX, wx.FONTWEIGHT_BOLD)
             self.value_field.SetFont(font)
@@ -1205,19 +1229,18 @@ class SmallEditDialog(wx.Frame):
             self.save_button.Bind(wx.EVT_BUTTON, lambda evt:
             self.update_tree(evt))
             button_panel.add_object(self.save_button)
-            self.f_path, self.raw_nbt, sel_snbt = NBTEditor.build_to(self.Parent, None, opt="snbt" )
+            self.f_path, self.raw_nbt, sel_snbt = NBTEditor.build_to(self.Parent, None, opt="snbt")
             self.value_field.SetValue(sel_snbt)
 
             main_panel.add_object(value_panel, options=wx.EXPAND)
             main_panel.add_object(button_panel, space=0)
 
-
             self.Layout()
-
 
     def update_tree(self, evt):
         def get_real_nbt(map_list):
             return reduce(operator.getitem, map_list[:-1], self.raw_nbt)
+
         updated_nbt = get_real_nbt(self.f_path)
         if len(self.f_path) == 0:
             self.raw_nbt = from_snbt(self.value_field.GetValue())
@@ -1227,10 +1250,9 @@ class SmallEditDialog(wx.Frame):
         EntitiePlugin.update_player_data(self, self.raw_nbt)
         # print("UPDATE",self.raw_nbt)
 
-
     def nbt_clean_array_string(self, strr, ntype):
         import re
-        dtyped = {"L": "longs","B": "bytes","I": "ints"}
+        dtyped = {"L": "longs", "B": "bytes", "I": "ints"}
         dtype = dtyped[ntype]
         prog = re.compile(r'(\d*[.-]?\d*)', flags=0)
         result, new_string = (prog.findall(strr), '')
@@ -1286,7 +1308,7 @@ class SmallEditDialog(wx.Frame):
             if name == '':
                 name = None
 
-            tipe = data[1] if isinstance(data, tuple) else  data
+            tipe = data[1] if isinstance(data, tuple) else data
 
             entries = 0
             set_string = f"{name}: {value}"
@@ -1304,7 +1326,7 @@ class SmallEditDialog(wx.Frame):
                     set_string = f"{name} entries {entries}" if name else f"entries {entries}"
                     set_data = (name, tag_type_data(value)) if name else tag_type_data(value)
             else:
-                if isinstance(tipe, ListTag):#????????????????????????????????????
+                if isinstance(tipe, ListTag):  # ????????????????????????????????????
                     set_string = f"{name}:{value}" if name else f"{value}"
                     set_data = (name, tag_type_data(value)) if name else tag_type_data(value)
                 else:
@@ -1320,7 +1342,7 @@ class SmallEditDialog(wx.Frame):
             )
             entries = self.tree.GetChildrenCount(item, 0)
             testdata = self.tree.GetItemText(item)
-            self.tree.SetItemText(item, testdata.replace(f"{entries-1} entries",f"{entries} entries"))
+            self.tree.SetItemText(item, testdata.replace(f"{entries - 1} entries", f"{entries} entries"))
 
         if oper_name == "Edit":
             set_data_tree(data)
@@ -1332,9 +1354,8 @@ class SmallEditDialog(wx.Frame):
         tag_value = evt.GetString()
         self.value_field.ChangeValue(str(self.data_type_func(tag_value)))
 
-
-    def change_tag_type_func(self, tag_type, name_value=[False,False]):
-        #self.data_type_func = lambda x: x
+    def change_tag_type_func(self, tag_type, name_value=[False, False]):
+        # self.data_type_func = lambda x: x
         if name_value[0]:
             self.name_field.Disable()
         if name_value[1]:
@@ -1371,14 +1392,16 @@ class SmallEditDialog(wx.Frame):
             self.old_name,
         )
         self.Close()
+
+
 class NBTEditor(wx.Panel):
-    def __init__(self, parent,  nbt_data=CompoundTag(), root_tag_name="", callback=None,):
+    def __init__(self, parent, nbt_data=CompoundTag(), root_tag_name="", callback=None, ):
         # super(NBTEditor, self).__init__(parent)
         # Use the WANTS_CHARS style so the panel doesn't eat the Return key.
         wx.Panel.__init__(self, parent)
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(self.sizer)
-      #  self.SetSize(600, 650)
+        #  self.SetSize(600, 650)
         self.nbt_new = CompoundTag()
         self.nbt_data = nbt_data
         self.copy_data = None
@@ -1472,7 +1495,7 @@ class NBTEditor(wx.Panel):
                         f_item = tree.GetFocusedItem()
                         f_par = tree.GetItemParent(f_item)
                         if len(nbt_path_keys) > 0:
-                            for xx in range(len(nbt_path_keys)-1):
+                            for xx in range(len(nbt_path_keys) - 1):
                                 f_par = tree.GetItemParent(f_par)
                         else:
                             f_par = tree.GetFocusedItem()
@@ -1503,8 +1526,8 @@ class NBTEditor(wx.Panel):
                 #             f_child, f_c = tree.GetNextChild(f_child, f_c)
                 #
                 #         print(index, "DEX")
-                    # print(type(ddata),"DtN", ddata)
-                    # nbt_path_keys.append(index)
+                # print(type(ddata),"DtN", ddata)
+                # nbt_path_keys.append(index)
 
                 sibl = tree.GetItemParent(sibl)
             nbt_path_keys.reverse()
@@ -1597,7 +1620,6 @@ class NBTEditor(wx.Panel):
                             new[the_path[-1]] = value
                         child, cookie = tree.GetNextChild(child, cookie)
 
-
         if opt == 'snbt':
             f_item = self.tree.GetFocusedItem()
             #
@@ -1614,17 +1636,17 @@ class NBTEditor(wx.Panel):
                 tsnbt = []
                 for k, v in selected_items():
                     tsappend(CompoundTag({k: v}).to_snbt(5))
-                snbt = '{' + ''.join([f" {x[1:-2]}," for x in tsnbt]) + "\n}" #replace("}{", ",").replace("\n,", ",")
+                snbt = '{' + ''.join([f" {x[1:-2]}," for x in tsnbt]) + "\n}"  # replace("}{", ",").replace("\n,", ",")
                 pat = re.compile(r'[A-Za-z0-9._+-:]+(?=":\s)')
                 matchs = pat.finditer(snbt)
-                for i,x in enumerate(matchs):
-                    C1 = x.span()[0] - 1 -(i)#i*2 if no space
-                    C2 = x.span()[1] - 1 -(i)#i*2 if no space
+                for i, x in enumerate(matchs):
+                    C1 = x.span()[0] - 1 - (i)  # i*2 if no space
+                    C2 = x.span()[1] - 1 - (i)  # i*2 if no space
                     if ":" in x.group():
                         C1 -= 2
                         C2 += 2
-                    snbt = snbt[0:C1:] + snbt[C1+1::]
-                    snbt = snbt[0:C2:] + " " + snbt[C2+1::]
+                    snbt = snbt[0:C1:] + snbt[C1 + 1::]
+                    snbt = snbt[0:C2:] + " " + snbt[C2 + 1::]
             else:
                 snbt = selected_to_snbt(5)
                 pat = re.compile(r'[A-Za-z0-9._+-:]+(?=":\s)')
@@ -1649,7 +1671,7 @@ class NBTEditor(wx.Panel):
         parent.Close(True)
         self.Close(True)
 
-    def build_tree(self,  data, x=0,y=0, root_tag_name=""):
+    def build_tree(self, data, x=0, y=0, root_tag_name=""):
         try:
             self.sizer.Remove(self.tree)
             self.tree.DeleteAllItems()
@@ -1657,6 +1679,7 @@ class NBTEditor(wx.Panel):
             pass
 
         self.nbt_data = data
+
         def add_tree_node(_tree: wx.TreeCtrl, _parent, _items):
             for key, value in _items.items():
                 new_child = None
@@ -1702,8 +1725,8 @@ class NBTEditor(wx.Panel):
                         new_child, self.image_map.get(value.__class__, self.other)
                     )
 
-        tree = MyTreeCtrl(self, wx.ID_ANY, wx.DefaultPosition,(10,10),
-                               wx.TR_HAS_BUTTONS, self.nbt_data)
+        tree = MyTreeCtrl(self, wx.ID_ANY, wx.DefaultPosition, (10, 10),
+                          wx.TR_HAS_BUTTONS, self.nbt_data)
         tree.SetBackgroundColour((0, 0, 0))
         tree.SetForegroundColour((0, 255, 0))
         font = wx.Font(14, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_MAX, wx.FONTWEIGHT_BOLD)
@@ -1726,7 +1749,7 @@ class NBTEditor(wx.Panel):
         tree.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.tree_right_click)
         # tree.Bind(wx.EVT_LEFT_DOWN, self.tree_leftDC_click)
         tree.Bind(wx.EVT_LEFT_UP, self.tree_leftDC_click)
-        #self.tree = self.build_tree(data)
+        # self.tree = self.build_tree(data)
         self.sizer.Add(tree, 1, wx.ALL | wx.CENTER | wx.EXPAND)
         tree.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
         tree.Bind(wx.EVT_RIGHT_DOWN, self.OnRightDown)
@@ -1749,7 +1772,7 @@ class NBTEditor(wx.Panel):
             except:
                 pass
             if isinstance(self.tree.GetItemData(item), tuple):
-                name , data = self.tree.GetItemData(item)
+                name, data = self.tree.GetItemData(item)
 
             else:
                 data = self.tree.GetItemData(item)
@@ -1759,7 +1782,6 @@ class NBTEditor(wx.Panel):
             else:
                 datat = type(data)
 
-
             self.has_list_type = str(datat).split(".")[-1][:-2]
             icon = self.image_list.GetBitmap(self.image_map[datat])
             try:
@@ -1768,13 +1790,12 @@ class NBTEditor(wx.Panel):
                 pass
             self.edit_dialog = SmallEditDialog(self, "Edit", self.has_list_type, item, self.tree, icon, self.image_map)
             style = self.edit_dialog.GetWindowStyle()
-            self.edit_dialog.SetWindowStyle( style | wx.STAY_ON_TOP )
+            self.edit_dialog.SetWindowStyle(style | wx.STAY_ON_TOP)
             self.edit_dialog.Show()
 
         evt.Skip()
 
     def tree_right_click(self, evt):
-
 
         if isinstance(self.tree.GetItemData(evt.GetItem()), tuple):
             tag_name, tag_obj = self.tree.GetItemData(evt.GetItem())
@@ -1790,9 +1811,7 @@ class NBTEditor(wx.Panel):
         menu.Destroy()
         evt.Skip()
 
-
-
-    def popup_menu_handler(self, op_map, op_sm_map,icon_sm_map, evt):
+    def popup_menu_handler(self, op_map, op_sm_map, icon_sm_map, evt):
         op_id = evt.GetId()
         op_name = None
         continues = True
@@ -1802,7 +1821,7 @@ class NBTEditor(wx.Panel):
 
         if op_id in op_sm_map:
             tag_type = [tag_class for tag_class in self.image_map if tag_class.__name__ ==
-                        op_sm_map[op_id].replace(" ","")][0]
+                        op_sm_map[op_id].replace(" ", "")][0]
 
             item = self.tree.GetFocusedItem()
 
@@ -1831,7 +1850,7 @@ class NBTEditor(wx.Panel):
                         self.tree.Expand(item)
                         continues = False
             else:
-                 data = tag_type()
+                data = tag_type()
             if continues:
                 data = tag_type()
                 self.has_list_type = str(type(data)).split(".")[-1][:-2]
@@ -1851,7 +1870,7 @@ class NBTEditor(wx.Panel):
 
         elif op_name == "[paste]":
 
-            self.tree.InsertItemsFromList(self.copy_data,self.tree.GetFocusedItem())
+            self.tree.InsertItemsFromList(self.copy_data, self.tree.GetFocusedItem())
             self.tree.UnselectAll()
 
         elif op_name == "edit_as":
@@ -1883,7 +1902,6 @@ class NBTEditor(wx.Panel):
             else:
                 datat = type(data)
 
-
             self.has_list_type = str(datat).split(".")[-1][:-2]
             icon = self.image_list.GetBitmap(self.image_map[datat])
             try:
@@ -1902,17 +1920,17 @@ class NBTEditor(wx.Panel):
         else:
             if op_name == "bytetag":
                 selected_tag = self.tree.GetFocusedItem()
-                name , data = self.tree.GetItemData(selected_tag)
-                edit_dialog = SmallEditDialog(self,op_name,data, selected_tag, self.tree, None)
+                name, data = self.tree.GetItemData(selected_tag)
+                edit_dialog = SmallEditDialog(self, op_name, data, selected_tag, self.tree, None)
                 style = self.edit_dialog.GetWindowStyle()
-                edit_dialog.SetWindowStyle(style | wx.STAY_ON_TOP) ###
+                edit_dialog.SetWindowStyle(style | wx.STAY_ON_TOP)  ###
                 edit_dialog.Show()
 
     def _generate_menu(self, include_add_tag=False):
         menu = wx.Menu()
         s_menu = wx.Menu()
 
-        path_list = [ nbt_resources.path +"\\" + x + ".png" for x in dir(nbt_resources) ]
+        path_list = [nbt_resources.path + "\\" + x + ".png" for x in dir(nbt_resources)]
         menu_items = [
             wx.MenuItem(menu, text="Edit", id=wx.ID_ANY),
             wx.MenuItem(menu, text="Copy", id=wx.ID_ANY),
@@ -1963,7 +1981,7 @@ class NBTEditor(wx.Panel):
                 tag_type = self.tree.GetItemData(next_d)
                 if type(tag_type) == abc.ABCMeta:
                     tag_type = tag_type()
-                cnt = self.tree.GetChildrenCount(selected_tag,0)
+                cnt = self.tree.GetChildrenCount(selected_tag, 0)
             else:
                 tag_type = None
                 cnt = 0
@@ -1984,7 +2002,6 @@ class NBTEditor(wx.Panel):
             menu_items.insert(0, add_menu)
 
         for menu_item in menu_items:
-
             menu.Append(menu_item)
 
         op_map = {
@@ -1999,13 +2016,13 @@ class NBTEditor(wx.Panel):
             item.GetId(): item.GetBitmap()
             for item in sub_menu
         }
-        menu.Bind(wx.EVT_MENU, lambda evt: self.popup_menu_handler(op_map, op_sm_map,icon_sm_map, evt))
+        menu.Bind(wx.EVT_MENU, lambda evt: self.popup_menu_handler(op_map, op_sm_map, icon_sm_map, evt))
 
         return menu
 
     def OnBeginLeftDrag(self, event):
         '''Allow drag-and-drop for leaf nodes.'''
-#
+        #
         event.Allow()
         self.dragType = "left button"
         self.dragItem = event.GetItem()
@@ -2051,6 +2068,7 @@ class NBTEditor(wx.Panel):
             self.tree.UnselectAll()
             for item in newitems:
                 self.tree.SelectItem(item)
+
         def CopyHere(event):
 
             # Save + delete the source
@@ -2068,7 +2086,6 @@ class NBTEditor(wx.Panel):
             # self.tree.UnselectAll()
             for item in newitems:
                 self.tree.SelectItem(item)
-
 
         # ---------------------------------------
 
@@ -2117,7 +2134,6 @@ class NBTEditor(wx.Panel):
         pt = event.GetPosition();
         item, flags = self.tree.HitTest(pt)
 
-
         # expand/collapse toggle
         self.tree.Toggle(item)
         print
@@ -2127,13 +2143,15 @@ class NBTEditor(wx.Panel):
     def OnSize(self, event):
         w, h = self.GetClientSize()
         self.tree.SetSize(0, 0, w, h)
+
+
 class Inventory(wx.Frame):
-    def __init__(self, parent, canvas, world , *args, **kw):
+    def __init__(self, parent, canvas, world, *args, **kw):
         super(Inventory, self).__init__(parent, *args, **kw,
-                                                 style=(wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER |
-                                                        wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN |
-                                                        wx.FRAME_FLOAT_ON_PARENT),
-                                                  title="NBT Editor For Player Inventory")
+                                        style=(wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER |
+                                               wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN |
+                                               wx.FRAME_FLOAT_ON_PARENT),
+                                        title="NBT Editor For Player Inventory")
 
         self.parent = parent
 
@@ -2144,7 +2162,7 @@ class Inventory(wx.Frame):
         self.SetForegroundColour((0, 255, 0))
         self.SetBackgroundColour((0, 0, 0))
         self.SetFont(self.font)
-        self.SetMinSize((520,800))
+        self.SetMinSize((520, 800))
         self.storage_key = CompoundTag()
         self.Freeze()
 
@@ -2594,13 +2612,14 @@ class Inventory(wx.Frame):
         else:
             return level_wrapper._level_manager._db
 
+
 class RandomFiller(wx.Frame):
-    def __init__(self, parent, canvas, world , *args, **kw):
+    def __init__(self, parent, canvas, world, *args, **kw):
         super(RandomFiller, self).__init__(parent, *args, **kw,
-                                                 style=(wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER |
-                                                        wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN |
-                                                        wx.FRAME_FLOAT_ON_PARENT),
-                                                  title="NBT Editor for Entities")
+                                           style=(wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER |
+                                                  wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN |
+                                                  wx.FRAME_FLOAT_ON_PARENT),
+                                           title="NBT Editor for Entities")
         self.parent = parent
         self.canvas = canvas
         self.world = world
@@ -2609,7 +2628,7 @@ class RandomFiller(wx.Frame):
         self.SetForegroundColour((0, 255, 0))
         self.SetBackgroundColour((0, 0, 0))
         self.SetFont(self.font)
-        self.SetMinSize((520,720))
+        self.SetMinSize((520, 720))
         self.toggle = True
         self.Freeze()
         self.arr = {}
@@ -2855,13 +2874,15 @@ class RandomFiller(wx.Frame):
                     if current_b[0] not in keep_blocks:
                         self.world.set_version_block(x, y, z, self.canvas.dimension, (platform, version), blocks[b],
                                                      None)
+
+
 class ShapePainter(wx.Frame):
-    def __init__(self, parent, canvas, world , *args, **kw):
+    def __init__(self, parent, canvas, world, *args, **kw):
         super(ShapePainter, self).__init__(parent, *args, **kw,
-                                                 style=(wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER |
-                                                        wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN |
-                                                        wx.FRAME_FLOAT_ON_PARENT),
-                                                  title="NBT Editor for Entities")
+                                           style=(wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER |
+                                                  wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN |
+                                                  wx.FRAME_FLOAT_ON_PARENT),
+                                           title="NBT Editor for Entities")
         self.parent = parent
         self.canvas = canvas
         self.world = world
@@ -2870,13 +2891,12 @@ class ShapePainter(wx.Frame):
         self.SetForegroundColour((0, 255, 0))
         self.SetBackgroundColour((0, 0, 0))
         self.SetFont(self.font)
-        self.SetMinSize((520,720))
+        self.SetMinSize((520, 720))
         self.Freeze()
         self._is_enabled = True
         self._moving = True
         self._sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self._sizer)
-
 
         self._block_define = BlockDefine(
             self,
@@ -2917,8 +2937,7 @@ class ShapePainter(wx.Frame):
 
         brush_option = ["Circle", "Diamond", "Square", "Pyramid Up", "Pyramid Down", 'Dome', "bowl", 'walls', "tunnel"]
 
-        self.options = CustomRadioBox(self, 'Brush Type', brush_option, (0,255,0),sty=wx.RA_SPECIFY_COLS , md=3)
-
+        self.options = CustomRadioBox(self, 'Brush Type', brush_option, (0, 255, 0), sty=wx.RA_SPECIFY_COLS, md=3)
 
         self.options_sizer.Add(self.options)
 
@@ -3369,7 +3388,6 @@ class ShapePainter(wx.Frame):
                 self.staus_pause_pointer.SetForegroundColour((220, 111, 11))
         evt.Skip()
 
-
     def bind_events(self):
 
         self.timer = wx.Timer(self.canvas)
@@ -3489,13 +3507,14 @@ class ShapePainter(wx.Frame):
 
     pass
 
+
 class MaterialCounter(wx.Frame):
-    def __init__(self, parent, canvas, world , *args, **kw):
+    def __init__(self, parent, canvas, world, *args, **kw):
         super(MaterialCounter, self).__init__(parent, *args, **kw,
-                                                 style=(wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER |
-                                                        wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN |
-                                                        wx.FRAME_FLOAT_ON_PARENT),
-                                                  title="NBT Editor for Entities")
+                                              style=(wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER |
+                                                     wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN |
+                                                     wx.FRAME_FLOAT_ON_PARENT),
+                                              title="NBT Editor for Entities")
 
         self.parent = parent
 
@@ -3506,7 +3525,7 @@ class MaterialCounter(wx.Frame):
         self.SetForegroundColour((0, 255, 0))
         self.SetBackgroundColour((0, 0, 0))
         self.SetFont(self.font)
-        self.SetMinSize((520,720))
+        self.SetMinSize((520, 720))
         self._sizer = wx.BoxSizer(wx.VERTICAL)
         self.text = wx.TextCtrl(self, style=wx.TE_MULTILINE, size=(280, 650), pos=(30, 30))
         self.test = wx.Button(self, label="Get Materials count", pos=(0, 0))
@@ -3541,6 +3560,7 @@ class MaterialCounter(wx.Frame):
             text += str(x) + " " + str(len(matrials[x])) + "\n"
 
         self.text.SetValue(text)
+
 
 class ExportImportCostomDialog(wx.Dialog):
 
@@ -3662,6 +3682,8 @@ class ExportImportCostomDialog(wx.Dialog):
         self.all_chunks.SetValue(False)
         self.nbt_file_option.SetValue(False)
         self.Destroy()
+
+
 class BedRock(wx.Panel):
     def __int__(self, world, canvas):
         wx.Panel.__init__(self, parent)
@@ -4088,7 +4110,7 @@ class BedRock(wx.Panel):
                             replace(b'\x08\n\x00StorageKey\x08\x00', b'\x07\n\x00StorageKey\x08\x00\x00\x00')
                         nbt_data = amulet_load(actor, compressed=False, little_endian=True)
 
-                        #print(nbt_data)
+                        # print(nbt_data)
                         pos = nbt_data.get("Pos")
                         x, y, z = math.floor(pos[0]), math.floor(pos[1]), math.floor(pos[2])
 
@@ -4679,7 +4701,6 @@ class BedRock(wx.Panel):
         self.digp = collections.defaultdict(list)
         items = ""
 
-
         if self.world.level_wrapper.version >= (1, 18, 30, 4, 0):
             self.not_to_remove = []
             actorprefixs = iter(self.level_db.iterate(start=b'actorprefix',
@@ -4878,6 +4899,8 @@ class BedRock(wx.Panel):
                 self.world.level_wrapper.put_raw_chunk_data(xc, xz, raw_chunk, self.canvas.dimension)
         self.world.save()
         self._load_entitie_data(e, False, self.get_all_flag)
+
+
 class Java(wx.Panel):
 
     def __int__(self, world, canvas):
@@ -5594,13 +5617,15 @@ class Java(wx.Panel):
                         # can not store entities without leaving hole
             self.world.save()
             self._load_entitie_data('0', False, self.get_all_flag)
+
+
 class EntitiePlugin(wx.Frame):
-    def __init__(self, parent, canvas, world , *args, **kw):
+    def __init__(self, parent, canvas, world, *args, **kw):
         super(EntitiePlugin, self).__init__(parent, *args, **kw,
-                                                 style=(wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER |
-                                                        wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN |
-                                                        wx.FRAME_FLOAT_ON_PARENT),
-                                                  title="NBT Editor for Entities")
+                                            style=(wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER |
+                                                   wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN |
+                                                   wx.FRAME_FLOAT_ON_PARENT),
+                                            title="NBT Editor for Entities")
 
         self.parent = parent
 
@@ -5611,7 +5636,7 @@ class EntitiePlugin(wx.Frame):
         self.SetForegroundColour((0, 255, 0))
         self.SetBackgroundColour((0, 0, 0))
         self.SetFont(self.font)
-        self.SetMinSize((520,720))
+        self.SetMinSize((520, 720))
         self.lstOfE = ['This List will Contain', 'Entities', "NOTE: the TAB key",
                        " to toggle Perspective", "Canvas must be active", "Mouse over the canvas", "To activate canvas"]
         self.nbt_data = CompoundTag({})
@@ -5619,7 +5644,7 @@ class EntitiePlugin(wx.Frame):
         self.EntyData = []
         self._highlight_edges = numpy.zeros((2, 3), dtype=bool)
 
-        if self.platform  == 'bedrock':
+        if self.platform == 'bedrock':
             self.operation = BedRock()
             self.operation.world = self.world
             self.operation.canvas = self.canvas
@@ -6084,6 +6109,7 @@ class EntitiePlugin(wx.Frame):
             return False
         pass
 
+
 class DataPopOutFrame(wx.Frame):
     def __init__(self, parent, found_data, page, platform, canvas, world):
         super().__init__(parent, title="Data Viewer", size=(600, 600), style=wx.DEFAULT_FRAME_STYLE | wx.STAY_ON_TOP)
@@ -6115,10 +6141,12 @@ class DataPopOutFrame(wx.Frame):
     def pageContol(self, page):
         if page:
             self.resetData(page)
+
         def OnClick(event):
             self.Freeze()
             self.resetData(int(event.GetString()))
             self.Thaw()
+
         return OnClick
 
     def hide_columns(self, columns_to_hide):
@@ -6130,6 +6158,7 @@ class DataPopOutFrame(wx.Frame):
                 else:
                     self._the_data.HideCol(col)
             self._the_data.ForceRefresh()
+
         return OnClick
 
     def resetData(self, page):
@@ -6343,6 +6372,8 @@ class DataPopOutFrame(wx.Frame):
             self.textGrid.SetValue(self._the_data.GetCellValue(row, col))
         self.frame.Show(True)
         save_close.Show(True)
+
+
 class ProgressBar:
     def __init__(self):
         self.parent = None
@@ -6407,11 +6438,13 @@ class ProgressBar:
                     self.prog.Destroy()
                     return True
                 else:
-                    self.prog.Update(cnt,f"{text}: {cnt} / {total}\n  ")
+                    self.prog.Update(cnt, f"{text}: {cnt} / {total}\n  ")
 
         return False
+
+
 class ProcessAnvilBD:
-    def __init__(self, found_data ,parent=None, world=None, canvas=None):
+    def __init__(self, found_data, parent=None, world=None, canvas=None):
         self.pause_count = None
         self.parent = parent
         self.found_data = found_data
@@ -6467,7 +6500,7 @@ class ProcessAnvilBD:
             location_dict[(rx, rz)].append((xx, zz))
 
         for rx, rz in location_dict.keys():
-            data = AnvilRegionInterface(self.get_dim_vpath_java_dir(rx, rz),  mcc=True)
+            data = AnvilRegionInterface(self.get_dim_vpath_java_dir(rx, rz), mcc=True)
             for cx, cz in location_dict[(rx, rz)]:
 
                 nbtdata = data.get_data(cx % 32, cz % 32)
@@ -6513,20 +6546,20 @@ class ProcessAnvilBD:
                                             entity_data = existing_data.get(
                                                 'entity_data') if existing_data else CompoundTag({})
                                             if mode == 0 and (
-                                            kx, ky, kz) in self.canvas.selection.selection_group.blocks:
+                                                    kx, ky, kz) in self.canvas.selection.selection_group.blocks:
                                                 self.found_data.set_data(kx, ky, kz, block, CompoundTag({}),
                                                                          entity_data,
                                                                          create_backup=True)
                                             elif mode > 0:
                                                 self.found_data.set_data(kx, ky, kz, block, CompoundTag({}),
-                                                                    entity_data,  create_backup=True)
+                                                                         entity_data, create_backup=True)
 
                 chunk_done.add((cx, cz))
                 cnt += 1
                 pause_cnt = self.pause_count
                 found_blocks = len(self.found_data.get_data())
                 self.status = self.progress_bar(total, cnt, title='Searching....',
-                                                text=f'{search} found: {found_blocks}.. pause after: {pause_cnt } \n'
+                                                text=f'{search} found: {found_blocks}.. pause after: {pause_cnt} \n'
                                                      f' Cancel will also pause and allow you to continue')
                 if self.status:
                     break
@@ -6559,11 +6592,11 @@ class ProcessAnvilBD:
             else:
                 location_dict[(rx, rz)][(xx, yy, zz)] = [(x, y, z)]
 
-        #self.progress_bar(total, cnt, update_interval=1000)
+        # self.progress_bar(total, cnt, update_interval=1000)
         for (rx, rz), chunk_data in location_dict.items():
             data = AnvilRegionInterface(self.get_dim_vpath_java_dir(rx, rz), mcc=True)
 
-            for (cx, cy, cz), block_locations in chunk_data.items():#
+            for (cx, cy, cz), block_locations in chunk_data.items():  #
                 nbtdata = data.get_data(cx % 32, cz % 32)
 
                 for sec in nbtdata.get('sections'):
@@ -6594,7 +6627,7 @@ class ProcessAnvilBD:
                                         new_data[(xx, yy, zz)] = {'block_data': block_nbt,
                                                                   "extra_block": CompoundTag({}),
                                                                   "entity_data": be_loc[xx, yy, zz]}
-                                        cnt +=1
+                                        cnt += 1
                                         close = self.progress_bar(total, cnt, title='Matching Blocks',
                                                                   text='Current Progress', update_interval=10000)
                                         if close:
@@ -6680,19 +6713,19 @@ class ProcessAnvilBD:
             rx, rz = chunk_coords_to_region_coords(xx, zz)
 
             if (xx, yy, zz) in region_dict[(rx, rz)]:
-                region_dict[(rx, rz)][(xx, yy, zz)].append({(x, y, z):data})
+                region_dict[(rx, rz)][(xx, yy, zz)].append({(x, y, z): data})
             else:
-                region_dict[(rx, rz)][(xx, yy, zz)] = [{(x, y, z):data}]
+                region_dict[(rx, rz)][(xx, yy, zz)] = [{(x, y, z): data}]
 
         for (rx, rz), chunk_data in region_dict.items():
             world_data = AnvilRegion(self.get_dim_vpath_java_dir(rx, rz))
-            #chunk_changes = collections.defaultdict(list)
+            # chunk_changes = collections.defaultdict(list)
 
             for (cx, cy, cz), block_locations_data in chunk_data.items():
                 world_nbt = world_data.get_chunk_data(cx % 32, cz % 32)
                 sections = {sec['Y'].value: sec for sec in world_nbt['sections']} if 'sections' in world_nbt else {}
                 for block_list in block_locations_data:
-                    for (x,y,z), data in block_list.items():
+                    for (x, y, z), data in block_list.items():
                         ix, iy, iz = x % 16, y % 16, z % 16
                         block_data, block_entitie = data['block_data'], data['entity_data']
                         old_data, old_entitie = data['old_block'], data['old_entity']
@@ -6779,8 +6812,10 @@ class ProcessAnvilBD:
             world_data.save()
             world_data.unload()
         return self.found_data
+
+
 class ProcessLevelDB:
-    def __init__(self, found_data ,parent=None, world=None, canvas=None):
+    def __init__(self, found_data, parent=None, world=None, canvas=None):
         # self.v_byte = 9
         self.pause_count = None
         self.block_version = None
@@ -6821,14 +6856,14 @@ class ProcessLevelDB:
         dim = self.canvas.dimension
         x, y, z = cords
         if dim == "minecraft:the_nether":
-            be_key = struct.pack("<iiib", x , z , 1, 49)
-            sub_key = struct.pack("<iiibb", x , z , 1, 47, y)
+            be_key = struct.pack("<iiib", x, z, 1, 49)
+            sub_key = struct.pack("<iiibb", x, z, 1, 47, y)
         elif dim == "minecraft:the_end":
-            be_key = struct.pack("<iiib", x, z , 2, 49)
-            sub_key = struct.pack("<iiibb", x,  z , 2, 47, y )
+            be_key = struct.pack("<iiib", x, z, 2, 49)
+            sub_key = struct.pack("<iiibb", x, z, 2, 47, y)
         else:
-            be_key = struct.pack("<iib", x , z , 49)
-            sub_key = struct.pack("<iibb", x , z , 47, y )
+            be_key = struct.pack("<iib", x, z, 49)
+            sub_key = struct.pack("<iibb", x, z, 47, y)
         return sub_key, be_key
 
     def get_v_off(self, data):
@@ -6938,8 +6973,9 @@ class ProcessLevelDB:
         return b''.join(byte_blocks)
 
     def block_internal_raw_cords(self, cords):
-        x,y,z = cords
-        data = CompoundTag({'x':IntTag(x),'y':IntTag(y),'z':IntTag(z)}).to_nbt(compressed=False, little_endian=True)
+        x, y, z = cords
+        data = CompoundTag({'x': IntTag(x), 'y': IntTag(y), 'z': IntTag(z)}).to_nbt(compressed=False,
+                                                                                    little_endian=True)
         return data[3:-1]
 
     def get_blocks_by_locations(self, data):
@@ -6947,22 +6983,22 @@ class ProcessLevelDB:
         location_dict = collections.defaultdict(list)
 
         for x, y, z in data.keys():
-            xx,yy, zz = block_coords_to_chunk_coords(x,y, z)
-            location_dict[(xx,yy, zz)].append((x, y, z))
+            xx, yy, zz = block_coords_to_chunk_coords(x, y, z)
+            location_dict[(xx, yy, zz)].append((x, y, z))
 
         total = len(location_dict)
         cnt = 0
         block_entity = UniqueObjectDict()
         new_data = UniqueObjectDict()
-        for key,b_list in location_dict.items():
+        for key, b_list in location_dict.items():
             sub_key, be_key = self.block_cords_to_bedrock_db_keys(key)
             for k, v in self.level_db.iterate(start=be_key, end=be_key + b'\xff\xff\xff'):
                 if k[-1] == 49:
-                        data = unpack_nbt_list(v)
-                        for nbt in data:
-                            x, y, z = nbt.get('x').py_int, nbt.get('y').py_int, nbt.get('z').py_int
-                            if (x, y, z) in b_list:
-                                block_entity[(x, y, z)] = {"entity_data": nbt}
+                    data = unpack_nbt_list(v)
+                    for nbt in data:
+                        x, y, z = nbt.get('x').py_int, nbt.get('y').py_int, nbt.get('z').py_int
+                        if (x, y, z) in b_list:
+                            block_entity[(x, y, z)] = {"entity_data": nbt}
 
             # Iterate over level DB for blocks
             for k, v in self.level_db.iterate(start=sub_key, end=sub_key + b'\xff\xff\xff'):
@@ -6979,21 +7015,20 @@ class ProcessLevelDB:
                         for x, y, z in cords:
                             kx, ky, kz = (x + xc, xy + y, z + xz)
                             if (kx, ky, kz) in b_list:
-
                                 block_data = blocks[bit]
                                 extra_block = extra_blk[extra_blk_bits[x][y][z]] if (
                                     isinstance(extra_blk_bits, numpy.ndarray)) else CompoundTag({})
 
                                 entity_data = block_entity.get('entity_data') if block_entity else CompoundTag({})
                                 new_data.add((kx, ky, kz), {
-                                'block_data': block_data,
-                                "extra_block": extra_block,
-                                "entity_data": entity_data
-                                     })
+                                    'block_data': block_data,
+                                    "extra_block": extra_block,
+                                    "entity_data": entity_data
+                                })
 
-            cnt +=1
+            cnt += 1
             stop = self.progress_bar(total, cnt,
-                                            text=f'Progress...', title='Matchin blocks', update_interval=200)
+                                     text=f'Progress...', title='Matchin blocks', update_interval=200)
             if stop:
                 break
 
@@ -7011,7 +7046,6 @@ class ProcessLevelDB:
             self.found_data.backup.update_dict_list('block_data', 'version', self.block_version)
             self.found_data.backup.update_dict_list('extra_block', 'version', self.block_version)
 
-
     def search_raw(self, block_search_keys, block_e_search_keys, search, mode, chunks_done=None):
         byte_dim = self.byte_dim()
         chunks = None
@@ -7020,8 +7054,8 @@ class ProcessLevelDB:
 
             if chunks_done:
                 chunks = [struct.pack('<ii', xx, zz) + byte_dim
-                        for (xx, zz) in self.canvas.selection.selection_group.chunk_locations()
-                        if struct.pack('<ii', xx, zz) + byte_dim not in chunks_done]
+                          for (xx, zz) in self.canvas.selection.selection_group.chunk_locations()
+                          if struct.pack('<ii', xx, zz) + byte_dim not in chunks_done]
             else:
                 chunks = [struct.pack('<ii', xx, zz) + byte_dim for (xx, zz) in
                           self.canvas.selection.selection_group.chunk_locations()]
@@ -7030,8 +7064,8 @@ class ProcessLevelDB:
             if chunks_done:
                 self.found_data.clear()
                 chunks = [struct.pack('<ii', xx, zz) + byte_dim
-                        for (xx, zz) in self.world.all_chunk_coords(self.canvas.dimension)
-                        if struct.pack('<ii', xx, zz) + byte_dim not in chunks_done]
+                          for (xx, zz) in self.world.all_chunk_coords(self.canvas.dimension)
+                          if struct.pack('<ii', xx, zz) + byte_dim not in chunks_done]
             else:
                 chunks = [struct.pack('<ii', xx, zz) + byte_dim for (xx, zz) in
                           self.world.all_chunk_coords(self.canvas.dimension)]
@@ -7042,7 +7076,6 @@ class ProcessLevelDB:
         chunk_pause = None
         for chunkkey in chunks:
             chunk_done.add(chunkkey)
-
 
             for k, v in self.level_db.iterate(start=chunkkey, end=chunkkey + b'\xff\xff\xff'):
                 if k[-1] == 49:
@@ -7065,7 +7098,7 @@ class ProcessLevelDB:
 
             for k, v in self.level_db.iterate(start=chunkkey, end=chunkkey + b'\xff\xff\xff'):
 
-                if k[-2] == 47 and len(k) == len(chunkkey)+2:  # sublevel chunks 16x16x16 blocks
+                if k[-2] == 47 and len(k) == len(chunkkey) + 2:  # sublevel chunks 16x16x16 blocks
 
                     if any(item.encode()[1:-1] in v for item in block_search_keys):
                         level = struct.unpack('b', struct.pack('B', k[-1]))[0]
@@ -7094,8 +7127,9 @@ class ProcessLevelDB:
             cnt += 1
             pause_cnt = self.pause_count
             found_blocks = len(self.found_data.get_data())
-            self.status = self.progress_bar(total, cnt, text=f'{search} found: {found_blocks}, Pause after: {pause_cnt} \n'
-                                                             f' ccncel will also pause')
+            self.status = self.progress_bar(total, cnt,
+                                            text=f'{search} found: {found_blocks}, Pause after: {pause_cnt} \n'
+                                                 f' ccncel will also pause')
             if self.status:
                 break
             if found_blocks > pause_cnt:
@@ -7111,9 +7145,10 @@ class ProcessLevelDB:
             else:
                 return chunk_pause, self.found_data
         else:
-            return None,None
+            return None, None
 
-    def fast_apply(self, old=None, new=None, mode=None, name=None, ex_old=None, ex_new=None, ex_name=None): #,new,old, mode
+    def fast_apply(self, old=None, new=None, mode=None, name=None, ex_old=None, ex_new=None,
+                   ex_name=None):  # ,new,old, mode
         ignore_property = False
         e_ignore_property = False
         if new and old and name:
@@ -7122,8 +7157,8 @@ class ProcessLevelDB:
             if old.get('states') == "*":
                 ignore_property = True
             new['version'] = IntTag(self.block_version)
-            old_raw = old.to_nbt(compressed=False, little_endian=True)[:-5] #ignore version value
-            new_raw = new.to_nbt(compressed=False, little_endian=True)[:-5] #ignore version value
+            old_raw = old.to_nbt(compressed=False, little_endian=True)[:-5]  # ignore version value
+            new_raw = new.to_nbt(compressed=False, little_endian=True)[:-5]  # ignore version value
 
         if ex_new and ex_old and ex_name:
 
@@ -7131,8 +7166,8 @@ class ProcessLevelDB:
             if ex_old.get('states') == "*":
                 e_ignore_property = True
             ex_new['version'] = IntTag(self.block_version)
-            ex_old_raw = old.to_nbt(compressed=False, little_endian=True)[:-5] #ignore version value
-            ex_new_raw = new.to_nbt(compressed=False, little_endian=True)[:-5] #ignore version value
+            ex_old_raw = old.to_nbt(compressed=False, little_endian=True)[:-5]  # ignore version value
+            ex_new_raw = new.to_nbt(compressed=False, little_endian=True)[:-5]  # ignore version value
 
         byte_dim = self.byte_dim()
         if mode == 0:
@@ -7140,10 +7175,10 @@ class ProcessLevelDB:
         else:
             if mode == 1:
                 chunks = [struct.pack('<ii', xx, zz) + byte_dim for (xx, zz) in
-                        self.canvas.selection.selection_group.chunk_locations()]
+                          self.canvas.selection.selection_group.chunk_locations()]
             elif mode == 2:
                 chunks = [struct.pack('<ii', xx, zz) + byte_dim for (xx, zz) in
-                         self.world.all_chunk_coords(self.canvas.dimension)]
+                          self.world.all_chunk_coords(self.canvas.dimension)]
             total = len(chunks)
             cnt = 0
             for chunkkey in chunks:
@@ -7206,8 +7241,8 @@ class ProcessLevelDB:
             if new_data[key] != old_data[key]:
                 changed_chunks[key] = new_data[key]
         for x, y, z in changed_chunks.keys():
-            xx,yy, zz = block_coords_to_chunk_coords(x,y, z)
-            location_dict[(xx,yy, zz)].append(((x, y, z),(block_enty_raw_cords(x,y,z))))
+            xx, yy, zz = block_coords_to_chunk_coords(x, y, z)
+            location_dict[(xx, yy, zz)].append(((x, y, z), (block_enty_raw_cords(x, y, z))))
         total = len(location_dict)
         cnt = 0
         air_block = from_snbt('{"name": "minecraft:air","states": {}}')
@@ -7220,11 +7255,11 @@ class ProcessLevelDB:
             y_level = struct.unpack('b', struct.pack('B', sub_key[-1]))[0]
             off = self.get_v_off(db_data)
             b, bits, eb, eb_bits = self.get_pallets_and_extra(db_data[off:])
-            for (x,y,z),r in b_list:
+            for (x, y, z), r in b_list:
 
-                block_data, extra_block = changed_chunks[(x,y,z)]['block_data'], changed_chunks[(x,y,z)]['extra_block']
+                block_data, extra_block = changed_chunks[(x, y, z)]['block_data'], changed_chunks[(x, y, z)][
+                    'extra_block']
                 if len(block_data) > 0:
-
 
                     if b[bits[x % 16][y % 16][z % 16]] != block_data:
                         if block_data in b:
@@ -7270,13 +7305,13 @@ class ProcessLevelDB:
             if raw_be:
                 b_enty_list = unpack_nbt_list(raw_be)
                 has_had_data = True
-            for (x,y,z),r in b_list:
+            for (x, y, z), r in b_list:
                 is_in_raw = False
                 is_in_new = False
                 if raw_be:
                     if r in raw_be:
                         is_in_raw = True
-                if len(changed_chunks[(x,y,z)]['entity_data']) > 0:
+                if len(changed_chunks[(x, y, z)]['entity_data']) > 0:
                     is_in_new = True
                 if is_in_raw or is_in_new:
                     if is_in_raw:
@@ -7295,9 +7330,11 @@ class ProcessLevelDB:
                 raw_list = pack_nbt_list(b_enty_list)
                 self.level_db.put(be_key, raw_list)
 
-            self.progress_bar(total, cnt,title='Applying Block changes..', text='Progress...', update_interval=100)
+            self.progress_bar(total, cnt, title='Applying Block changes..', text='Progress...', update_interval=100)
         self.add_remove_version_tag(True)
-        return self.found_data #  #
+        return self.found_data  # #
+
+
 class UniqueObjectDict:
     def __init__(self):
         # Initialize with separate data structures
@@ -7321,7 +7358,7 @@ class UniqueObjectDict:
         if data:
             for d in self.obj_list:
                 t = d[key]
-                if len(t) > 0 :
+                if len(t) > 0:
                     t[nbt_key] = data
         else:
             for d in self.obj_list:
@@ -7388,6 +7425,8 @@ class UniqueObjectDict:
         """Clear all stored dictionary objects."""
         self.obj_dict.clear()
         self.obj_list.clear()
+
+
 class FoundData:
     def __init__(self, world=None, canvas=None):
 
@@ -7427,7 +7466,7 @@ class FoundData:
             self.backup.add((x, y, z),
                             {'block_data': block_nbt.get('block_data'),
                              "extra_block": block_nbt.get('extra_block'),
-                             "entity_data": block_nbt.get('entity_data')})# Update backup with current data
+                             "entity_data": block_nbt.get('entity_data')})  # Update backup with current data
 
     def paginate(self, page_size):
         self.page_size = page_size
@@ -7447,6 +7486,8 @@ class FoundData:
         self.page_size = 0
         self.data.clear()
         self.backup.clear()
+
+
 class CustomRadioBox(wx.Panel):
     def __init__(self, parent, label, choices, foreground_color, sty=None, md=1):
         super().__init__(parent)
@@ -7479,7 +7520,7 @@ class CustomRadioBox(wx.Panel):
 
     def GetString(self, index):
         if 0 <= index < len(self.radio_buttons):
-           return self.radio_buttons[int(index)].GetLabel()
+            return self.radio_buttons[int(index)].GetLabel()
 
     def SetSelection(self, index):
         if 0 <= index < len(self.radio_buttons):
@@ -8935,13 +8976,14 @@ class BedrockMapData:
         else:
             return level_wrapper._level_manager._db
 
+
 class SetFrames(wx.Frame):
     def __init__(self, parent, canvas, world, *args, **kw):
         super(SetFrames, self).__init__(parent, *args, **kw,
-                                             style=(wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER |
-                                                    wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN |
-                                                    wx.FRAME_FLOAT_ON_PARENT),
-                                             title="Image or Maps To Frames")
+                                        style=(wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER |
+                                               wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN |
+                                               wx.FRAME_FLOAT_ON_PARENT),
+                                        title="Image or Maps To Frames")
         self.parent = parent
 
         self.canvas = canvas
@@ -9767,13 +9809,14 @@ class SetFrames(wx.Frame):
     def _boxWest(self, _):
         self._move_box(dx=-1)
 
+
 class FinderReplacer(wx.Frame):
-    def __init__(self, parent, canvas, world , *args, **kw):
+    def __init__(self, parent, canvas, world, *args, **kw):
         super(FinderReplacer, self).__init__(parent, *args, **kw,
-                                                 style=(wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER |
-                                                        wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN |
-                                                        wx.FRAME_FLOAT_ON_PARENT),
-                                                  title="Finder Replacer")
+                                             style=(wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER |
+                                                    wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN |
+                                                    wx.FRAME_FLOAT_ON_PARENT),
+                                             title="Finder Replacer")
 
         self.parent = parent
 
@@ -9781,7 +9824,7 @@ class FinderReplacer(wx.Frame):
         self.world = world
         self.font = wx.Font(13, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
         self.SetFont(self.font)
-        self.SetMinSize((320,600))
+        self.SetMinSize((320, 600))
 
         self.version = self.world.level_wrapper.version
         self.platform = self.world.level_wrapper.platform
@@ -10755,13 +10798,14 @@ class FinderReplacer(wx.Frame):
         self._selection = BlockSelectionBehaviour(self.canvas)
         self._selection.enable()
 
+
 class SetPlayerData(wx.Frame):
-    def __init__(self, parent, canvas, world , *args, **kw):
+    def __init__(self, parent, canvas, world, *args, **kw):
         super(SetPlayerData, self).__init__(parent, *args, **kw,
-                                                 style=(wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER |
-                                                        wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN |
-                                                        wx.FRAME_FLOAT_ON_PARENT),
-                                                  title="Set Player Data and Achievements")
+                                            style=(wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER |
+                                                   wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN |
+                                                   wx.FRAME_FLOAT_ON_PARENT),
+                                            title="Set Player Data and Achievements")
 
         self.parent = parent
 
@@ -10772,7 +10816,7 @@ class SetPlayerData(wx.Frame):
         self.SetForegroundColour((0, 255, 0))
         self.SetBackgroundColour((0, 0, 0))
         self.SetFont(self.font)
-        self.SetMinSize((320,600))
+        self.SetMinSize((320, 600))
         self.Freeze()
         self.data = None
         self._sizer = wx.BoxSizer(wx.VERTICAL)
@@ -10814,8 +10858,8 @@ class SetPlayerData(wx.Frame):
             "Nether": 1,
             "End": 2
         }
-        #self.lst_mode = CustomRadioBox(self, 'Select Search Mode', [*self.listSearchType], (0, 255, 0))
-        self.dim = CustomRadioBox(self, 'Select Dimension', list(self.dimDict.keys()), (0,255,0), sty=1)
+        # self.lst_mode = CustomRadioBox(self, 'Select Search Mode', [*self.listSearchType], (0, 255, 0))
+        self.dim = CustomRadioBox(self, 'Select Dimension', list(self.dimDict.keys()), (0, 255, 0), sty=1)
         self.apply = wx.Button(self, size=(60, 30), label="Apply")
         if self.platform == "bedrock":
             self.apply.Bind(wx.EVT_BUTTON, self.savePosData)
@@ -10843,10 +10887,10 @@ class SetPlayerData(wx.Frame):
         }
         if self.platform == "bedrock":
             self.gm_mode = CustomRadioBox(self, 'Both Do NOT disable achievements',
-                                       list(self.listRadio.keys()), (0,255,0), sty=wx.RA_SPECIFY_ROWS | 1)
+                                          list(self.listRadio.keys()), (0, 255, 0), sty=wx.RA_SPECIFY_ROWS | 1)
         if self.platform == "java":
             self.gm_mode = CustomRadioBox(self, 'Set Gamemode', list(self.listRadiojava.keys()),
-                                          (0,255,0))
+                                          (0, 255, 0))
 
         player = ['']
         if self.platform == "bedrock":
@@ -11119,13 +11163,14 @@ class SetPlayerData(wx.Frame):
 
         self.world.level_wrapper.root_tag.save()
 
+
 class HardCodedSpawns(wx.Frame):
-    def __init__(self, parent, canvas, world , *args, **kw):
+    def __init__(self, parent, canvas, world, *args, **kw):
         super(HardCodedSpawns, self).__init__(parent, *args, **kw,
-                                                 style=(wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER |
-                                                        wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN |
-                                                        wx.FRAME_FLOAT_ON_PARENT),
-                                                  title="Hard Coded Spawn Editor")
+                                              style=(wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER |
+                                                     wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN |
+                                                     wx.FRAME_FLOAT_ON_PARENT),
+                                              title="Hard Coded Spawn Editor")
 
         self.parent = parent
 
@@ -11133,7 +11178,7 @@ class HardCodedSpawns(wx.Frame):
         self.world = world
         self.font = wx.Font(13, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
         self.SetFont(self.font)
-        self.SetMinSize((320,600))
+        self.SetMinSize((320, 600))
         self.SetForegroundColour((0, 255, 0))
         self.SetBackgroundColour((0, 0, 0))
         self.type_dic = {1: "Fortress", 3: "Monument", 5: "Villager Outpost", 2: "Witch Hut"}
@@ -11569,13 +11614,14 @@ class HardCodedSpawns(wx.Frame):
 
         return OnClick
 
+
 class BufferWorldTool(wx.Frame):
-    def __init__(self, parent, canvas, world , *args, **kw):
+    def __init__(self, parent, canvas, world, *args, **kw):
         super(BufferWorldTool, self).__init__(parent, *args, **kw,
-                                                 style=(wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER |
-                                                        wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN |
-                                                        wx.FRAME_FLOAT_ON_PARENT),
-                                                  title="Selection, Organizer")
+                                              style=(wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER |
+                                                     wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN |
+                                                     wx.FRAME_FLOAT_ON_PARENT),
+                                              title="Selection, Organizer")
 
         self.parent = parent
 
@@ -11583,7 +11629,7 @@ class BufferWorldTool(wx.Frame):
         self.world = world
         self.font = wx.Font(13, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
         self.SetFont(self.font)
-        self.SetMinSize((320,600))
+        self.SetMinSize((320, 600))
         self.SetForegroundColour((0, 255, 0))
         self.SetBackgroundColour((0, 0, 0))
         self.Centre(direction=wx.VERTICAL)
@@ -11656,7 +11702,6 @@ class BufferWorldTool(wx.Frame):
 
         self.Layout()
         self.Thaw()
-
 
     def Onmsgbox(self, caption, message):  # message
         wx.MessageBox(message, caption, wx.OK | wx.ICON_INFORMATION)
@@ -12129,13 +12174,14 @@ class BufferWorldTool(wx.Frame):
         full_path = os.path.join(path, dim, version, file)
         return full_path
 
+
 class PositionSelection(wx.Frame):
-    def __init__(self, parent, canvas, world , *args, **kw):
+    def __init__(self, parent, canvas, world, *args, **kw):
         super(PositionSelection, self).__init__(parent, *args, **kw,
-                                                 style=(wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER |
-                                                        wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN |
-                                                        wx.FRAME_FLOAT_ON_PARENT),
-                                                  title="Selection, Organizer")
+                                                style=(wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER |
+                                                       wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN |
+                                                       wx.FRAME_FLOAT_ON_PARENT),
+                                                title="Selection, Organizer")
 
         self.parent = parent
 
@@ -12189,7 +12235,6 @@ class PositionSelection(wx.Frame):
 
     def _create_main_buttons(self):
 
-
         diag_button_size = (120, 30)
         self._southeast = self._create_button("South East", diag_button_size, self._boxDiag('se'))
         self._northeast = self._create_button("North East", diag_button_size, self._boxDiag('ne'))
@@ -12216,8 +12261,6 @@ class PositionSelection(wx.Frame):
         self._dnortheast = self._create_button("Down\n North East", diag_button_size_large, self._boxDiag('dne'))
         self._dnorthwest = self._create_button("Down\n North West", diag_button_size_large, self._boxDiag('dnw'))
         self._dsouthwest = self._create_button("Down\n South West", diag_button_size_large, self._boxDiag('dsw'))
-
-
 
         self.lbct = wx.StaticText(self, label="Step:")
 
@@ -12271,7 +12314,6 @@ class PositionSelection(wx.Frame):
         self.boxgrid_b.Add(self.lbct)
         self.boxgrid_b.Add(self.control)
 
-
         self.boxgrid_dandd = wx.GridSizer(1, 4, 1, 5)
         self.boxgrid_dandd.Add(self._dnorth)
         self.boxgrid_dandd.Add(self._dsouth)
@@ -12302,7 +12344,6 @@ class PositionSelection(wx.Frame):
         self.boxgrid_down.Add(self._dnorthwest)
         self.boxgrid_down.Add(self._dsouthwest)
 
-
         self.side_sizer.Add(self.boxgrid_b, 0, wx.LEFT, 70)
         self.side_sizer.Add(self.lbstrech)
         self.side_sizer.Add(self.boxgrid_dandd, 0, wx.TOP | wx.LEFT, 0)
@@ -12311,10 +12352,10 @@ class PositionSelection(wx.Frame):
         self.side_sizer.Add(self.boxgrid_u, 0, wx.TOP | wx.LEFT, 0)
         self.side_sizer.Add(self.boxgrid_down, 0, wx.TOP | wx.LEFT, 0)
 
-
         self.pos_sizer.Add(self.side_sizer)
         self.pos_sizer.Layout()
-    def _move_box(self,mode, dx=0, dy=0, dz=0):
+
+    def _move_box(self, mode, dx=0, dy=0, dz=0):
         def OnClick(event):
 
             sgs = []
@@ -12343,14 +12384,26 @@ class PositionSelection(wx.Frame):
                     ))
 
             self.canvas.selection.set_selection_group(SelectionGroup(sgs))
+
         return OnClick
 
-    def _boxUp(self, mode): return self._move_box(mode,dy=-1)
-    def _boxDown(self, mode): return self._move_box(mode,dy=1)
-    def _boxNorth(self, mode): return self._move_box(mode,dz=-1)
-    def _boxSouth(self, mode): return self._move_box(mode,dz=1)
-    def _boxEast(self, mode): return self._move_box(mode,dx=1)
-    def _boxWest(self, mode): return self._move_box(mode,dx=-1)
+    def _boxUp(self, mode):
+        return self._move_box(mode, dy=-1)
+
+    def _boxDown(self, mode):
+        return self._move_box(mode, dy=1)
+
+    def _boxNorth(self, mode):
+        return self._move_box(mode, dz=-1)
+
+    def _boxSouth(self, mode):
+        return self._move_box(mode, dz=1)
+
+    def _boxEast(self, mode):
+        return self._move_box(mode, dx=1)
+
+    def _boxWest(self, mode):
+        return self._move_box(mode, dx=-1)
 
     def _move_box_diag(self, dx, dy, dz, reverse_condition):
         def OnClick(event):
@@ -12369,6 +12422,7 @@ class PositionSelection(wx.Frame):
                 glist.append(new)
                 merg = SelectionGroup(glist).merge_boxes()
                 self.canvas.selection.set_selection_group(merg)
+
         return OnClick
 
     def _boxDiag(self, v):
@@ -12414,6 +12468,7 @@ class PositionSelection(wx.Frame):
             return self._move_box_diag(1, 1, 0, lambda x, xx, y, yy, z, zz: x < xx and z > zz and y < yy)
         if v == 'uaw':
             return self._move_box_diag(-1, 1, 0, lambda x, xx, y, yy, z, zz: x < xx and z < zz and y < yy)
+
 
 class SelectionOrganizer(wx.Frame):
 
@@ -12478,11 +12533,9 @@ class SelectionOrganizer(wx.Frame):
         self.g_save.Bind(wx.EVT_BUTTON, self.save_data)
         self.g_merge.Bind(wx.EVT_BUTTON, self.merge)
 
-
-
     def _create_text_controls(self):
         self._location_data = wx.TextCtrl(
-            self, style=wx.TE_MULTILINE | wx.TE_BESTWRAP, size=(200,300)
+            self, style=wx.TE_MULTILINE | wx.TE_BESTWRAP, size=(200, 300)
         )
         self._location_data.SetFont(self.font)
         self._location_data.SetForegroundColour((0, 255, 0))
@@ -12495,19 +12548,16 @@ class SelectionOrganizer(wx.Frame):
 
         # Set up the button grid
         grid = wx.GridSizer(1, 2, 0, 0)
-        grid.Add(self._delete_unselected_chunks,0, wx.LEFT, 1)
+        grid.Add(self._delete_unselected_chunks, 0, wx.LEFT, 1)
 
-
-        grid.Add(self.g_merge,0, wx.LEFT, 85)
+        grid.Add(self.g_merge, 0, wx.LEFT, 85)
 
         side_sizer.Add(grid, 0, wx.EXPAND | wx.TOP | wx.LEFT, 0)
 
         mid_sizer.Add(self.g_save)
         mid_sizer.Add(self.g_load)
-        mid_sizer.Add(self._run_button,0, wx.LEFT, 30)
-        mid_sizer.Add(self.gsel,0, wx.LEFT, 20)
-
-
+        mid_sizer.Add(self._run_button, 0, wx.LEFT, 30)
+        mid_sizer.Add(self.gsel, 0, wx.LEFT, 20)
 
         # Add sizers to the main sizer
         self._sizer.Add(side_sizer, 0, wx.EXPAND)
@@ -12681,8 +12731,9 @@ class SelectionOrganizer(wx.Frame):
     def _run_operation(self, _):
         self._set_seletion()
 
+
 class BlendingWindow(wx.Frame):
-    def __init__(self, parent ,canvas ,world , *args, **kw):
+    def __init__(self, parent, canvas, world, *args, **kw):
         super(BlendingWindow, self).__init__(parent, *args, **kw,
                                              style=(wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER |
                                                     wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN |
@@ -12975,6 +13026,7 @@ class BlendingWindow(wx.Frame):
     def unsignedToSigned(self, n, byte_count):
         return int.from_bytes(n.to_bytes(byte_count, 'little', signed=False), 'little', signed=True)
 
+
 class CustomToolTip(wx.PopupWindow):
     def __init__(self, parent=None, btn=None, text=None, font_size=None):
         super().__init__(parent)  # Initialize wx.PopupWindow
@@ -13006,18 +13058,19 @@ class CustomToolTip(wx.PopupWindow):
 
     def on_mouse_enter(self, event):
         btn = event.GetEventObject()
-        pos = btn.ClientToScreen(wx.Point( btn.GetSize().GetWidth(),0))
+        pos = btn.ClientToScreen(wx.Point(btn.GetSize().GetWidth(), 0))
         self.Popup(pos)
 
     def on_mouse_leave(self, event):
         self.Hide()
 
+
 class Tools(wx.Frame):
     def __init__(self, parent, world, canvas, *args, **kw):
         super(Tools, self).__init__(parent, *args, **kw,
-                                             style=(wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN |
-                                                    wx.FRAME_FLOAT_ON_PARENT),
-                                             name="Blending Panel", title="Tools For Amulet")
+                                    style=(wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN |
+                                           wx.FRAME_FLOAT_ON_PARENT),
+                                    name="Blending Panel", title="Tools For Amulet")
 
         self.parent = parent
         self.world = world
@@ -13028,7 +13081,7 @@ class Tools(wx.Frame):
         self._top_horz_sizer = wx.BoxSizer(wx.VERTICAL)
 
         self.sizer.Add(self._top_horz_sizer)
-        self.SetMinSize((80,80))
+        self.SetMinSize((80, 80))
         self.font = wx.Font(15, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
         self.SetFont(self.font)
         self.SetForegroundColour((0, 255, 0))
@@ -13060,7 +13113,7 @@ class Tools(wx.Frame):
         self._set_frames = wx.Button(self, label='Image Or Maps \n To Frames', size=_size)
 
     def bind_buttons(self):
-        color_back, color_front = (0, 0, 0),(0, 255, 0)
+        color_back, color_front = (0, 0, 0), (0, 255, 0)
         self._position.Bind(wx.EVT_BUTTON, self.position)
         self._force_blending.Bind(wx.EVT_BUTTON, self.force_blending)
         self._chunk_data.Bind(wx.EVT_BUTTON, self.chunk_data)
@@ -13069,7 +13122,7 @@ class Tools(wx.Frame):
         self._hard_coded_spawn.Bind(wx.EVT_BUTTON, self.hard_coded_spawn)
         self._set_player_data.Bind(wx.EVT_BUTTON, self.set_player_data)
         self._finder_replacer.Bind(wx.EVT_BUTTON, self.finder_replacer)
-        self._protals_and_border_walls.Bind(wx.EVT_BUTTON, self.protals_and_border_walls) ## _player_inventory
+        self._protals_and_border_walls.Bind(wx.EVT_BUTTON, self.protals_and_border_walls)  ## _player_inventory
         self._player_inventory.Bind(wx.EVT_BUTTON, self.player_inventory)
         self._entites_data.Bind(wx.EVT_BUTTON, self.entites_data)
         self._material_counter.Bind(wx.EVT_BUTTON, self.material_counter)
@@ -13095,38 +13148,40 @@ class Tools(wx.Frame):
                       font_size=14)
 
         CustomToolTip(self, self._buffer_world, text="Tool for Buffer A world.\n"
-                                                      "Also provides the ability to quickly delete all other chunks.",
+                                                     "Also provides the ability to quickly delete all other chunks.",
                       font_size=14)
         CustomToolTip(self, self._hard_coded_spawn, text="HARD CODED.\n"
-                                                     "Also provides the ability to quickly delete all other chunks.",
+                                                         "Also provides the ability to quickly delete all other chunks.",
                       font_size=14)
         CustomToolTip(self, self._set_player_data, text="Player.\n"
-                                                                 "Also provides the ability to quickly delete all other chunks.",
-                      font_size=14)
-        CustomToolTip(self, self._finder_replacer, text="FINDER.\n"
-                                                         "Also provides the ability to quickly delete all other chunks.",
-                      font_size=14)
-        CustomToolTip(self, self._protals_and_border_walls, text="Portals.\n"
                                                         "Also provides the ability to quickly delete all other chunks.",
                       font_size=14)
+        CustomToolTip(self, self._finder_replacer, text="FINDER.\n"
+                                                        "Also provides the ability to quickly delete all other chunks.",
+                      font_size=14)
+        CustomToolTip(self, self._protals_and_border_walls, text="Portals.\n"
+                                                                 "Also provides the ability to quickly delete all "
+                                                                 "other chunks.",
+                      font_size=14)
         CustomToolTip(self, self._player_inventory, text="NBT Player Inventory Editor.\n"
-                                                                 "Also provides the ability to quickly delete all other chunks.",
+                                                         "Also provides the ability to quickly delete all other chunks.",
                       font_size=14)
         CustomToolTip(self, self._entites_data, text="Nbt Editor For Entities.\n"
-                                                         "Also provides the ability to quickly delete all other chunks.",
-                      font_size=14)
-        CustomToolTip(self, self._material_counter, text="Material Counter.\n"
                                                      "Also provides the ability to quickly delete all other chunks.",
                       font_size=14)
-        CustomToolTip(self, self._shape_painter, text="Shape Painter.\n"
+        CustomToolTip(self, self._material_counter, text="Material Counter.\n"
                                                          "Also provides the ability to quickly delete all other chunks.",
+                      font_size=14)
+        CustomToolTip(self, self._shape_painter, text="Shape Painter.\n"
+                                                      "Also provides the ability to quickly delete all other chunks.",
                       font_size=14)
         CustomToolTip(self, self._random_filler, text="Shape Painter.\n"
                                                       "Also provides the ability to quickly delete all other chunks.",
                       font_size=14)
         CustomToolTip(self, self._set_frames, text="Set Frames.\n"
-                                                      "Also provides the ability to quickly delete all other chunks.",
-                      font_size=14)
+                                                   "This Allows you easliy to place images or build a map "
+                                                   "wall that is already.\n"
+                                                   "On Glow Item frames or Normal Item Frames", font_size=14)
 
         self._position.SetForegroundColour(color_front)
         self._position.SetBackgroundColour(color_back)
@@ -13234,10 +13289,9 @@ class Tools(wx.Frame):
         theKey = portal.encode("utf-8")
 
         delete_portals = wx.MessageBox("You are going to deleted all Portal Data \n ",
-                                "This can't be undone Are you Sure?", wx.YES_NO | wx.ICON_INFORMATION)
+                                       "This can't be undone Are you Sure?", wx.YES_NO | wx.ICON_INFORMATION)
 
         if delete_portals == 2:
-
             self.world.level_wrapper.level_db.delete(theKey)
             wx.MessageBox("Done",
                           "All Portal date SHould be Gone", wx.OK | wx.ICON_INFORMATION)
@@ -13261,11 +13315,11 @@ class Tools(wx.Frame):
         self.playerinventoy = Inventory(self.parent, self.canvas, self.world)
         self.playerinventoy.Show()
 
-    def entites_data(self,_):
+    def entites_data(self, _):
         self.entitesdata = EntitiePlugin(self.parent, self.canvas, self.world)
         self.entitesdata.Show()
 
-    def material_counter(self,_):
+    def material_counter(self, _):
         self.materialcounter = MaterialCounter(self.parent, self.canvas, self.world)
         self.materialcounter.Show()
 
@@ -13273,9 +13327,10 @@ class Tools(wx.Frame):
         self.shapepainter = ShapePainter(self.parent, self.canvas, self.world)
         self.shapepainter.Show()
 
-    def random_filler(self,_):
+    def random_filler(self, _):
         self.randomfiller = RandomFiller(self.parent, self.canvas, self.world)
         self.randomfiller.Show()
+
 
 class MultiForcedBlending(wx.Panel, DefaultOperationUI):
 
@@ -13288,7 +13343,6 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
 
     ):
 
-
         wx.Panel.__init__(self, parent)
         DefaultOperationUI.__init__(self, parent, canvas, world, options_path)
 
@@ -13300,7 +13354,6 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
             events_buttons = [x for x in parent.GetChildren() if isinstance(x, wx.BitmapButton)]
             for e in events_buttons:
                 if 'Reload Operations' in e.GetToolTip().GetTip():
-
                     custom_event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, e.GetId())
                     custom_event.SetEventObject(e)
                     e.GetEventHandler().ProcessEvent(custom_event)
@@ -13319,7 +13372,6 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
             self.Thaw()
             tools = Tools(self.parent, self.world, self.canvas)
             tools.Show()
-
 
     def download_latest_script(self):
         response = requests.get(r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py')
@@ -13354,7 +13406,6 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
             print(f"Error: {response.status_code}")
             return None
 
-
     def bind_events(self):
         super().bind_events()
         self._selection.bind_events()
@@ -13372,7 +13423,6 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
         if self.version == self.remote_version:
             tools = Tools(self.parent, self.world, self.canvas)
             tools.Show()
-
 
 
 export = dict(name="# Multi TOOLS", operation=MultiForcedBlending)  # By PremiereHell
