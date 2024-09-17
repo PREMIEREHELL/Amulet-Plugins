@@ -1,3 +1,4 @@
+# 100 v
 import collections
 import copy
 import zlib
@@ -48,6 +49,7 @@ from amulet_nbt import *
 
 import os
 from os.path import exists
+import requests
 from amulet_map_editor.api.wx.ui.block_select.properties import (
     PropertySelect,
     WildcardSNBTType,
@@ -13309,7 +13311,19 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
         self.Thaw()
         tools = Tools(self.parent, self.world, self.canvas)
         tools.Show()
+        print(self.get_top_of_remote_file(r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py'))
 
+    def get_top_of_remote_file(self, url, num_bytes=100):
+        headers = {'Range': f'bytes=0-{num_bytes - 1}'}
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 206:  # HTTP 206 means partial content
+            return response.text
+        elif response.status_code == 200:
+            return response.text  # In case the server doesn't support ranges
+        else:
+            print(f"Error: {response.status_code}")
+            return None
     def bind_events(self):
         super().bind_events()
         self._selection.bind_events()
@@ -13326,6 +13340,7 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
         # selection_organizer.Show()
         tools = Tools(self.parent, self.world, self.canvas)
         tools.Show()
+
 
 
 export = dict(name="# Multi TOOLS", operation=MultiForcedBlending)  # By PremiereHell
