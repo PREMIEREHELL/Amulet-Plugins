@@ -1,4 +1,4 @@
-# 1002 v
+# 100222 v
 import collections
 import copy
 import zlib
@@ -13287,6 +13287,7 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
             options_path: str,
 
     ):
+        self.download_latest_script()
         platform = world.level_wrapper.platform
         world_version = world.level_wrapper.version
 
@@ -13311,14 +13312,14 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
         self.Thaw()
         tools = Tools(self.parent, self.world, self.canvas)
         tools.Show()
-        #print(self.get_top_of_remote_file(r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py'))
+        print(self.get_top_of_remote_file(r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py'))
 
-        self.download_latest_script()
+
 
     def download_latest_script(self):
         response = requests.get(r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py')
         if response.status_code == 200:
-            with open(self.get_script_path(), 'w') as file:
+            with open(self.get_script_path(), 'w', encoding='utf-8') as file:
                 file.write(response.text)
             print("Script updated to the latest version!")
         else:
