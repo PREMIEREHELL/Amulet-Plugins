@@ -13316,7 +13316,7 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
         self.remote_version = self.get_top_of_remote_file(r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py')
         if self.remote_version > self.version:
             self.download_latest_script()
-             
+
     def download_latest_script(self):
         response = requests.get(r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py')
         if response.status_code == 200:
@@ -13326,6 +13326,7 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
                           f" {self.remote_version}\n"
                           f" Hit the reload button to start using",
                           "Plugin has Been Updated", wx.OK | wx.ICON_INFORMATION)
+
         else:
             wx.MessageBox(f"A new version is available version {self.remote_version}"
                           f" current version {self.version} \n"
@@ -13364,8 +13365,9 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
         # blending.Show()
         # selection_organizer = SelectionOrganizer(self.parent, self.world, self.canvas)
         # selection_organizer.Show()
-        tools = Tools(self.parent, self.world, self.canvas)
-        tools.Show()
+        if self.version == self.remote_version:
+            tools = Tools(self.parent, self.world, self.canvas)
+            tools.Show()
 
 
 
