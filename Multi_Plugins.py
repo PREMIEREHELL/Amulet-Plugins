@@ -13346,17 +13346,16 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
         wx.Panel.__init__(self, parent)
         DefaultOperationUI.__init__(self, parent, canvas, world, options_path)
 
-        self.version = 2
+        self.version = 1
         self.remote_version = self.get_top_of_remote_file(
             r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py')
         if self.remote_version > self.version:
             self.download_latest_script()
-            events_buttons = [x for x in parent.GetChildren() if isinstance(x, wx.BitmapButton)]
-            for e in events_buttons:
-                if 'Reload Operations' in e.GetToolTip().GetTip():
-                    custom_event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, e.GetId())
-                    custom_event.SetEventObject(e)
-                    e.GetEventHandler().ProcessEvent(custom_event)
+            event = [x for x in parent.GetChildren() if isinstance(x, wx.BitmapButton)][1]
+            custom_event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, event.GetId())
+            custom_event.SetEventObject(event)
+            e.GetEventHandler().ProcessEvent(custom_event)
+
         else:
             self.Freeze()
             self._is_enabled = True
