@@ -13349,7 +13349,7 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
         self.version = 2
         self.remote_version = self.get_top_of_remote_file(
             r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py')
-        if self.remote_version > self.version:
+        if self.remote_version > self.version and self.remote_version is not None:
             self.download_latest_script()
             event = [x for x in parent.GetChildren() if isinstance(x, wx.BitmapButton)][1]
             custom_event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, event.GetId())
@@ -13379,14 +13379,12 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
                 file.write(response.text)
             wx.MessageBox(f"A new version has been apply was v {self.version} now version"
                           f" {self.remote_version}\n"
-                          f" Hit the reload button to start using",
+                          f" The update has been automatically applyed",
                           "Plugin has Been Updated", wx.OK | wx.ICON_INFORMATION)
 
         else:
-            wx.MessageBox(f"A new version is available version {self.remote_version}"
-                          f" current version {self.version} \n"
-                          f" Goto PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py",
-                          "Plugin has Been Updated", wx.OK | wx.ICON_INFORMATION)
+            print('Goto PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py, could not get a response to auto apply' )
+
 
     def get_script_path(self):
         return os.path.abspath(__file__)
@@ -13402,7 +13400,7 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
         elif response.status_code == 200:
             return response.text  # In case the server doesn't support ranges
         else:
-            print(f"Error: {response.status_code}")
+            print(f"Error: {response.status_code} could not check for update")
             return None
 
     def bind_events(self):
