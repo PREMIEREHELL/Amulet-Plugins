@@ -13354,7 +13354,7 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
             event = [x for x in parent.GetChildren() if isinstance(x, wx.BitmapButton)][1]
             custom_event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, event.GetId())
             custom_event.SetEventObject(event)
-            e.GetEventHandler().ProcessEvent(custom_event)
+            event.GetEventHandler().ProcessEvent(custom_event)
 
         else:
             self.Freeze()
