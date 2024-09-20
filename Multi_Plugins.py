@@ -1,5 +1,6 @@
-# 2 v
+# 1 v
 import collections
+import time
 import copy
 import zlib
 import struct
@@ -13104,9 +13105,9 @@ class Tools(wx.Frame):
         self._finder_replacer = wx.Button(self, label='Finder \n Replacer', size=_size)
         self._set_player_data = wx.Button(self, label='Set \nPlayer Data', size=_size)
         self._hard_coded_spawn = wx.Button(self, label='Hard Coded \n Spawn Tool', size=_size)
-        self._protals_and_border_walls = wx.Button(self, label='Portals &&||\n Border Walls ', size=_size)
+        self._portals_and_border_walls = wx.Button(self, label='Portals &&||\n Border Walls ', size=_size)
         self._player_inventory = wx.Button(self, label='NBT Editor\n For Inventory ', size=_size)
-        self._entites_data = wx.Button(self, label='NBT Editor \n For Entities', size=_size)
+        self._entities_data = wx.Button(self, label='NBT Editor \n For Entities', size=_size)
         self._material_counter = wx.Button(self, label='Material \n Counter', size=_size)
         self._shape_painter = wx.Button(self, label='Shape \n Painter', size=_size)
         self._random_filler = wx.Button(self, label='Random \n Filler', size=_size)
@@ -13122,66 +13123,91 @@ class Tools(wx.Frame):
         self._hard_coded_spawn.Bind(wx.EVT_BUTTON, self.hard_coded_spawn)
         self._set_player_data.Bind(wx.EVT_BUTTON, self.set_player_data)
         self._finder_replacer.Bind(wx.EVT_BUTTON, self.finder_replacer)
-        self._protals_and_border_walls.Bind(wx.EVT_BUTTON, self.protals_and_border_walls)  ## _player_inventory
+        self._portals_and_border_walls.Bind(wx.EVT_BUTTON, self.protals_and_border_walls)  ## _player_inventory
         self._player_inventory.Bind(wx.EVT_BUTTON, self.player_inventory)
-        self._entites_data.Bind(wx.EVT_BUTTON, self.entites_data)
+        self._entities_data.Bind(wx.EVT_BUTTON, self.entites_data)
         self._material_counter.Bind(wx.EVT_BUTTON, self.material_counter)
         self._shape_painter.Bind(wx.EVT_BUTTON, self.shape_painter)
         self._random_filler.Bind(wx.EVT_BUTTON, self.random_filler)
         self._set_frames.Bind(wx.EVT_BUTTON, self.set_frames)
         CustomToolTip(self, self._position,
-                      text="Tool for positioning all selections.\nYou can stretch and move all selections.\n"
-                           "Create different patterns, like an area to fill in for stairs.", font_size=14)
-
-        CustomToolTip(self, self._force_blending, text="This tool allows you to change the seed\n"
-                                                       "and force blending of newly generated chunks.\n"
-                                                       "work good after using the Selection Oganizer tool \n"
-                                                       " after deleting unselected", font_size=14)
-
-        CustomToolTip(self, self._chunk_data, text="Tool for saving and loading chunks.\n"
-                                                   "Easily save, load, copy, and move your chunks around.\n"
-                                                   "Note: The Move button in this tool moves all loaded chunks.\n"
-                                                   "You can also load only the sub-layers you need.", font_size=14)
-
-        CustomToolTip(self, self._selection_org, text="Tool for saving your location.\n"
-                                                      "Also provides the ability to quickly delete all other chunks.",
+                      text="Tool for positioning all selections.\n"
+                           "You can stretch and move all selections.\n"
+                           "Create different patterns, like areas to fill in for stairs.",
                       font_size=14)
 
-        CustomToolTip(self, self._buffer_world, text="Tool for Buffer A world.\n"
-                                                     "Also provides the ability to quickly delete all other chunks.",
+        CustomToolTip(self, self._force_blending,
+                      text="This tool allows you to change the seed\n"
+                           "and force blending of newly generated chunks.\n"
+                           "Works well after using the Selection Organizer tool\n"
+                           "after deleting unselected areas.",
                       font_size=14)
-        CustomToolTip(self, self._hard_coded_spawn, text="HARD CODED.\n"
-                                                         "Also provides the ability to quickly delete all other chunks.",
+
+        CustomToolTip(self, self._chunk_data,
+                      text="Tool for saving and loading chunks.\n"
+                           "Easily save, load, copy, and move your chunks around.\n"
+                           "Note: The Move button in this tool moves all loaded chunks.\n"
+                           "You can also load only the sub-layers you need.",
                       font_size=14)
-        CustomToolTip(self, self._set_player_data, text="Player.\n"
-                                                        "Also provides the ability to quickly delete all other chunks.",
+
+        CustomToolTip(self, self._selection_org,
+                      text="Tool for saving your selection locations.\n"
+                           "Also provides the ability to quickly delete all other chunks.",
                       font_size=14)
-        CustomToolTip(self, self._finder_replacer, text="FINDER.\n"
-                                                        "Also provides the ability to quickly delete all other chunks.",
+
+        CustomToolTip(self, self._buffer_world,
+                      text="Allows you to create a empty world to speed up loading in amulet.\n"
+                           "You can also make an existing world pull from\n"
+                           "the same version and platform, mirroring the same location.",
                       font_size=14)
-        CustomToolTip(self, self._protals_and_border_walls, text="Portals.\n"
-                                                                 "Also provides the ability to quickly delete all "
-                                                                 "other chunks.",
+
+        CustomToolTip(self, self._hard_coded_spawn,
+                      text="Set or delete hardcoded spawns, and view their\n"
+                           "bounding box locations. Note: you cannot make fortress\n"
+                           "spawns happen in the overworld.",
                       font_size=14)
-        CustomToolTip(self, self._player_inventory, text="NBT Player Inventory Editor.\n"
-                                                         "Also provides the ability to quickly delete all other chunks.",
+
+        CustomToolTip(self, self._set_player_data,
+                      text="Set player position, recover achievements, or re-enable\n"
+                           "hardcore mode for Java worlds.",
                       font_size=14)
-        CustomToolTip(self, self._entites_data, text="Nbt Editor For Entities.\n"
-                                                     "Also provides the ability to quickly delete all other chunks.",
+
+        CustomToolTip(self, self._finder_replacer,
+                      text="The latest Finder Replacer now has a fast apply feature.\n"
+                           "Directly use the find and replace text boxes.\n"
+                           "Use the Helper tool to speed up block listing.",
                       font_size=14)
-        CustomToolTip(self, self._material_counter, text="Material Counter.\n"
-                                                         "Also provides the ability to quickly delete all other chunks.",
+
+        CustomToolTip(self, self._portals_and_border_walls,
+                      text="Delete all portals and/or border walls.\n"
+                           "More features will be added soon.",
                       font_size=14)
-        CustomToolTip(self, self._shape_painter, text="Shape Painter.\n"
-                                                      "Also provides the ability to quickly delete all other chunks.",
+
+        CustomToolTip(self, self._player_inventory,
+                      text="Edit server or local player inventory and settings.",
                       font_size=14)
-        CustomToolTip(self, self._random_filler, text="Shape Painter.\n"
-                                                      "Also provides the ability to quickly delete all other chunks.",
+
+        CustomToolTip(self, self._entities_data,
+                      text="Edit, move, and copy mobs. Some features need updating.",
                       font_size=14)
-        CustomToolTip(self, self._set_frames, text="Set Frames.\n"
-                                                   "This Allows you easliy to place images or build a map "
-                                                   "wall that is already.\n"
-                                                   "On Glow Item frames or Normal Item Frames", font_size=14)
+
+        CustomToolTip(self, self._material_counter,
+                      text="Get a list of blocks used within a selection.",
+                      font_size=14)
+
+        CustomToolTip(self, self._shape_painter,
+                      text="An attempt at creating a brush tool. Still needs work.",
+                      font_size=14)
+
+        CustomToolTip(self, self._random_filler,
+                      text="Fill a selection area with random blocks.\n"
+                           "You can also replace only specific blocks with random ones.",
+                      font_size=14)
+
+        CustomToolTip(self, self._set_frames,
+                      text="Easily place images or build a map wall on\n"
+                           "glow item frames or normal item frames.",
+                      font_size=14)
 
         self._position.SetForegroundColour(color_front)
         self._position.SetBackgroundColour(color_back)
@@ -13210,14 +13236,14 @@ class Tools(wx.Frame):
         self._finder_replacer.SetForegroundColour(color_front)
         self._finder_replacer.SetBackgroundColour(color_back)
 
-        self._protals_and_border_walls.SetForegroundColour(color_front)
-        self._protals_and_border_walls.SetBackgroundColour(color_back)
+        self._portals_and_border_walls.SetForegroundColour(color_front)
+        self._portals_and_border_walls.SetBackgroundColour(color_back)
 
         self._player_inventory.SetForegroundColour(color_front)
         self._player_inventory.SetBackgroundColour(color_back)
 
-        self._entites_data.SetForegroundColour(color_front)
-        self._entites_data.SetBackgroundColour(color_back)
+        self._entities_data.SetForegroundColour(color_front)
+        self._entities_data.SetBackgroundColour(color_back)
 
         self._material_counter.SetForegroundColour(color_front)
         self._material_counter.SetBackgroundColour(color_back)
@@ -13241,9 +13267,9 @@ class Tools(wx.Frame):
         self._top_horz_sizer.Add(self._finder_replacer, 0, wx.LEFT, _left_size)
         self._top_horz_sizer.Add(self._set_player_data, 0, wx.LEFT, _left_size)
         self._top_horz_sizer.Add(self._hard_coded_spawn, 0, wx.LEFT, _left_size)
-        self._top_horz_sizer.Add(self._protals_and_border_walls, 0, wx.LEFT, _left_size)
+        self._top_horz_sizer.Add(self._portals_and_border_walls, 0, wx.LEFT, _left_size)
         self._top_horz_sizer.Add(self._player_inventory, 0, wx.LEFT, _left_size)
-        self._top_horz_sizer.Add(self._entites_data, 0, wx.LEFT, _left_size)
+        self._top_horz_sizer.Add(self._entities_data, 0, wx.LEFT, _left_size)
         self._top_horz_sizer.Add(self._material_counter, 0, wx.LEFT, _left_size)
         self._top_horz_sizer.Add(self._shape_painter, 0, wx.LEFT, _left_size)
         self._top_horz_sizer.Add(self._random_filler, 0, wx.LEFT, _left_size)
@@ -13294,7 +13320,7 @@ class Tools(wx.Frame):
         if delete_portals == 2:
             self.world.level_wrapper.level_db.delete(theKey)
             wx.MessageBox("Done",
-                          "All Portal date SHould be Gone", wx.OK | wx.ICON_INFORMATION)
+                          "All Portal date Should be gone", wx.OK | wx.ICON_INFORMATION)
         delete_borders = wx.MessageBox("You are going to deleted all the border walls?",
                                        "This can't be undone Are you Sure?", wx.YES_NO | wx.ICON_INFORMATION)
 
@@ -13305,7 +13331,7 @@ class Tools(wx.Frame):
                 if k[-1] == 0x38 and 9 <= len(k) <= 13:
                     self.world.level_wrapper.level_db.delete(k)
             wx.MessageBox("Done",
-                          "Border Walls Should BE all Gone", wx.OK | wx.ICON_INFORMATION)
+                          "Border Walls Should all be gone", wx.OK | wx.ICON_INFORMATION)
 
     def set_player_data(self, _):
         self.set_player = SetPlayerData(self.parent, self.canvas, self.world)
@@ -13332,7 +13358,7 @@ class Tools(wx.Frame):
         self.randomfiller.Show()
 
 
-class MultiForcedBlending(wx.Panel, DefaultOperationUI):
+class MultiTools(wx.Panel, DefaultOperationUI):
 
     def __init__(
             self,
@@ -13346,7 +13372,7 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
         wx.Panel.__init__(self, parent)
         DefaultOperationUI.__init__(self, parent, canvas, world, options_path)
 
-        self.version = 2
+        self.version = 1
         self.remote_version = self.get_top_of_remote_file(
             r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py')
         if self.remote_version > self.version and self.remote_version is not None:
@@ -13357,14 +13383,16 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
             event.GetEventHandler().ProcessEvent(custom_event)
 
         else:
+            self.is_file_recent()
             self.Freeze()
             self._is_enabled = True
             self._moving = True
             self._sizer = wx.BoxSizer(wx.VERTICAL)
             self.SetSizer(self._sizer)
 
-            self.font = wx.Font(13, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
-            self._force_blending = wx.Button(self, label="Multi \n Tools", size=(70, 40))
+            self.font = wx.Font(33, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+            self._force_blending = wx.Button(self, label=f"Multi \n Tools \n V: {self.version} ", size=(270, 240))
+            self._force_blending.SetFont(self.font)
             self._force_blending.Bind(wx.EVT_BUTTON, self._force_blening_window)
             self._sizer.Add(self._force_blending)
             self.Layout()
@@ -13377,14 +13405,8 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
         if response.status_code == 200:
             with open(self.get_script_path(), 'w', encoding='utf-8') as file:
                 file.write(response.text)
-            wx.MessageBox(f"A new version has been apply was v {self.version} now version"
-                          f" {self.remote_version}\n"
-                          f" The update has been automatically applyed",
-                          "Plugin has Been Updated", wx.OK | wx.ICON_INFORMATION)
-
         else:
             print('Goto PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py, could not get a response to auto apply' )
-
 
     def get_script_path(self):
         return os.path.abspath(__file__)
@@ -13413,13 +13435,20 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
         self._selection.enable()
 
     def _force_blening_window(self, _):
-        # blending =  BlendingWindow(self.parent, self.world, self.canvas)
-        # blending.Show()
-        # selection_organizer = SelectionOrganizer(self.parent, self.world, self.canvas)
-        # selection_organizer.Show()
         if self.version == self.remote_version:
             tools = Tools(self.parent, self.world, self.canvas)
             tools.Show()
 
+    def is_file_recent(self,  age_limit=20):
+        file_path = self.get_script_path()
+        if os.path.exists(file_path):
+            current_time = time.time()
+            file_mod_time = os.path.getmtime(file_path)
+            file_age = current_time - file_mod_time
+            if file_age < age_limit:
+                wx.MessageBox(f"A new version has been apply was v {self.version} now version"
+                              f" {self.remote_version}\n"
+                              f" The update has been automatically applyed", #List of changes....
+                              "Plugin has Been Updated", wx.OK | wx.ICON_INFORMATION)
 
-export = dict(name="# Multi TOOLS", operation=MultiForcedBlending)  # By PremiereHell
+export = dict(name="# Multi TOOLS", operation=MultiTools)  # By PremiereHell
