@@ -1,4 +1,5 @@
 # 1 v
+import urllib.request
 import collections
 import time
 import copy
@@ -51,7 +52,7 @@ from amulet_nbt import *
 
 import os
 from os.path import exists
-import requests
+#import requests
 from amulet_map_editor.api.wx.ui.block_select.properties import (
     PropertySelect,
     WildcardSNBTType,
@@ -13375,13 +13376,13 @@ class MultiTools(wx.Panel, DefaultOperationUI):
         self.version = 1
         self.remote_version = self.get_top_of_remote_file(
             r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py')
+
         if self.remote_version > self.version and self.remote_version is not None:
             self.download_latest_script()
             event = [x for x in parent.GetChildren() if isinstance(x, wx.BitmapButton)][1]
             custom_event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, event.GetId())
             custom_event.SetEventObject(event)
             event.GetEventHandler().ProcessEvent(custom_event)
-
         else:
             self.is_file_recent()
             self.Freeze()
@@ -13401,28 +13402,37 @@ class MultiTools(wx.Panel, DefaultOperationUI):
             tools.Show()
 
     def download_latest_script(self):
-        response = requests.get(r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py')
-        if response.status_code == 200:
-            with open(self.get_script_path(), 'w', encoding='utf-8') as file:
-                file.write(response.text)
-        else:
-            print('Goto PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py, could not get a response to auto apply' )
+        try:
+            url = r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py'
+            response = urllib.request.urlopen(url)
+            if response.status == 200:
+                with open(self.get_script_path(), 'w', encoding='utf-8') as file:
+                    file.write(response.read().decode('utf-8'))
+            else:
+                print('Could not get a response to auto apply, please visit the repo.')
+        except Exception as e:
+            print(f"Error downloading the latest script: {e}")
 
     def get_script_path(self):
         return os.path.abspath(__file__)
 
     def get_top_of_remote_file(self, url, num_bytes=100):
-        headers = {'Range': f'bytes=0-{num_bytes - 1}'}
-        response = requests.get(url, headers=headers)
+        try:
+            req = urllib.request.Request(url)
+            req.add_header('Range', f'bytes=0-{num_bytes - 1}')
+            response = urllib.request.urlopen(req)
 
-        if response.status_code == 206:  # HTTP 206 means partial content
-            raw = str(response.text).split('#')
-            version = raw[1].split('v')
-            return int(version[0])
-        elif response.status_code == 200:
-            return response.text  # In case the server doesn't support ranges
-        else:
-            print(f"Error: {response.status_code} could not check for update")
+            if response.status == 206:  # HTTP 206 Partial Content
+                raw = response.read().decode('utf-8').split('#')
+                version = raw[1].split('v')
+                return int(version[0])
+            elif response.status == 200:
+                return response.read().decode('utf-8')
+            else:
+                print(f"Error: {response.status} could not check for update")
+                return None
+        except Exception as e:
+            print(f"Error fetching remote file: {e}")
             return None
 
     def bind_events(self):
