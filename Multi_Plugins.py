@@ -52,7 +52,6 @@ from amulet_nbt import *
 
 import os
 from os.path import exists
-#import requests
 from amulet_map_editor.api.wx.ui.block_select.properties import (
     PropertySelect,
     WildcardSNBTType,
