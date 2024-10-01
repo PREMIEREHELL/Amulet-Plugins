@@ -1,4 +1,4 @@
-# 1 v
+# 2 v
 import urllib.request
 import collections
 import time
@@ -52,6 +52,7 @@ from amulet_nbt import *
 
 import os
 from os.path import exists
+#import requests
 from amulet_map_editor.api.wx.ui.block_select.properties import (
     PropertySelect,
     WildcardSNBTType,
@@ -6666,7 +6667,8 @@ class ProcessAnvilBD:
                 world_nbt = world_data.get_chunk_data(chunk_x % 32, chunk_z % 32)
                 change = False
                 for section in world_nbt.get('sections', []):
-                    palette = section['block_states'].get('palette', None)
+                    if section.get('block_states', None):
+                        palette = section['block_states'].get('palette', None)
 
                     if palette:
                         if no_property_mode:
@@ -13372,7 +13374,7 @@ class MultiTools(wx.Panel, DefaultOperationUI):
         wx.Panel.__init__(self, parent)
         DefaultOperationUI.__init__(self, parent, canvas, world, options_path)
 
-        self.version = 1
+        self.version = 2
         self.remote_version = self.get_top_of_remote_file(
             r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py')
 
@@ -13455,9 +13457,10 @@ class MultiTools(wx.Panel, DefaultOperationUI):
             file_mod_time = os.path.getmtime(file_path)
             file_age = current_time - file_mod_time
             if file_age < age_limit:
-                wx.MessageBox(f"A new version has been apply was v {self.version} now version"
+                wx.MessageBox(f"A new version has been apply was v 1 now version"
                               f" {self.remote_version}\n"
-                              f" The update has been automatically applyed", #List of changes....
+                              f" The update has been automatically applyed\n"
+                              f"Fixed key error in Find Replace for Fast apply that can cause replace to fail.", #List of changes....
                               "Plugin has Been Updated", wx.OK | wx.ICON_INFORMATION)
 
 export = dict(name="# Multi TOOLS", operation=MultiTools)  # By PremiereHell
