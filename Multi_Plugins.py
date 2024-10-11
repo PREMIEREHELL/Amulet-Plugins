@@ -1,4 +1,4 @@
-# 2 v
+# 3 v
 import urllib.request
 import collections
 import time
@@ -149,7 +149,6 @@ def unpack_nbt_list(raw_nbt: bytes):
         nbt_list.append(nbt)
     return nbt_list
 
-
 def pack_nbt_list(nbt_list):
     return b"".join(
         [
@@ -208,6 +207,66 @@ def get_y_range(test_val):
     elif test_val == b'' or 'minecraft:overworld' == test_val:
         return (-64, 319)
 
+class ResetVaults():
+    def __init__(self, parent, canvas, world):
+
+        self.parent = parent
+        self.canvas = canvas
+        self.world = world
+        self.platform = self.world.level_wrapper.platform
+        self.progress = ProgressBar()
+
+    def reset_vaults(self):
+
+        chunks = self.world.all_chunk_coords(self.canvas.dimension)
+        total = len([c for c in chunks])
+        cnt = 0
+        for chunk in chunks:
+            cnt += 1
+            self.progress.progress_bar(total, cnt, title="Resetting all vaults", text="Chunk...")
+            cx, cz = chunk
+            if self.world.level_wrapper.platform == 'bedrock':
+                key = self.get_dim_chunkkey(cx, cz)
+                try:
+                    self.level_db.delete(key + b'w')
+                except:
+                    pass
+                try:
+                    be_data = self.level_db.get(key + b"1")
+                    nbt_data = unpack_nbt_list(be_data)
+                    for d in nbt_data:
+                        if "rewarded_players" in d.to_snbt():
+                            d['data']['rewarded_players'] = ListTag([])
+
+                    raw_list = pack_nbt_list(nbt_data)
+                    self.level_db.put(key + b"1", raw_list)
+                except:
+                    pass
+            else: #java
+                if self.world.has_chunk(cx, cz, self.canvas.dimension):
+                    chunk = self.world.level_wrapper.get_raw_chunk_data(cx, cz, self.canvas.dimension)
+
+                    if chunk.get('block_entities', None):
+                        changed = False
+                        for nbt in chunk['block_entities']:
+                            if "vault" in nbt.to_snbt():
+                                changed = True
+                                nbt['server_data'].pop('rewarded_players', None)
+
+                        if changed:
+                            self.world.level_wrapper.put_raw_chunk_data(cx, cz, chunk, self.canvas.dimension)
+        wx.MessageBox(player + "All Vaults should be reset.",
+                      "INFO", wx.OK | wx.ICON_INFORMATION)
+
+    def get_dim_chunkkey(self, xx, zz):
+        chunkkey = b''
+        if 'minecraft:the_end' in self.canvas.dimension:
+            chunkkey = struct.pack('<iii', xx, zz, 2)
+        elif 'minecraft:the_nether' in self.canvas.dimension:
+            chunkkey = struct.pack('<iii', xx, zz, 1)
+        elif 'minecraft:overworld' in self.canvas.dimension:
+            chunkkey = struct.pack('<ii', xx, zz)
+        return chunkkey
 
 class ChunkManager:
     def __init__(self, parent=None, world=None, canvas=None):
@@ -11097,6 +11156,12 @@ class SetPlayerData(wx.Frame):
     def savePosDataJava(self, _):
         player = self.playerlist.GetString(self.playerlist.GetSelection())
         pdata = self.getPlayerData(player)
+
+        if len(player) < 1:
+            wx.MessageBox(player + "Need to make a player selection",
+                          "INFO", wx.OK | wx.ICON_INFORMATION)
+            return
+
         dim = {
             0: 'minecraft:overworld',
             1: 'minecraft:the_nether',
@@ -11752,8 +11817,8 @@ class BufferWorldTool(wx.Frame):
             with open(world_buffer_f + "/level.dat", "rb") as data:
                 the_data = data.read()
                 header = the_data[:4]
-                nbt_leveldat = amulet_nbt.load(the_data[8:], compressed=False, little_endian=True)
-                nbt_leveldat['LevelName'] = amulet_nbt.TAG_String("BufferLevel")
+                nbt_leveldat = load(the_data[8:], compressed=False, little_endian=True)
+                nbt_leveldat['LevelName'] = StringTag("BufferLevel")
                 new_raw = nbt_leveldat.save_to(compressed=False, little_endian=True)
                 header += struct.pack("<I", len(new_raw))
 
@@ -11803,8 +11868,8 @@ class BufferWorldTool(wx.Frame):
             with open(world_buffer_f + '/main_dir.txt', "w") as data:
                 data.write(pathname)
             # with open(f"{world_buffer_f}/level.dat", "bw+", ) as dat:
-            data = amulet_nbt.load(f"{world_buffer_f}/level.dat", compressed=True, little_endian=False)
-            data["Data"]["LevelName"] = amulet_nbt.TAG_String("buffer" + str(the_dir[-1]))
+            data = load(f"{world_buffer_f}/level.dat", compressed=True, little_endian=False)
+            data["Data"]["LevelName"] = StringTag("buffer" + str(the_dir[-1]))
             save = data.save_to(compressed=True, little_endian=False)
             with open(f"{world_buffer_f}/level.dat", "wb") as f:
                 f.write(save)
@@ -12826,10 +12891,10 @@ class BlendingWindow(wx.Frame):
 
     def set_seed(self, _):
         if self.world.level_wrapper.platform == "java":
-            self.world.level_wrapper.root_tag['Data']['WorldGenSettings']['seed'] = amulet_nbt.LongTag(
+            self.world.level_wrapper.root_tag['Data']['WorldGenSettings']['seed'] = LongTag(
                 int(self.seed_input.GetValue()))
         else:
-            self.world.level_wrapper.root_tag['RandomSeed'] = amulet_nbt.LongTag(int(self.seed_input.GetValue()))
+            self.world.level_wrapper.root_tag['RandomSeed'] = LongTag(int(self.seed_input.GetValue()))
         self.world.save()
 
     @property
@@ -12872,10 +12937,10 @@ class BlendingWindow(wx.Frame):
 
         for rx, rz in loaction_dict.keys():
             file_exists = exists(self.get_dim_vpath_java_dir(rx, rz))
-            self.world.level_wrapper.root_tag['Data']['DataVersion'] = amulet_nbt.IntTag(2860)
-            self.world.level_wrapper.root_tag['Data']['Version'] = amulet_nbt.CompoundTag(
-                {"Snapshot": amulet_nbt.ByteTag(0), "Id": amulet_nbt.IntTag(2860),
-                 "Name": amulet_nbt.StringTag("1.18.0")})
+            self.world.level_wrapper.root_tag['Data']['DataVersion'] = IntTag(2860)
+            self.world.level_wrapper.root_tag['Data']['Version'] = CompoundTag(
+                {"Snapshot": ByteTag(0), "Id": IntTag(2860),
+                 "Name": StringTag("1.18.0")})
             self.world.save()
             if file_exists:
                 for di in loaction_dict[(rx, rz)]:
@@ -12886,36 +12951,38 @@ class BlendingWindow(wx.Frame):
                     if self.raw_data.has_chunk(cx % 32, cz % 32):
                         nbtdata = self.raw_data.get_chunk_data(cx % 32, cz % 32)
                         if nbtdata['sections']:
-                            nbtdata['Heightmaps'] = amulet_nbt.CompoundTag({})
-                            nbtdata['blending_data'] = amulet_nbt.CompoundTag({"old_noise": amulet_nbt.ByteTag(1)})
-                            nbtdata['DataVersion'] = amulet_nbt.IntTag(2860)
+                            nbtdata['Heightmaps'] = CompoundTag({})
+                            nbtdata['blending_data'] = CompoundTag({"old_noise": ByteTag(1)})
+                            nbtdata['DataVersion'] = IntTag(2860)
                             self.raw_data.put_chunk_data(cx % 32, cz % 32, nbtdata)
                         self.raw_data.save()
             yield count / total, f"Chunk: {xx, zz} Done.... {count} of {total}"
 
     def process_bedrock_chunks(self, count, total):
-        if ('minecraft:the_end' in self.canvas.dimension):
-            wx.MessageBox(
-                "The End: This does not have any effect. Overworld works and the Nether does not have biome blending. It only rounds the chunk walls.",
-                "IMPORTANT", wx.OK | wx.ICON_INFORMATION)
-            return
+        for xx, zz in self.all_chunks:
+            if ('minecraft:the_end' in self.canvas.dimension):
+                wx.MessageBox(
+                    "The End: This does not have any effect. Overworld works and the Nether does not have biome blending. It only rounds the chunk walls.",
+                    "IMPORTANT", wx.OK | wx.ICON_INFORMATION)
+                return
 
-        if 'minecraft:the_nether' in self.canvas.dimension:
-            try:  # If Nether
-                self.level_db.put(self.get_dim_chunkkey(xx, zz) + b'v', b'\x07')
-            except Exception as e:
-                print("A", e)
-            try:
-                self.level_db.delete(self.get_dim_chunkkey(xx, zz) + b',')
-            except Exception as e:
-                print("B", e)
-        else:
-            try:
-                self.level_db.delete(self.get_dim_chunkkey(xx, zz) + b'@')
-            except Exception as e:
-                print("C", e)
-            if self._recal_heightmap.GetValue():
-                self.process_heightmap_update(count, total)
+            if 'minecraft:the_nether' in self.canvas.dimension:
+                try:  # If Nether
+                    self.level_db.put(self.get_dim_chunkkey(xx, zz) + b'v', b'\x07')
+                except Exception as e:
+                    print("A", e)
+                try:
+                    self.level_db.delete(self.get_dim_chunkkey(xx, zz) + b',')
+                except Exception as e:
+                    print("B", e)
+            else:
+                try:
+                    self.level_db.delete(self.get_dim_chunkkey(xx, zz) + b'@')
+                except Exception as e:
+                    print("C", e)
+                if self._recal_heightmap.GetValue():
+                    self.process_heightmap_update(count, total)
+
 
     def process_heightmap_update(self, count, total):
         lower_keys = {-1: 4, -2: 3, -3: 2, -4: 1}
@@ -12982,7 +13049,7 @@ class BlendingWindow(wx.Frame):
         extra_pnt_bits = None
 
         for x in range(pallet_size):
-            nbt, p = amulet_nbt.load(pallet_data, little_endian=True, offset=True)
+            nbt, p = load(pallet_data, little_endian=True, offset=True)
             pallet_data = pallet_data[p:]
             blocks.append(nbt.value)
 
@@ -12995,7 +13062,7 @@ class BlendingWindow(wx.Frame):
                 pallet_size, pallet_data, off = struct.unpack('<I', block_pal_dat[:4])[0], block_pal_dat[4:], 0
             extra_pnt_bits = extra_block_bits
             for aa in range(pallet_size):
-                nbt, p = amulet_nbt.load(pallet_data, little_endian=True, offset=True)
+                nbt, p = load(pallet_data, little_endian=True, offset=True)
                 pallet_data = pallet_data[p:]
                 extra_blocks.append(nbt.value)
         return blocks, block_pnt_bits, extra_blocks, extra_pnt_bits
@@ -13104,16 +13171,17 @@ class Tools(wx.Frame):
         self._chunk_data = wx.Button(self, label='Chunk Tool', size=_size)
         self._selection_org = wx.Button(self, label='Selection \nOrganizer Tool', size=_size)
         self._buffer_world = wx.Button(self, label='Buffer World\n Tool', size=_size)
-        self._finder_replacer = wx.Button(self, label='Finder \n Replacer', size=_size)
-        self._set_player_data = wx.Button(self, label='Set \nPlayer Data', size=_size)
+        self._finder_replacer = wx.Button(self, label='Finder Replacer', size=_size)
+        self._set_player_data = wx.Button(self, label='Set Player Data', size=_size)
         self._hard_coded_spawn = wx.Button(self, label='Hard Coded \n Spawn Tool', size=_size)
         self._portals_and_border_walls = wx.Button(self, label='Portals &&||\n Border Walls ', size=_size)
         self._player_inventory = wx.Button(self, label='NBT Editor\n For Inventory ', size=_size)
         self._entities_data = wx.Button(self, label='NBT Editor \n For Entities', size=_size)
-        self._material_counter = wx.Button(self, label='Material \n Counter', size=_size)
-        self._shape_painter = wx.Button(self, label='Shape \n Painter', size=_size)
-        self._random_filler = wx.Button(self, label='Random \n Filler', size=_size)
+        self._material_counter = wx.Button(self, label='Material Counter', size=_size)
+        self._shape_painter = wx.Button(self, label='Shape Painter', size=_size)
+        self._random_filler = wx.Button(self, label='Random Filler', size=_size)
         self._set_frames = wx.Button(self, label='Image Or Maps \n To Frames', size=_size)
+        self._reset_vaults = wx.Button(self, label='Reset Vaults', size=_size)
 
     def bind_buttons(self):
         color_back, color_front = (0, 0, 0), (0, 255, 0)
@@ -13132,6 +13200,7 @@ class Tools(wx.Frame):
         self._shape_painter.Bind(wx.EVT_BUTTON, self.shape_painter)
         self._random_filler.Bind(wx.EVT_BUTTON, self.random_filler)
         self._set_frames.Bind(wx.EVT_BUTTON, self.set_frames)
+        self._reset_vaults.Bind(wx.EVT_BUTTON, self.reset_vaults)
         CustomToolTip(self, self._position,
                       text="Tool for positioning all selections.\n"
                            "You can stretch and move all selections.\n"
@@ -13211,6 +13280,10 @@ class Tools(wx.Frame):
                            "glow item frames or normal item frames.",
                       font_size=14)
 
+        CustomToolTip(self, self._reset_vaults,
+                      text="Removes the rewarded players data, so vaults can be reused",
+                      font_size=14)
+
         self._position.SetForegroundColour(color_front)
         self._position.SetBackgroundColour(color_back)
 
@@ -13259,6 +13332,9 @@ class Tools(wx.Frame):
         self._set_frames.SetForegroundColour(color_front)
         self._set_frames.SetBackgroundColour(color_back)
 
+        self._reset_vaults.SetForegroundColour(color_front)
+        self._reset_vaults.SetBackgroundColour(color_back)
+
     def layout_ui(self):
         _left_size = 5
         self._top_horz_sizer.Add(self._position, 0, wx.LEFT, _left_size)
@@ -13276,6 +13352,7 @@ class Tools(wx.Frame):
         self._top_horz_sizer.Add(self._shape_painter, 0, wx.LEFT, _left_size)
         self._top_horz_sizer.Add(self._random_filler, 0, wx.LEFT, _left_size)
         self._top_horz_sizer.Add(self._set_frames, 0, wx.LEFT, _left_size)
+        self._top_horz_sizer.Add(self._reset_vaults, 0, wx.LEFT, _left_size)
 
         self._top_horz_sizer.Fit(self)
         self._top_horz_sizer.Layout()
@@ -13359,6 +13436,10 @@ class Tools(wx.Frame):
         self.randomfiller = RandomFiller(self.parent, self.canvas, self.world)
         self.randomfiller.Show()
 
+    def reset_vaults(self, _):
+        self.resetvaults = ResetVaults(self.parent, self.canvas, self.world)
+        self.resetvaults.reset_vaults()
+
 
 class MultiTools(wx.Panel, DefaultOperationUI):
 
@@ -13374,7 +13455,7 @@ class MultiTools(wx.Panel, DefaultOperationUI):
         wx.Panel.__init__(self, parent)
         DefaultOperationUI.__init__(self, parent, canvas, world, options_path)
 
-        self.version = 2
+        self.version = 3
         self.remote_version = self.get_top_of_remote_file(
             r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py')
 
@@ -13401,6 +13482,7 @@ class MultiTools(wx.Panel, DefaultOperationUI):
             self.Thaw()
             tools = Tools(self.parent, self.world, self.canvas)
             tools.Show()
+
 
     def download_latest_script(self):
         try:
@@ -13457,10 +13539,12 @@ class MultiTools(wx.Panel, DefaultOperationUI):
             file_mod_time = os.path.getmtime(file_path)
             file_age = current_time - file_mod_time
             if file_age < age_limit:
-                wx.MessageBox(f"A new version has been apply was v 1 now version"
+                wx.MessageBox(f"A new version has been apply was v 2 now version"
                               f" {self.remote_version}\n"
-                              f" The update has been automatically applyed\n"
-                              f"Fixed key error in Find Replace for Fast apply that can cause replace to fail.", #List of changes....
+                              f"The update has been automatically applyed:\n"
+                              f"Fixed issue with force blending on Bedrock,\n"
+                              f"Added message to select player for Set Player Data,\n"
+                              f"Added New button to Reset Vaults in Java and Bedrock.", #List of changes....
                               "Plugin has Been Updated", wx.OK | wx.ICON_INFORMATION)
 
 export = dict(name="# Multi TOOLS", operation=MultiTools)  # By PremiereHell
