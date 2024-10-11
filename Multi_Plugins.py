@@ -1,4 +1,4 @@
-# 3 v
+# 4 v
 import urllib.request
 import collections
 import time
@@ -236,6 +236,7 @@ class ResetVaults():
                     nbt_data = unpack_nbt_list(be_data)
                     for d in nbt_data:
                         if "rewarded_players" in d.to_snbt():
+                            print(d['data']['rewarded_players'].to_snbt())
                             d['data']['rewarded_players'] = ListTag([])
 
                     raw_list = pack_nbt_list(nbt_data)
@@ -255,8 +256,16 @@ class ResetVaults():
 
                         if changed:
                             self.world.level_wrapper.put_raw_chunk_data(cx, cz, chunk, self.canvas.dimension)
-        wx.MessageBox(player + "All Vaults should be reset.",
+        wx.MessageBox("All Vaults should be reset.",
                       "INFO", wx.OK | wx.ICON_INFORMATION)
+
+    @property
+    def level_db(self):
+        level_wrapper = self.world.level_wrapper
+        if hasattr(level_wrapper, "level_db"):
+            return level_wrapper.level_db
+        else:
+            return level_wrapper._level_manager._db
 
     def get_dim_chunkkey(self, xx, zz):
         chunkkey = b''
@@ -13455,7 +13464,7 @@ class MultiTools(wx.Panel, DefaultOperationUI):
         wx.Panel.__init__(self, parent)
         DefaultOperationUI.__init__(self, parent, canvas, world, options_path)
 
-        self.version = 3
+        self.version = 4
         self.remote_version = self.get_top_of_remote_file(
             r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py')
 
@@ -13539,12 +13548,12 @@ class MultiTools(wx.Panel, DefaultOperationUI):
             file_mod_time = os.path.getmtime(file_path)
             file_age = current_time - file_mod_time
             if file_age < age_limit:
-                wx.MessageBox(f"A new version has been apply was v 2 now version"
+                wx.MessageBox(f"A new version has been apply was v 3 now version"
                               f" {self.remote_version}\n"
                               f"The update has been automatically applyed:\n"
                               f"Fixed issue with force blending on Bedrock,\n"
                               f"Added message to select player for Set Player Data,\n"
-                              f"Added New button to Reset Vaults in Java and Bedrock.", #List of changes....
+                              f"Added New button to Reset Vaults in Java and Bedrock.\n", #List of changes....
                               "Plugin has Been Updated", wx.OK | wx.ICON_INFORMATION)
 
 export = dict(name="# Multi TOOLS", operation=MultiTools)  # By PremiereHell
