@@ -1,4 +1,4 @@
-# 4 v
+# 5 v
 import urllib.request
 import collections
 import time
@@ -129,11 +129,9 @@ def find_end_of_compounds(data):
 
     return offset
 
-
 def block_enty_raw_cords(x, y, z):  # fast search
     data = CompoundTag({'x': IntTag(), 'y': IntTag(), 'z': IntTag()}).to_nbt(compressed=False, little_endian=True)
     return data[3:-1]
-
 
 def unpack_nbt_list(raw_nbt: bytes):
     nbt_list = []
@@ -161,12 +159,10 @@ def pack_nbt_list(nbt_list):
         ]
     )
 
-
 def create_new_actor_prefix(start, cnt):
     actorKey = struct.pack('>LL', start, cnt)
     db_key = b''.join([b'actorprefix', actorKey])
     return db_key, actorKey
-
 
 def uniqueid_to_actorprefix_key(UniqueID: LongTag):
     packed_data = struct.pack('<q', UniqueID.py_data)
@@ -175,7 +171,6 @@ def uniqueid_to_actorprefix_key(UniqueID: LongTag):
     actorKey = struct.pack('>LL', start_cnt, cnt)
     db_key = b''.join([b'actorprefix', actorKey])
     return db_key
-
 
 def _genorate_uid(cnt, worldstartcount):
     start_c = worldstartcount
@@ -12917,7 +12912,7 @@ class BlendingWindow(wx.Frame):
     def _refresh_chunk(self, _):
         self.set_seed(_)
         self.world.save()
-        self.canvas.run_operation(lambda: self.start(_), "Converting chunks", "Starting...")
+        self.start(_)
         self.world.purge()
         self.world.save()
         self.canvas.renderer.render_world._rebuild()
@@ -12932,43 +12927,46 @@ class BlendingWindow(wx.Frame):
 
         total = len(self.all_chunks)
         count = 0
-        loaction_dict = collections.defaultdict(list)
-
+        location_dict = collections.defaultdict(list)
+        self.progress = ProgressBar()
         if self.world.level_wrapper.platform == "java":
-            self.process_java_chunks(loaction_dict, count, total)
+
+            self.process_java_chunks(location_dict, count, total)
+
         else:  # BEDROCK
             self.process_bedrock_chunks(count, total)
 
-    def process_java_chunks(self, loaction_dict, count, total):
-        for xx, zz in self.all_chunks:
-            rx, rz = world_utils.chunk_coords_to_region_coords(xx, zz)
-            loaction_dict[(rx, rz)].append((xx, zz))
+    def process_java_chunks(self, location_dict, count, total):
 
-        for rx, rz in loaction_dict.keys():
+        for xx, zz in self.all_chunks:
+            rx, rz = chunk_coords_to_region_coords(xx, zz)
+            location_dict[(rx, rz)].append((xx, zz))
+
+        for rx, rz in location_dict.keys():
             file_exists = exists(self.get_dim_vpath_java_dir(rx, rz))
-            self.world.level_wrapper.root_tag['Data']['DataVersion'] = IntTag(2860)
-            self.world.level_wrapper.root_tag['Data']['Version'] = CompoundTag(
-                {"Snapshot": ByteTag(0), "Id": IntTag(2860),
-                 "Name": StringTag("1.18.0")})
-            self.world.save()
             if file_exists:
-                for di in loaction_dict[(rx, rz)]:
-                    cx, cz = di
+
+                for cx, cz in location_dict[(rx, rz)]:
                     count += 1
-                    yield count / total, f"Chunk: {xx, zz} Done.... {count} of {total}"
+                    self.progress.progress_bar(total, count, update_interval=1, title='Blending', text='Chunks')
+
                     self.raw_data = AnvilRegion(self.get_dim_vpath_java_dir(rx, rz))
                     if self.raw_data.has_chunk(cx % 32, cz % 32):
                         nbtdata = self.raw_data.get_chunk_data(cx % 32, cz % 32)
+
                         if nbtdata['sections']:
                             nbtdata['Heightmaps'] = CompoundTag({})
-                            nbtdata['blending_data'] = CompoundTag({"old_noise": ByteTag(1)})
+                            nbtdata['blending_data'] = CompoundTag(
+                                {"old_noise": ByteTag(1)})
                             nbtdata['DataVersion'] = IntTag(2860)
                             self.raw_data.put_chunk_data(cx % 32, cz % 32, nbtdata)
                         self.raw_data.save()
-            yield count / total, f"Chunk: {xx, zz} Done.... {count} of {total}"
+                    self.raw_data.unload()
+
 
     def process_bedrock_chunks(self, count, total):
         for xx, zz in self.all_chunks:
+
             if ('minecraft:the_end' in self.canvas.dimension):
                 wx.MessageBox(
                     "The End: This does not have any effect. Overworld works and the Nether does not have biome blending. It only rounds the chunk walls.",
@@ -12976,6 +12974,8 @@ class BlendingWindow(wx.Frame):
                 return
 
             if 'minecraft:the_nether' in self.canvas.dimension:
+                count += 1
+                self.progress.progress_bar(total, count, update_interval=1, title='Blending', text='Chunks')
                 try:  # If Nether
                     self.level_db.put(self.get_dim_chunkkey(xx, zz) + b'v', b'\x07')
                 except Exception as e:
@@ -12985,6 +12985,8 @@ class BlendingWindow(wx.Frame):
                 except Exception as e:
                     print("B", e)
             else:
+                count += 1
+                self.progress.progress_bar(total, count, update_interval=1, title='Blending', text='Chunks')
                 try:
                     self.level_db.delete(self.get_dim_chunkkey(xx, zz) + b'@')
                 except Exception as e:
@@ -13464,7 +13466,7 @@ class MultiTools(wx.Panel, DefaultOperationUI):
         wx.Panel.__init__(self, parent)
         DefaultOperationUI.__init__(self, parent, canvas, world, options_path)
 
-        self.version = 4
+        self.version = 5
         self.remote_version = self.get_top_of_remote_file(
             r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py')
 
@@ -13548,12 +13550,14 @@ class MultiTools(wx.Panel, DefaultOperationUI):
             file_mod_time = os.path.getmtime(file_path)
             file_age = current_time - file_mod_time
             if file_age < age_limit:
-                wx.MessageBox(f"A new version has been apply was v 3 now version"
+                wx.MessageBox(f"A new version has been apply was v 4 now version"
                               f" {self.remote_version}\n"
+                              f"V: 3 and 4\n"
                               f"The update has been automatically applyed:\n"
                               f"Fixed issue with force blending on Bedrock,\n"
                               f"Added message to select player for Set Player Data,\n"
-                              f"Added New button to Reset Vaults in Java and Bedrock.\n", #List of changes....
+                              f"Added New button to Reset Vaults in Java and Bedrock.\n"
+                              f"v:5 Fixed Java Force Blending Tool\n", #List of changes....
                               "Plugin has Been Updated", wx.OK | wx.ICON_INFORMATION)
 
 export = dict(name="# Multi TOOLS", operation=MultiTools)  # By PremiereHell
