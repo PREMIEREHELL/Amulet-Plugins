@@ -1,4 +1,4 @@
-# 5 v
+# 6 v
 import urllib.request
 import collections
 import time
@@ -44,6 +44,8 @@ from amulet.api.block_entity import BlockEntity
 from amulet.api.errors import ChunkDoesNotExist
 from amulet_map_editor.api.wx.ui import simple
 from amulet_map_editor.api import image
+from functools import partial, reduce
+import operator
 
 nbt_resources = image.nbt
 from collections.abc import MutableMapping, MutableSequence
@@ -6522,12 +6524,15 @@ class ProcessAnvilBD:
         file = "r." + str(regonx) + "." + str(regonz) + ".mca"
         path = self.world.level_wrapper.path
         full_path = ''
+        dim = ''
         if 'minecraft:the_end' in self.canvas.dimension:
             dim = 'DIM1'
         elif 'minecraft:the_nether' in self.canvas.dimension:
             dim = 'DIM-1'
         elif 'minecraft:overworld' in self.canvas.dimension:
             dim = ''
+
+        print(self.canvas.dimension)
         version = "region"
         full_path = os.path.join(path, dim, version, file)
         return full_path
@@ -6730,6 +6735,7 @@ class ProcessAnvilBD:
                 world_nbt = world_data.get_chunk_data(chunk_x % 32, chunk_z % 32)
                 change = False
                 for section in world_nbt.get('sections', []):
+                    palette = None
                     if section.get('block_states', None):
                         palette = section['block_states'].get('palette', None)
 
@@ -10931,14 +10937,26 @@ class SetPlayerData(wx.Frame):
             self.apply.Bind(wx.EVT_BUTTON, self.savePosData)
         else:
             self.apply.Bind(wx.EVT_BUTTON, self.savePosDataJava)
-        self.getSet = wx.Button(self, size=(150, 20), label="Get Current Position")
+        self.getSet = wx.Button(self, size=(155, 25), label="Get Current Position")
         self.getSet.Bind(wx.EVT_BUTTON, self.getsetCurrentPos)
-        self.tpUser = wx.CheckBox(self, size=(150, 20), label="Enable TP for select")
-        self.fcords = wx.CheckBox(self, size=(150, 20), label="lock Cord Values")
+        self.tpUser = wx.CheckBox(self, size=(155, 25), label="Enable TP for select")
+        self.fcords = wx.CheckBox(self, size=(155, 25), label="lock Cord Values")
 
         if self.platform == "bedrock":
-            self.achieve = wx.Button(self, size=(160, 20), label="Re-enable achievements")
-            self.achieve.Bind(wx.EVT_BUTTON, self.loadData)
+            self.achieve = wx.Button(self, size=(165, 25), label="Re-enable achievements")
+            self.is_hardcore = self.world.level_wrapper.root_tag.get('IsHardcore', None)
+
+
+            if self.is_hardcore == 1:
+                self.set_hardcore = wx.Button(self, size=(165, 25), label="Disable Hardcore")
+                self.set_hardcore.Bind(wx.EVT_BUTTON, self.set_hardcore_mode)
+                self._sizer.Add(self.set_hardcore, 0, wx.LEFT, 0)
+            if self.is_hardcore == 0:
+                self.set_hardcore = wx.Button(self, size=(165, 25), label="Enable Hardcore")
+                self.set_hardcore.Bind(wx.EVT_BUTTON, self.set_hardcore_mode)
+                self._sizer.Add(self.set_hardcore, 0, wx.LEFT, 0)
+            # self.make_hardcore = wx.Button(self, size=(165, 25), label="Make Hardcore")
+            self.achieve.Bind(wx.EVT_BUTTON, self.re_enable_achievements)
 
         self.listRadio = {
             "Survival": 0,
@@ -11005,6 +11023,8 @@ class SetPlayerData(wx.Frame):
 
         if self.platform == "bedrock":
             self._sizer.Add(self.infoRai, 0, wx.LEFT, 0)
+
+
         self._sizer.Add(self.gm_mode, 0, wx.LEFT, 0)
 
         self._sizer.Add(self.apply, 0, wx.LEFT, 160)
@@ -11218,22 +11238,32 @@ class SetPlayerData(wx.Frame):
                       "\nNOTE: You MUST CLOSE This world Before Opening in MineCraft",
                       "INFO", wx.OK | wx.ICON_INFORMATION)
 
-    def saveData(self, head, data):
-        with open(self.world.level_path + "\\" + "level.dat", "wb") as f:
-            f.write(head + data)
-            wx.MessageBox("Achievements are Re-enable",
-                          "INFO", wx.OK | wx.ICON_INFORMATION)
+    # def saveData(self, head, data):
+    #     with open(self.world.level_path + "\\" + "level.dat", "wb") as f:
+    #         f.write(head + data)
+    #         wx.MessageBox("Achievements are Re-enable",
+    #                       "INFO", wx.OK | wx.ICON_INFORMATION)
+    def set_hardcore_mode(self, _):
+        self.is_hardcore = self.world.level_wrapper.root_tag.get('IsHardcore', None)
+        if self.is_hardcore == 1:
+            self.set_hardcore.SetLabel("Enable Hardcore")
+            self.world.level_wrapper.root_tag['IsHardcore'] = ByteTag(0)
+        if self.is_hardcore == 0:
+            self.set_hardcore.SetLabel("Disable Hardcore")
+            self.world.level_wrapper.root_tag['IsHardcore'] = ByteTag(1)
+        self.world.level_wrapper.root_tag.save()
 
-    def loadData(self, _):
-        if self.platform != "bedrock":
-            wx.MessageBox("Java is not  suported",
-                          "INFO", wx.OK | wx.ICON_INFORMATION)
-            return
+
+    def re_enable_achievements(self, _):
+
         self.world.level_wrapper.root_tag['hasBeenLoadedInCreative'] = ByteTag(0)
         self.world.level_wrapper.root_tag['commandsEnabled'] = ByteTag(0)
         self.world.level_wrapper.root_tag['GameType'] = IntTag(0)
 
         self.world.level_wrapper.root_tag.save()
+        wx.MessageBox("Achievements are Re-enable",
+                              "INFO", wx.OK | wx.ICON_INFORMATION)
+
 
 
 class HardCodedSpawns(wx.Frame):
@@ -12997,15 +13027,17 @@ class BlendingWindow(wx.Frame):
 
     def process_heightmap_update(self, count, total):
         lower_keys = {-1: 4, -2: 3, -3: 2, -4: 1}
-
+        self.over_under_blending_limits = False
         for xx, zz in self.all_chunks:
             count += 1
             chunkkey = self.get_dim_chunkkey(xx, zz)
+            self.height = numpy.frombuffer(numpy.zeros(512, 'b'), "<i2").reshape((16, 16))
             for k, v in self.world.level_wrapper.level_db.iterate(start=chunkkey + b'\x2f\x00',
                                                                   end=chunkkey + b'\x2f\xff\xff'):
                 if len(k) > 8 < 10:
                     key = self.unsignedToSigned(k[-1], 1)
                     blocks, block_bits, extra_blk, extra_blk_bits = self.get_pallets_and_extra(v[3:])
+
                     for x in range(16):
                         for z in range(16):
                             for y in range(16):
@@ -13025,7 +13057,9 @@ class BlendingWindow(wx.Frame):
 
             height_biome_key = b'+'
             biome = self.level_db.get(chunkkey + height_biome_key)[512:]
+            print(self.height)
             height = self.height.tobytes()
+
             self.level_db.put(chunkkey + height_biome_key, height + biome)
 
         if self.over_under_blending_limits:
@@ -13385,7 +13419,7 @@ class Tools(wx.Frame):
         self.chunk_save_load.Show()
 
     def selection_org(self, _):
-        self.selection_organizer = SelectionOrganizer(self.parent, self.canvas, self.world)
+        self.selection_organizer = SelectionOrganizer(self.parent, self.world, self.canvas)
         self.selection_organizer.Show()
 
     def buffer_world(self, _):
@@ -13466,7 +13500,7 @@ class MultiTools(wx.Panel, DefaultOperationUI):
         wx.Panel.__init__(self, parent)
         DefaultOperationUI.__init__(self, parent, canvas, world, options_path)
 
-        self.version = 5
+        self.version = 6
         self.remote_version = self.get_top_of_remote_file(
             r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins.py')
 
@@ -13557,7 +13591,10 @@ class MultiTools(wx.Panel, DefaultOperationUI):
                               f"Fixed issue with force blending on Bedrock,\n"
                               f"Added message to select player for Set Player Data,\n"
                               f"Added New button to Reset Vaults in Java and Bedrock.\n"
-                              f"v:5 Fixed Java Force Blending Tool\n", #List of changes....
+                              f"v:5 Fixed Java Force Blending Tool\n"
+                              f"v:6 Added missing imports for NBT Editor For Inventory\n"
+                              f"Fixed Bedrock height maps for blending tool\n"
+                              f"Added enable disable hardcore button in Set player data for bedrock\n", #List of changes....
                               "Plugin has Been Updated", wx.OK | wx.ICON_INFORMATION)
 
 export = dict(name="# Multi TOOLS", operation=MultiTools)  # By PremiereHell
