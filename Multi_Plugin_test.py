@@ -17071,8 +17071,9 @@ class MultiTools(wx.Panel, DefaultOperationUI):
             r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/refs/heads/main/Multi_Plugin_test.py')
 
         if self.remote_version > self.version and self.remote_version is not None:
-            self.download_latest_script()
             self.download_latest_json()
+            self.download_latest_script()
+
             event = [x for x in parent.GetChildren() if isinstance(x, wx.BitmapButton)][1]
             custom_event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, event.GetId())
             custom_event.SetEventObject(event)
@@ -17121,7 +17122,7 @@ class MultiTools(wx.Panel, DefaultOperationUI):
     def get_script_path(self):
         return os.path.abspath(__file__)
     def get_script_path_for_json(self):
-        return os.path.abspath('item_atlas.json')
+        return os.path.join(os.path.dirname(os.path.abspath(__file__)), 'item_atlas.json')
 
     def get_top_of_remote_file(self, url, num_bytes=100):
         try:
