@@ -17105,16 +17105,16 @@ class MultiTools(wx.Panel, DefaultOperationUI):
                 print('Could not get a response to auto apply, please visit the repo.')
         except Exception as e:
             print(f"Error downloading the latest script: {e}")
-        try:
-            url = r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/item_atlas.json'
-            response = urllib.request.urlopen(url)
-            if response.status == 200:
-                with open(self.get_script_path(), 'w', encoding='utf-8') as file:
-                    file.write(response.read().decode('utf-8'))
-            else:
-                print('Could not get a response to auto apply, please visit the repo.')
-        except Exception as e:
-            print(f"Error downloading the latest script: {e}")
+        # try:
+        #     url = r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/item_atlas.json'
+        #     response = urllib.request.urlopen(url)
+        #     if response.status == 200:
+        #         with open(self.get_script_path(), 'w', encoding='utf-8') as file:
+        #             file.write(response.read().decode('utf-8'))
+        #     else:
+        #         print('Could not get a response to auto apply, please visit the repo.')
+        # except Exception as e:
+        #     print(f"Error downloading the latest script: {e}")
 
     def get_script_path(self):
         return os.path.abspath(__file__)
