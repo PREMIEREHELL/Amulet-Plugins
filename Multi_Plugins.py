@@ -17164,7 +17164,7 @@ class MultiTools(wx.Panel, DefaultOperationUI):
             file_mod_time = os.path.getmtime(file_path)
             file_age = current_time - file_mod_time
             if file_age < age_limit:
-
+                self.download_latest_json()
                 wx.MessageBox(f"A new version has been apply was v 4 now version"
                            f" {self.remote_version}\n"
                               f"V: 3 and 4\n"
@@ -17182,6 +17182,6 @@ class MultiTools(wx.Panel, DefaultOperationUI):
                               f"Fixed Bedrock height maps for blending tool\n"
                               f"Added enable disable hardcore button in Set player data for bedrock\n", #List of changes....
                               "Plugin has Been Updated", wx.OK | wx.ICON_INFORMATION)
-                self.download_latest_json()
+
 
 export = dict(name="# Multi TOOLS", operation=MultiTools)  # By PremiereHell
