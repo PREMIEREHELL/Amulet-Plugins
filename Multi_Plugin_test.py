@@ -17111,7 +17111,7 @@ class MultiTools(wx.Panel, DefaultOperationUI):
             url = r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/item_atlas.json'
             response = urllib.request.urlopen(url)
             if response.status == 200:
-                with open(self.get_script_path(), 'w', encoding='utf-8') as file:
+                with open(self.get_script_path_for_json(), 'w', encoding='utf-8') as file:
                     file.write(response.read().decode('utf-8'))
             else:
                 print('Could not get a response to auto apply, please visit the repo.')
