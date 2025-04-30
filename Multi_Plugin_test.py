@@ -1,4 +1,4 @@
-# 7 v
+# 8 v
 import urllib.request
 import collections
 import time
@@ -17068,7 +17068,7 @@ class MultiTools(wx.Panel, DefaultOperationUI):
 
         self.version = 7
         self.remote_version = self.get_top_of_remote_file(
-            r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins_test.py')
+            r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/refs/heads/main/Multi_Plugin_test.py')
 
         if self.remote_version > self.version and self.remote_version is not None:
             self.download_latest_script()
@@ -17096,7 +17096,7 @@ class MultiTools(wx.Panel, DefaultOperationUI):
 
     def download_latest_script(self):
         try:
-            url = r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/Multi_Plugins_test.py'
+            url = r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/refs/heads/main/Multi_Plugin_test.py'
             response = urllib.request.urlopen(url)
             if response.status == 200:
                 with open(self.get_script_path(), 'w', encoding='utf-8') as file:
@@ -17105,16 +17105,16 @@ class MultiTools(wx.Panel, DefaultOperationUI):
                 print('Could not get a response to auto apply, please visit the repo.')
         except Exception as e:
             print(f"Error downloading the latest script: {e}")
-        # try:
-        #     url = r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/item_atlas.json'
-        #     response = urllib.request.urlopen(url)
-        #     if response.status == 200:
-        #         with open(self.get_script_path(), 'w', encoding='utf-8') as file:
-        #             file.write(response.read().decode('utf-8'))
-        #     else:
-        #         print('Could not get a response to auto apply, please visit the repo.')
-        # except Exception as e:
-        #     print(f"Error downloading the latest script: {e}")
+        try:
+            url = r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/item_atlas.json'
+            response = urllib.request.urlopen(url)
+            if response.status == 200:
+                with open(self.get_script_path(), 'w', encoding='utf-8') as file:
+                    file.write(response.read().decode('utf-8'))
+            else:
+                print('Could not get a response to auto apply, please visit the repo.')
+        except Exception as e:
+            print(f"Error downloading the latest script: {e}")
 
     def get_script_path(self):
         return os.path.abspath(__file__)
