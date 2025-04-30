@@ -1259,7 +1259,7 @@ class PlayersData:
 
         @property
         def leveldb(self):
-            if hasattr(self.world, "level_db"):
+            if hasattr(self.world, "level_wrapper"):
                 return self.world.level_wrapper.level_db
             else:
                 return self.world
