@@ -17071,7 +17071,7 @@ class MultiTools(wx.Panel, DefaultOperationUI):
             r'https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/refs/heads/main/Multi_Plugin_test.py')
 
         if self.remote_version > self.version and self.remote_version is not None:
-            self.download_latest_json()
+
             self.download_latest_script()
 
             event = [x for x in parent.GetChildren() if isinstance(x, wx.BitmapButton)][1]
@@ -17157,13 +17157,14 @@ class MultiTools(wx.Panel, DefaultOperationUI):
             tools = Tools(self.parent, self.world, self.canvas)
             tools.Show()
 
-    def is_file_recent(self,  age_limit=20):
+    def is_file_recent(self,  age_limit=25):
         file_path = self.get_script_path()
         if os.path.exists(file_path):
             current_time = time.time()
             file_mod_time = os.path.getmtime(file_path)
             file_age = current_time - file_mod_time
             if file_age < age_limit:
+
                 wx.MessageBox(f"A new version has been apply was v 4 now version"
                            f" {self.remote_version}\n"
                               f"V: 3 and 4\n"
@@ -17181,5 +17182,6 @@ class MultiTools(wx.Panel, DefaultOperationUI):
                               f"Fixed Bedrock height maps for blending tool\n"
                               f"Added enable disable hardcore button in Set player data for bedrock\n", #List of changes....
                               "Plugin has Been Updated", wx.OK | wx.ICON_INFORMATION)
+                self.download_latest_json()
 
 export = dict(name="!!! Test A Multi TOOLZ", operation=MultiTools)  # By PremiereHell
