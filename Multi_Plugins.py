@@ -68,6 +68,7 @@ from amulet_map_editor.programs.edit.api.events import (
 )
 import base64
 import io
+import wx.lib.scrolledpanel as scrolled
 if TYPE_CHECKING:
     from amulet.api.level import BaseLevel
     from amulet_map_editor.programs.edit.api.canvas import EditCanvas
