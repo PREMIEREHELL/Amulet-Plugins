@@ -206,7 +206,14 @@ def get_y_range(test_val):
         return (-64, 319)
 ############# Start Inventory EDITOR
 
-CONTAINER_TYPES = ["Shulker Box", "Dispenser", "Chest", "Barrel"]
+CONTAINERS = {
+            "bundle": "Bundle",
+            "shulker": "Shulker Box",
+            "dispenser": "Dispenser",
+            "chest": "Chest",
+            "barrel": "Barrel",
+        }
+CONTAINER_TYPES = ["Shulker Box", "Dispenser", "Chest", "Barrel", "Bundle"]
 categories = {
         "Building Blocks": {
         "Planks": [(0, 9), (11, 12)],
@@ -303,10 +310,10 @@ categories = {
     },
 }
 armor_item_range = {
-    -1: list(range(880, 886)) + [1042, 610] + list(range(1347, 1354)),  # "Helmet"
-    -2: list(range(886, 892)) + [1043],  # "Chest"
-    -3: range(892, 898),  # "Leggings"
-    -4: range(898, 904),  # "Boots"
+    0: list(range(880, 886)) + [1042, 610] + list(range(1347, 1354)),  # "Helmet"
+    1: list(range(886, 892)) + [1043],  # "Chest"
+    2: range(892, 898),  # "Leggings"
+    3: range(898, 904),  # "Boots"
 
 
 }
@@ -658,6 +665,617 @@ def check_set_default_book(bedrock_id): #check and set book
         })
         return (default_tag)
 
+CONTAINERS = {
+            "bundle": "Bundle",
+            "shulker": "Shulker Box",
+            "dispenser": "Dispenser",
+            "chest": "Chest",
+            "barrel": "Barrel",
+        }
+CONTAINER_TYPES = ["Shulker Box", "Dispenser", "Chest", "Barrel", "Bundle"]
+categories = {
+        "Building Blocks": {
+        "Planks": [(0, 9), (11, 12)],
+        "Walls": [(13, 38)],
+        "Fences": [(39, 51)],
+        "Fence_Gates": [(53, 63)],
+        "Stairs": [(64, 121)],
+        "Doors": [(122, 142)],
+        "Trapdoors": [(143, 163)],
+        "Glass": [165, 182, 1045, 1193],
+        "Stained_Glass": [(166, 181)],
+        "Glass_Panes": [(184, 199), 1734],
+        "Wool": [(365, 380)],
+        "Carpets": [(381, 396), 705, 707],
+        "Concrete": [(413, 428)],
+        "Concrete_Powder": [(397, 412)],
+        "Terracotta": [(430, 461)],
+        "Bricks": [(264, 267), (269, 271), (276, 278), 281, 344, 349, (357, 359), (361, 362), 465, (759, 762), 1376],
+        "Blackstone": [(272, 273), 506, 513, 1580, 1597],
+        "Basalt": [509, (516, 517)],
+        "Tuff": [280, 508, 515],
+        "Copper_Blocks": [295, (303, 310), (327, 334), 340, 489, 501, 1365],
+        "Amethyst_Blocks": [720, 1378],
+        "Prismarine": [348, 350, 1379],
+        "Nether_Bricks": [360],
+        "Nylium": [(469, 470)],
+    },
+    "Natural Blocks": {
+        "Logs": [(522, 543), (562, 565), 742, 1765],
+        "Wood": [544, 546, 548, 550, 552, 554, 556, 558, 560],
+        "Stripped_Wood": [545, 547, 549, 551, 553, 555, 557, 559, 561],
+        "Leaves": [(568, 578)],
+        "Saplings": [(579, 587)],
+        "Mushroom_Blocks": [(740, 741)],
+        "Ores": [(483, 488), (490, 492), (494, 500), 1748],
+        "Raw Blocks": [202, (293, 294), (335, 339), (341, 343), 346, (352, 356), 363, 462, (466, 467), 473, (566, 567), 604, 703, 706, 708, 714, 854, (863, 872), 1357, 1564, 1719, (1723, 1724), 1760],
+    },
+    "Rails": {
+        "Rails": [(1555, 1556)],
+    },
+    "Water & Fire, Lava": [1762,(1730,1731)],
+    "Redstone": {
+        "Redstone Components 1": [(1557, 1558), 1561, (1565, 1579), (1582, 1596), 1598],
+        "Redstone Components 2": [ (1600, 1604), (1606, 1607), 1714, (1755, 1756)],
+        "Lamps": [1304, 1747],
+    },
+    "Farming": {
+        "Crops": [(589, 593), (595, 600), (605, 606), (609, 611), 686, 990, 992, 994, 998, 1754],
+        "Food": [(602, 603), (988, 989), 991, 995],
+        "Animal_Products": [(744, 745), (764, 766), (771, 849), (981, 984), 1752],
+    },
+    "Mob Drops": {
+        "Monster_Drops": [631, 641, 997, (1008, 1015), 1380, (1382, 1384), (1393, 1394), (1401, 1402), 1404, (1407, 1408)],
+        "Heads": [(1347, 1353)],
+    },
+    "Weapons": {
+        "Weapons": [(904, 909)],
+    },
+    "Tools": {
+        "Tools": [(910, 933)],
+    },
+    "Armor": {
+        "Armor": [(880, 903), 1042],
+    },
+    "Horse_Armor": {
+        "Horse_Armor": [(1036, 1039)],
+    },
+    "Fireworks": {
+        "Fireworks": [(1680, 1696)],
+        "Star": [1406, (1697, 1712)],
+    },
+    "Containers": {
+
+        "Shulker_Boxes": [(1262, 1278)],
+        "Bundles": [(1019, 1035)],
+        "Chests": [(1258, 1260), 1560],
+        "Barrel": [1261],
+        "Dispenser": [1604],
+    },
+    "Miscellaneous": {
+        "Dyes": [(668, 683)],
+        "Buckets": [(1337, 1346)],
+        "Potions": [(1047, 1187)],
+        "Music_Discs": [(1282, 1300)],
+        "Boats": [(1535, 1554)],
+        "Beds": [852, (1196, 1211), 1735],
+        "Signs": [(1306, 1317)],
+        "Hanging_Signs": [(1318, 1329)],
+        "Banners": [(1611, 1637)],
+        "Spawners": [(752, 753)],
+        "Coral": [(622, 626), (632, 636)],
+        "Dead_Coral": [(627, 630), (637, 640)],
+        "Enchanted_Books": [(1413, 1534)],
+    },
+}
+armor_item_range = {
+    0: list(range(880, 886)) + [1042, 610] + list(range(1347, 1354)),  # "Helmet"
+    1: list(range(886, 892)) + [1043],  # "Chest"
+    2: range(892, 898),  # "Leggings"
+    3: range(898, 904),  # "Boots"
+
+
+}
+color_dict = {
+            0: 'black',
+            8: 'gray',
+            7: 'light_gray',
+            15: 'white',
+            12: 'light_blue',
+            14: 'orange',
+            1: 'red',
+            4: 'blue',
+            5: 'purple',
+            13: 'magenta',
+            9: 'pink',
+            3: 'brown',
+            11: 'yellow',
+            10: 'lime',
+            2: 'green',
+            6: 'cyan',
+        }
+enchanted_books_map = {
+    0: {'ench': [{'id': 'Aqua Affinity', 'lvl': 1}]},
+    1: {'ench': [{'id': 'Bane of Arthropods', 'lvl': 1}]},
+    2: {'ench': [{'id': 'Bane of Arthropods', 'lvl': 2}]},
+    3: {'ench': [{'id': 'Bane of Arthropods', 'lvl': 3}]},
+    4: {'ench': [{'id': 'Bane of Arthropods', 'lvl': 4}]},
+    5: {'ench': [{'id': 'Bane of Arthropods', 'lvl': 5}]},
+    6: {'ench': [{'id': 'Blast Protection', 'lvl': 1}]},
+    7: {'ench': [{'id': 'Blast Protection', 'lvl': 2}]},
+    8: {'ench': [{'id': 'Blast Protection', 'lvl': 3}]},
+    9: {'ench': [{'id': 'Blast Protection', 'lvl': 4}]},
+    10: {'ench': [{'id': 'Channeling', 'lvl': 1}]},
+    11: {'ench': [{'id': 'Depth Strider', 'lvl': 1}]},
+    12: {'ench': [{'id': 'Depth Strider', 'lvl': 2}]},
+    13: {'ench': [{'id': 'Depth Strider', 'lvl': 3}]},
+    14: {'ench': [{'id': 'Efficiency', 'lvl': 1}]},
+    15: {'ench': [{'id': 'Efficiency', 'lvl': 2}]},
+    16: {'ench': [{'id': 'Efficiency', 'lvl': 3}]},
+    17: {'ench': [{'id': 'Efficiency', 'lvl': 4}]},
+    18: {'ench': [{'id': 'Efficiency', 'lvl': 5}]},
+    19: {'ench': [{'id': 'Feather Falling', 'lvl': 1}]},
+    20: {'ench': [{'id': 'Feather Falling', 'lvl': 2}]},
+    21: {'ench': [{'id': 'Feather Falling', 'lvl': 3}]},
+    22: {'ench': [{'id': 'Feather Falling', 'lvl': 4}]},
+    23: {'ench': [{'id': 'Fire Aspect', 'lvl': 1}]},
+    24: {'ench': [{'id': 'Fire Aspect', 'lvl': 2}]},
+    25: {'ench': [{'id': 'Fire Protection', 'lvl': 1}]},
+    26: {'ench': [{'id': 'Fire Protection', 'lvl': 2}]},
+    27: {'ench': [{'id': 'Fire Protection', 'lvl': 3}]},
+    28: {'ench': [{'id': 'Fire Protection', 'lvl': 4}]},
+    29: {'ench': [{'id': 'Flame', 'lvl': 1}]},
+    30: {'ench': [{'id': 'Fortune', 'lvl': 1}]},
+    31: {'ench': [{'id': 'Fortune', 'lvl': 2}]},
+    32: {'ench': [{'id': 'Fortune', 'lvl': 3}]},
+    33: {'ench': [{'id': 'Frost Walker', 'lvl': 1}]},
+    34: {'ench': [{'id': 'Frost Walker', 'lvl': 2}]},
+    35: {'ench': [{'id': 'Impaling', 'lvl': 1}]},
+    36: {'ench': [{'id': 'Impaling', 'lvl': 2}]},
+    37: {'ench': [{'id': 'Impaling', 'lvl': 3}]},
+    38: {'ench': [{'id': 'Impaling', 'lvl': 4}]},
+    39: {'ench': [{'id': 'Impaling', 'lvl': 5}]},
+    40: {'ench': [{'id': 'Infinity', 'lvl': 1}]},
+    41: {'ench': [{'id': 'Knockback', 'lvl': 1}]},
+    42: {'ench': [{'id': 'Knockback', 'lvl': 2}]},
+    43: {'ench': [{'id': 'Looting', 'lvl': 1}]},
+    44: {'ench': [{'id': 'Looting', 'lvl': 2}]},
+    45: {'ench': [{'id': 'Looting', 'lvl': 3}]},
+    46: {'ench': [{'id': 'Loyalty', 'lvl': 1}]},
+    47: {'ench': [{'id': 'Loyalty', 'lvl': 2}]},
+    48: {'ench': [{'id': 'Loyalty', 'lvl': 3}]},
+    49: {'ench': [{'id': 'Luck of the Sea', 'lvl': 1}]},
+    50: {'ench': [{'id': 'Luck of the Sea', 'lvl': 2}]},
+    51: {'ench': [{'id': 'Luck of the Sea', 'lvl': 3}]},
+    52: {'ench': [{'id': 'Lure', 'lvl': 1}]},
+    53: {'ench': [{'id': 'Lure', 'lvl': 2}]},
+    54: {'ench': [{'id': 'Lure', 'lvl': 3}]},
+    55: {'ench': [{'id': 'Mending', 'lvl': 1}]},
+    56: {'ench': [{'id': 'Multishot', 'lvl': 1}]},
+    57: {'ench': [{'id': 'Piercing', 'lvl': 1}]},
+    58: {'ench': [{'id': 'Piercing', 'lvl': 2}]},
+    59: {'ench': [{'id': 'Piercing', 'lvl': 3}]},
+    60: {'ench': [{'id': 'Piercing', 'lvl': 4}]},
+    61: {'ench': [{'id': 'Power', 'lvl': 1}]},
+    62: {'ench': [{'id': 'Power', 'lvl': 2}]},
+    63: {'ench': [{'id': 'Power', 'lvl': 3}]},
+    64: {'ench': [{'id': 'Power', 'lvl': 4}]},
+    65: {'ench': [{'id': 'Power', 'lvl': 5}]},
+    66: {'ench': [{'id': 'Projectile Protection', 'lvl': 1}]},
+    67: {'ench': [{'id': 'Projectile Protection', 'lvl': 2}]},
+    68: {'ench': [{'id': 'Projectile Protection', 'lvl': 3}]},
+    69: {'ench': [{'id': 'Projectile Protection', 'lvl': 4}]},
+    70: {'ench': [{'id': 'Protection', 'lvl': 1}]},
+    71: {'ench': [{'id': 'Protection', 'lvl': 2}]},
+    72: {'ench': [{'id': 'Protection', 'lvl': 3}]},
+    73: {'ench': [{'id': 'Protection', 'lvl': 4}]},
+    74: {'ench': [{'id': 'Punch', 'lvl': 1}]},
+    75: {'ench': [{'id': 'Punch', 'lvl': 2}]},
+    76: {'ench': [{'id': 'Quick Charge', 'lvl': 1}]},
+    77: {'ench': [{'id': 'Quick Charge', 'lvl': 2}]},
+    78: {'ench': [{'id': 'Quick Charge', 'lvl': 3}]},
+    79: {'ench': [{'id': 'Respiration', 'lvl': 1}]},
+    80: {'ench': [{'id': 'Respiration', 'lvl': 2}]},
+    81: {'ench': [{'id': 'Respiration', 'lvl': 3}]},
+    82: {'ench': [{'id': 'Riptide', 'lvl': 1}]},
+    83: {'ench': [{'id': 'Riptide', 'lvl': 2}]},
+    84: {'ench': [{'id': 'Riptide', 'lvl': 3}]},
+    85: {'ench': [{'id': 'Sharpness', 'lvl': 1}]},
+    86: {'ench': [{'id': 'Sharpness', 'lvl': 2}]},
+    87: {'ench': [{'id': 'Sharpness', 'lvl': 3}]},
+    88: {'ench': [{'id': 'Sharpness', 'lvl': 4}]},
+    89: {'ench': [{'id': 'Sharpness', 'lvl': 5}]},
+    90: {'ench': [{'id': 'Silk Touch', 'lvl': 1}]},
+    91: {'ench': [{'id': 'Smite', 'lvl': 1}]},
+    92: {'ench': [{'id': 'Smite', 'lvl': 2}]},
+    93: {'ench': [{'id': 'Smite', 'lvl': 3}]},
+    94: {'ench': [{'id': 'Smite', 'lvl': 4}]},
+    95: {'ench': [{'id': 'Smite', 'lvl': 5}]},
+    96: {'ench': [{'id': 'Thorns', 'lvl': 1}]},
+    97: {'ench': [{'id': 'Thorns', 'lvl': 2}]},
+    98: {'ench': [{'id': 'Thorns', 'lvl': 3}]},
+    99: {'ench': [{'id': 'Unbreaking', 'lvl': 1}]},
+    100: {'ench': [{'id': 'Unbreaking', 'lvl': 2}]},
+    101: {'ench': [{'id': 'Unbreaking', 'lvl': 3}]},
+    102: {'ench': [{'id': 'Soul Speed', 'lvl': 1}]},
+    103: {'ench': [{'id': 'Soul Speed', 'lvl': 2}]},
+    104: {'ench': [{'id': 'Soul Speed', 'lvl': 3}]},
+    105: {'ench': [{'id': 'Curse of Binding', 'lvl': 1}]},
+    106: {'ench': [{'id': 'Curse of Vanishing', 'lvl': 1}]},
+    107: {'ench': [{'id': 'Swift Sneak', 'lvl': 1}]},
+    108: {'ench': [{'id': 'Swift Sneak', 'lvl': 2}]},
+    109: {'ench': [{'id': 'Swift Sneak', 'lvl': 3}]},
+    110: {'ench': [{'id': 'Density', 'lvl': 1}]},
+    111: {'ench': [{'id': 'Density', 'lvl': 2}]},
+    112: {'ench': [{'id': 'Density', 'lvl': 3}]},
+    113: {'ench': [{'id': 'Density', 'lvl': 4}]},
+    114: {'ench': [{'id': 'Density', 'lvl': 5}]},
+    115: {'ench': [{'id': 'Wind Burst', 'lvl': 1}]},
+    116: {'ench': [{'id': 'Wind Burst', 'lvl': 2}]},
+    117: {'ench': [{'id': 'Wind Burst', 'lvl': 3}]},
+    118: {'ench': [{'id': 'Breach', 'lvl': 1}]},
+    119: {'ench': [{'id': 'Breach', 'lvl': 2}]},
+    120: {'ench': [{'id': 'Breach', 'lvl': 3}]},
+    121: {'ench': [{'id': 'Breach', 'lvl': 4}]},
+}
+enchantments = {
+    8: "Aqua Affinity",
+    11: "Bane of Arthropods",
+    3: "Blast Protection",
+    32: "Channeling",
+    27: "Curse of Binding",
+    28: "Curse of Vanishing",
+    7: "Depth Strider",
+    15: "Efficiency",
+    2: "Feather Falling",
+    13: "Fire Aspect",
+    1: "Fire Protection",
+    21: "Flame",
+    18: "Fortune",
+    25: "Frost Walker",
+    29: "Impaling",
+    22: "Infinity",
+    12: "Knockback",
+    14: "Looting",
+    31: "Loyalty",
+    23: "Luck of the Sea",
+    24: "Lure",
+    26: "Mending",
+    33: "Multishot",
+    34: "Piercing",
+    19: "Power",
+    4: "Projectile Protection",
+    0: "Protection",
+    20: "Punch",
+    35: "Quick Charge",
+    6: "Respiration",
+    30: "Riptide",
+    9: "Sharpness",
+    16: "Silk Touch",
+    10: "Smite",
+    36: "Soul Speed",
+    5: "Thorns",
+    17: "Unbreaking",
+    37: "Swift Sneak",
+    40: "Breach",
+    39: "Density",
+    38: "Wind Burst"
+}
+valid_enchants = {
+            "helmet": [0, 1, 3, 4, 5, 6, 8, 17, 26, 27, 28],
+            "chestplate": [0, 1, 3, 4, 5, 17, 26, 27, 28],
+            "elytra": [17,26,27,28],
+            "leggings": [0, 1, 3, 4, 5, 37, 17, 26, 27, 28],
+            "boots": [0, 1, 2, 3, 4, 5, 7, 25, 36, 17, 26, 27, 28],
+            "sword": [9, 10, 11, 12, 13, 14, 16, 17, 26, 27, 28],
+            "axe": [9, 10, 11, 13, 14, 15, 16, 17, 18, 26, 27, 28],
+            "pickaxe": [15, 16, 17, 18, 26, 27, 28],
+            "shovel": [15, 16, 17, 18, 26, 27, 28],
+            "hoe": [15, 16, 17, 26, 27, 28],
+            "bow": [19, 20, 21, 22, 17, 26, 27, 28],
+            "crossbow": [19, 33, 34, 35, 17, 26, 27, 28],
+            "trident": [13, 16, 17, 26, 29, 30, 31, 32, 27, 28],
+            "fishing_rod": [16, 17, 23, 24, 26, 27, 28],
+            "shears": [16, 17, 26, 27, 28],
+            "mace": [17, 26, 38, 39, 40, 27, 28],
+            'enchanted_book': list(enchantments.keys()),
+            'shield' : [17,26, 27, 28]
+        }
+enchantment_applicability = {
+    0: ["armor"],  # Protection
+    1: ["armor"],  # Fire Protection
+    2: ["boots"],  # Feather Falling
+    3: ["armor"],  # Blast Protection
+    4: ["armor"],  # Projectile Protection
+    5: ["armor"],  # Thorns
+    6: ["helmet"],  # Respiration
+    7: ["boots"],  # Depth Strider
+    8: ["helmet"],  # Aqua Affinity
+    9: ["sword", "axe"],  # Sharpness
+    10: ["sword", "axe"],  # Smite
+    11: ["sword", "axe"],  # Bane of Arthropods
+    12: ["sword"],  # Knockback
+    13: ["sword"],  # Fire Aspect
+    14: ["sword"],  # Looting
+    15: ["tool"],  # Efficiency
+    16: ["tool"],  # Silk Touch
+    17: ["armor", "tool", "weapon", "elytra", "mace", "shield"],  # Unbreaking
+    18: ["tool"],  # Fortune
+    19: ["bow"],  # Power
+    20: ["bow"],  # Punch
+    21: ["bow"],  # Flame
+    22: ["bow"],  # Infinity
+    23: ["fishing_rod"],  # Luck of the Sea
+    24: ["fishing_rod"],  # Lure
+    25: ["boots"],  # Frost Walker
+    26: ["armor", "tool", "weapon", "elytra", "mace", "shield"],  # Mending
+    27: ["armor", "elytra", "shield"],  # Curse of Binding
+    28: ["armor", "tool", "weapon", "elytra", "mace", "shield"],  # Curse of Vanishing
+    29: ["trident"],  # Impaling
+    30: ["trident"],  # Riptide
+    31: ["trident"],  # Loyalty
+    32: ["trident"],  # Channeling
+    33: ["crossbow"],  # Multishot
+    34: ["crossbow"],  # Piercing
+    35: ["crossbow"],  # Quick Charge
+    36: ["boots"],  # Soul Speed
+    37: ["leggings"],  # Swift Sneak
+    38: ["mace"],  # Wind Burst
+    39: ["mace"],  # Density
+    40: ["mace"],  # Breach
+}
+max_levels = {
+    8: 1,    # Aqua Affinity
+    11: 5,   # Bane of Arthropods
+    3: 4,    # Blast Protection
+    32: 1,   # Channeling
+    27: 1,   # Curse of Binding
+    28: 1,   # Curse of Vanishing
+    7: 3,    # Depth Strider
+    15: 5,   # Efficiency
+    2: 4,    # Feather Falling
+    13: 2,   # Fire Aspect
+    1: 4,    # Fire Protection
+    21: 1,   # Flame
+    18: 3,   # Fortune
+    25: 2,   # Frost Walker
+    29: 5,   # Impaling
+    22: 1,   # Infinity
+    12: 2,   # Knockback
+    14: 3,   # Looting
+    31: 3,   # Loyalty
+    23: 1,   # Luck of the Sea
+    24: 1,   # Lure
+    26: 1,   # Mending
+    33: 1,   # Multishot
+    34: 1,   # Piercing
+    19: 5,   # Power
+    4: 4,    # Projectile Protection
+    0: 4,    # Protection
+    20: 2,   # Punch
+    35: 3,   # Quick Charge
+    6: 3,    # Respiration
+    30: 3,   # Riptide
+    9: 5,    # Sharpness
+    16: 1,   # Silk Touch
+    10: 5,   # Smite
+    36: 3,   # Soul Speed
+    5: 3,    # Thorns
+    17: 3,   # Unbreaking
+    37: 3,   # Swift Sneak
+    40: 4,   # Breach (not known)
+    39: 5,   # Density (not known)
+    38: 3    # Wind Burst (not known)
+}
+trims_dict = {
+    "Sentry": "sentry", "Vex": "vex", "Wild": "wild", "Coast": "coast",
+    "Dune": "dune", "Wayfinder": "wayfinder", "Shaper": "shaper",
+    "Raiser": "raiser", "Host": "host", "Ward": "ward", "Silence": "silence",
+    "Tide": "tide", "Snout": "snout", "Rib": "rib", "Eye": "eye",
+    "Spire": "spire", "Flow": "flow", "Bolt": "bolt"
+}
+custom_color_dict = {
+    "None": None, "Black": -14869215, "Red": -5231066, "Green": -10585066, "Brown": -8170446,
+    "Blue": -12827478, "Purple": -7785800, "Cyan": -15295332, "Light Gray": -6447721,
+    "Gray": -12103854, "Pink": -816214, "Lime": -8337633, "Yellow": -14869215,
+    "Light Blue": -12930086, "Magenta": -3715395, "Orange": -425955, "White": -986896
+}
+material_dict = {
+    "Iron": "iron", "Copper": "copper", "Gold": "gold", "Lapis": "lapis",
+    "Emerald": "emerald", "Diamond": "diamond", "Redstone": "redstone",
+    "Amethyst": "amethyst", "Quartz": "quartz", "Resin": "resin", "Netherite": "netherite"
+}
+TAG_CLASSES = {
+    "ByteTag": ByteTag, "ShortTag": ShortTag, "IntTag": IntTag, "LongTag": LongTag,
+    "FloatTag": FloatTag, "DoubleTag": DoubleTag, "StringTag": StringTag,
+    "ListTag": ListTag, "CompoundTag": CompoundTag,
+    "ByteArrayTag": ByteArrayTag, "IntArrayTag": IntArrayTag, "LongArrayTag": LongArrayTag
+}
+INPUT_SIZES = {
+    'ByteTag': 40, 'ShortTag': 60, 'IntTag': 80, 'LongTag': 100,
+    'FloatTag': 100, 'DoubleTag': 100, 'StringTag': 150,
+    'ListTag': 100, 'CompoundTag': 20, 'ByteArrayTag': 25,
+    'IntArrayTag': 100, 'LongArrayTag': 120
+}
+CLIP_BOARD = {}
+def get_item_type(item_id):
+    """Returns the type of item in the slot based on its ID or tag."""
+    types = [
+        "sword", "pickaxe", "axe", "shovel", "hoe",
+        "helmet", "chestplate", "leggings", "boots",
+        "bow", "crossbow", "trident", "elytra",
+        "fishing_rod", "mace", "enchanted_book", "shield"
+    ]
+    return next((t for t in types if t in item_id), "Not in list")
+
+def check_set_default_book(bedrock_id): #check and set book
+    if "enchanted_book:" in str(bedrock_id):
+        tag_key = int(str(bedrock_id).split(':')[1])
+        selected = enchanted_books_map[tag_key]
+        ench_id = next((k for k, v in enchantments.items() if v == selected['ench'][0]['id']), None)
+        ench_lvl = selected['ench'][0]['lvl']
+        default_tag = CompoundTag({
+            "ench": ListTag([
+                CompoundTag({
+                    "id": ByteTag(ench_id),
+                    "lvl": ByteTag(ench_lvl)
+                })
+            ])
+        })
+        return (default_tag)
+
+class PlayersData:
+    def __init__(self, world):
+        self.dict_of_player_data = collections.defaultdict(dict)
+        self.world = world
+        self.load_players_data()
+        self._player = {}
+
+    @property
+    def get_loaded_players_list(self):
+        return [x for x in self.dict_of_player_data.keys()]
+
+    def load_players_data(self):  # made it faster by using iterate 2 ranges
+        for k, v in self.leveldb.iterate(start=b'~local_player'
+                , end=b'~local_player' * 2):
+            if b'~local_player' in k:
+                nbt_dwellers = load(v, compressed=False, little_endian=True,
+                                    string_decoder=utf8_escape_decoder).compound
+                self.dict_of_player_data[k.decode()] = nbt_dwellers
+        for k, v in self.leveldb.iterate(start=b'player_server'
+                , end=b'player_server' * 14):
+            if b'player_server' in k:
+                nbt_dwellers = load(v, compressed=False, little_endian=True,
+                                    string_decoder=utf8_escape_decoder).compound
+                self.dict_of_player_data[k.decode()] = nbt_dwellers
+
+    def get_player(self, player_id):
+        if player_id not in self._player:
+            self._player[player_id] = self.Player(self.dict_of_player_data[player_id], player_id, self.world)
+        return self._player[player_id]
+
+    @property
+    def leveldb(self):
+        if hasattr(self.world, "level_wrapper"):
+            return self.world.level_wrapper.level_db
+        else:
+            return self.world
+
+    class Player:
+
+
+        def __init__(self, player_data, player_id, world):
+            self.player_data = player_data
+            self.player_id = player_id
+            self.world = world
+        def _traverse(self, keys):
+            current = self.player_data
+            for key in keys[:-1]:
+                if isinstance(current, (collections.defaultdict, dict, CompoundTag)):
+                    current = current[key]
+                elif isinstance(current, (list, ListTag)):
+                    for i, x in enumerate(current):
+                        if x.get('Slot', IntTag(-9999)).py_int == key:
+                            key = i
+                            break
+                        else:
+                            pass
+                    current = current[key]
+
+                else:
+                    raise KeyError(f"Invalid key/index during traversal: {key}")
+            return current, keys[-1]
+
+        def __getitem__(self, keys):
+            if isinstance(keys, ListTag) and keys and isinstance(keys[-1], CompoundTag) and "Slot" in keys[-1]:
+                # Special inventory-style access with {"Slot": N}
+                slot_target = keys[-1]["Slot"]
+                list_keys = keys[:-1]
+                return self.get_or_create_slot_item(list_keys, slot_target)
+            else:
+                # Normal nested traversal
+                current = self.player_data
+
+                for key in keys:
+
+                    if isinstance(current, (collections.defaultdict, dict, CompoundTag)):
+                        current = current[key]
+                    elif isinstance(current, (list, ListTag)):
+                        if len(current) == 0:
+                            raise KeyError(f"No Entrys: {key}")
+                        else:
+                            for i,x in enumerate(current):
+                                if x.get('Slot', IntTag(-9999)).py_int == key:
+                                    key = i
+                                    break
+                                else:
+                                    pass
+                            current = current[key]
+                    else:
+                        raise KeyError(f"Invalid key/index: {key}")
+                return current
+
+        def __setitem__(self, keys, value):
+
+            current, last_key = self._traverse(keys)
+            current[last_key] = value
+
+        def __delitem__(self, keys):
+            current, last_key = self._traverse(keys)
+            del current[last_key]
+
+        def pop(self, keys, default=None):
+            current, last_key = self._traverse(keys)
+            return current.pop(last_key, default)
+
+        def keys(self, keys=None):
+            if keys is None:
+                return self.player_data.keys()
+            nested = self[keys]
+            if hasattr(nested, 'keys'):
+                return nested.keys()
+            raise TypeError("Target object does not support .keys()")
+
+        def items(self, keys=None):
+            if keys is None:
+                return self.player_data.items()
+            nested = self[keys]
+            if hasattr(nested, 'items'):
+                return nested.items()
+            raise TypeError("Target object does not support .items()")
+
+        @property
+        def leveldb(self):
+            if hasattr(self.world, "level_wrapper"):
+                return self.world.level_wrapper.level_db
+            else:
+                return self.world
+
+        def save_player(self):
+            """Updates NBT data based on the current input fields."""
+
+            nbt = self.player_data
+            raw_nbt = nbt.save_to(compressed=False, little_endian=True,
+                                  string_encoder=utf8_escape_encoder)
+            self.leveldb.put(self.player_id.encode(), raw_nbt)
+            print("Saved to World Updated NBT Data:", self.player_id.encode())
+
+        def get_or_create_slot_item(self, keys, slot_value):
+            """Finds or creates a CompoundTag with Slot=slot_value inside a ListTag."""
+            current = self[keys]
+            if not isinstance(current, ListTag):
+                raise TypeError("Target is not a list")
+
+            # Try to find existing item with Slot == slot_value
+            for item in current:
+                if isinstance(item, CompoundTag) and item.get("Slot") == slot_value:
+                    return item
+
+            # If not found, create and append it
+            new_item = CompoundTag({"Slot": slot_value})
+            current.append(new_item)
+            return new_item
+
 class IconResources:
     _instance = None  # Class-level instance reference
 
@@ -718,6 +1336,7 @@ class IconResources:
     def get_scaled_cache32(self):
         """Returns the icon cache dictionary."""
         return self.scaled_cache32
+
     def load_icon_cache(self, atlas):
         """Loads icons from the item atlas."""
 
@@ -750,14 +1369,6 @@ class IconResources:
             scaled_img = img.Scale(target_width, target_height, wx.IMAGE_QUALITY_HIGH)
             bmp = scaled_img.ConvertToBitmap()
             self.scaled_cache[item_id] = bmp
-
-        # target_width = 32
-        # target_height = 32
-        #
-        # for item_id, img in self.icon_cache.items():
-        #     scaled_img = img.Scale(target_width, target_height, wx.IMAGE_QUALITY_HIGH)
-        #     bmp = scaled_img.ConvertToBitmap()
-        #     self.scaled_cache32[item_id] = bmp
 
     def get_bitmap(self, bedrock_id):
         return self.scaled_cache.get(bedrock_id)
@@ -808,6 +1419,7 @@ class IconResources:
             self.open_catalog(parent, data, slot)
 
             self.catalog_window.Hide()
+
     def toggle_catalog(self, parent, data, slot):
         """Toggle between showing and hiding the catalog window."""
         def poss():
@@ -840,6 +1452,7 @@ class IconResources:
         else:
             self.catalog_window.update_data(data)
             self.catalog_window.update_slot(slot)
+
             if self.catalog_window.IsShown():
                 self.catalog_window.Hide()
             else:
@@ -851,8 +1464,6 @@ class IconResources:
                 self.catalog_window.Show()
 
 class InventoryEditor(wx.Frame):
-
-
     def __init__(self, parent, selected_player, keys, title="Inventory Editor"):
         super().__init__(parent, title=title, size=(810, 740), style=wx.DEFAULT_FRAME_STYLE | wx.STAY_ON_TOP)
 
@@ -868,7 +1479,7 @@ class InventoryEditor(wx.Frame):
         self.slot_map = collections.defaultdict(list)
         self.items_id = []
         self.armor_tags = {}
-        self.current_slot = 555555555555555
+        self.current_slot = 0
         main_vbox = wx.BoxSizer(wx.VERTICAL)
         self.scroll_panel = wx.ScrolledWindow(self, style=wx.VSCROLL)
         self.font = wx.Font(18, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
@@ -888,29 +1499,14 @@ class InventoryEditor(wx.Frame):
         # self.Move(self.GetPosition())
         self.Show()
 
-    # def on_close(self, event):
-    #     """
-    #     This method is triggered when the inventory editor window is closed.
-    #     It cleans up any resources and ensures proper window destruction.
-    #     """
-    #     # Perform any necessary cleanup
-    #     if hasattr(self, 'resources'):  # Ensure 'resources' is defined
-    #         self.resources.icon_cache.clear()
-    #         self.resources.items_id.clear()
-    #
-    #     # Ensure proper cleanup of the scroll panel and other wx objects
-    #     if hasattr(self, 'scroll_panel'):
-    #         self.scroll_panel.Destroy()
-    #
-    #     # Destroy the window after cleanup
-    #     self.Destroy()
     def get_selected_slot(self):
         return self.current_slot
+
     def set_selected_slot(self, selected):
         self.current_slot = selected
+
     def update_slot(self, slot_index, bedrock_id, icon, display_name, tagdata):
         """Updates an existing button in the grid with new item data."""
-
         if slot_index in self.slot_map:  # Ensure the button exists
             button = self.slot_map[slot_index]
 
@@ -924,6 +1520,24 @@ class InventoryEditor(wx.Frame):
                 self.set_selected_slot(slot_index)
             self.scroll_panel.Layout()
             self.scroll_panel.Refresh()
+
+    def save_button(self, event):
+        print(self.GetTitle())
+        for x in self.slot_map.values():
+            # if isinstance(x[0], IconButton):
+            if x.GetName != 'Empty' and x.Get_slot_map_key()[0] != 'Armor' and x.GetValue().py_int > 0:
+                keys_to_save_count_value = self.keys + list(x.Get_slot_map_key()) +  ['Count']
+                print(self.selected_player[keys_to_save_count_value])
+                print(x.GetValue(), x.GetName() )
+
+                self.selected_player[keys_to_save_count_value] = x.GetValue()
+
+
+
+        self.selected_player.save_player()
+
+    def ender_chest(self, event):
+        InventoryEditor(self, self.selected_player, [], title='Ender Chest')
 
     def populate_grid(self):
         self.grid_sizer.Clear(delete_windows=False)
@@ -950,12 +1564,19 @@ class InventoryEditor(wx.Frame):
             if bundle:
                 tag_list = [(x.get('Name').py_str, x.get('Count').py_int) for x in bundle]
                 display_name += "\n Items:" + get_items_info(tag_list)
-
-            item_list = item.get('tag', {}).get('Items')
+            try:
+                item_list = item.get('tag', {}).get('Items')
+            except  (KeyError, IndexError, TypeError):
+                item_list = False
+                print('key error on empty list')
+                pass
             if item_list:
-                tag_list = [(x.get('Name').py_str, x.get('Count').py_int) for x in item_list]
-                display_name += "\n Items:" + get_items_info(tag_list)
-
+                if len(item_list) > 0:
+                    try:
+                        tag_list = [(x.get('Name').py_str, x.get('Count').py_int) for x in item_list]
+                        display_name += "\n Items:" + get_items_info(tag_list)
+                    except:
+                        pass
             ench = item.get('tag', {}).get('ench')
             if ench:
                 display_name += "\n Enchantments:"
@@ -984,13 +1605,20 @@ class InventoryEditor(wx.Frame):
             for i in range(count):
                 if i == 1 and not_extra:
                     save_bmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE, wx.ART_TOOLBAR, (80, 80))
-                    button = IconButton(self.scroll_panel, None, "Save", 2000, save_bmp, -200, self, normal='Save')
+                    button = IconButton(self.scroll_panel, None, "Save", 2000, save_bmp, -200, self)
+                    button.HideButtonValue()
+                    button.UnbindButtonMenu()
+                    button.Bind(wx.EVT_BUTTON, self.save_button)
+
                     button.SetForegroundColour((0, 255, 0))
                     self.grid_sizer.Add(button, 0, wx.TOP, 5)
                 elif i == 2 and main:
                     icon = self.resources.get_scaled_cache['ender_chest']
-                    button = IconButton(self.scroll_panel, 'ender_chest', "Player EnderChest", 2000, icon, -201, self,
-                                        normal=True)
+                    button = IconButton(self.scroll_panel, 'ender_chest', "Player EnderChest", 2000, icon, -201, self)
+                    button.HideButtonValue()
+                    button.UnbindButtonMenu()
+                    button.SetName('EnderButton')
+                    button.Bind(wx.EVT_BUTTON, self.ender_chest)
                     button.SetForegroundColour((0, 255, 0))
                     self.grid_sizer.Add(button, 0, wx.TOP, 5)
                 else:
@@ -1010,11 +1638,11 @@ class InventoryEditor(wx.Frame):
                 # Try to get icon, fallback to NullBitmap
                 icon_bitmap = self.resources.get_scaled_cache.get(item_name, wx.NullBitmap)
 
-                button = IconButton(self.scroll_panel, item_name, display_name, count, icon_bitmap, -i - 1, self)
-                button.set_last_key('Armor')
-
+                button = IconButton(self.scroll_panel, item_name, display_name, count, icon_bitmap, i , self)
+                button.HideButtonValue()
+                button.Set_slot_map_key('Armor', i)
                 self.grid_sizer.Add(button, 0, wx.CENTRE, 1)
-                self.slot_map[-i - 1] = button
+                self.slot_map[('Armor' , i)] = button
                 armor_buttons.append(button)
 
             middle_slots(4)
@@ -1025,14 +1653,14 @@ class InventoryEditor(wx.Frame):
             display_name = more_display_info(display_name, offhand_item)
             count = offhand_item.get("Count", 1) if offhand_item else 0
             icon_bitmap = self.resources.get_scaled_cache.get(item_name)
-            if icon_bitmap:
-                icon_bitmap = icon_bitmap
-            offhand_button = IconButton(self.scroll_panel, item_name, display_name, count, icon_bitmap, 40, self)
-            offhand_button.SetBackgroundColour((0, 255, 0))
-            offhand_button.set_last_key('Offhand')
-            self.grid_sizer.Add(offhand_button, 0, wx.ALIGN_TOP, 1)
-            self.slot_map[40] = offhand_button
 
+            offhand_button = IconButton(self.scroll_panel, item_name, display_name, count, icon_bitmap, 40, self)
+
+            offhand_button.SetBackgroundColour((0, 255, 0))
+
+            self.grid_sizer.Add(offhand_button, 0, wx.ALIGN_TOP, 1)
+            self.slot_map[('Offhand',0)] = offhand_button
+            offhand_button.Set_slot_map_key('Offhand',0)
             range_order = list(range(9, 36)) + list(range(0, 9))
             for slot in range_order:
                 item = next((i for i in self.inventory.get('Inventory', []) if i.get("Slot").py_int == slot), None)
@@ -1044,11 +1672,12 @@ class InventoryEditor(wx.Frame):
                 if icon_bitmap:
                     icon_bitmap = icon_bitmap
                 button = IconButton(self.scroll_panel, item_name, display_name, count, icon_bitmap, slot, self)
-                button.set_last_key('Inventory')
+
                 if slot == 0:
                     middle_slots(9, main=False, not_extra=False)
                 self.grid_sizer.Add(button, 0, wx.TOP, -15 if slot < 9 else 10)
-                self.slot_map[slot] = button
+                self.slot_map[('Inventory', slot)] = button
+                button.Set_slot_map_key('Inventory', slot)
         else:
             CONTAINER_CONFIG = {
                 "Bundle": {
@@ -1143,10 +1772,10 @@ class InventoryEditor(wx.Frame):
                     slot,
                     self
                 )
-                button.set_last_key(key)
-                self.grid_sizer.Add(button, 0, wx.BOTTOM, 10)
-                self.slot_map[slot] = button
 
+                self.grid_sizer.Add(button, 0, wx.BOTTOM, 10)
+                self.slot_map[(key,slot)] = button
+                button.Set_slot_map_key(key,slot)
         self.scroll_panel.SetSizer(self.grid_sizer)
         self.grid_sizer.Layout()
         self.scroll_panel.FitInside()
@@ -1154,148 +1783,13 @@ class InventoryEditor(wx.Frame):
         self.scroll_panel.Layout()
         self.Layout()
 
-class PlayersData:
-    def __init__(self, world):
-        self.dict_of_player_data = collections.defaultdict(dict)
-        self.world = world
-        self.load_players_data()
-        self._player = {}
-
-    @property
-    def get_loaded_players_list(self):
-        return [x for x in self.dict_of_player_data.keys()]
-
-    def load_players_data(self):  # made it faster by using iterate 2 ranges
-        for k, v in self.leveldb.iterate(start=b'~local_player'
-                , end=b'~local_player' * 2):
-            if b'~local_player' in k:
-                nbt_dwellers = load(v, compressed=False, little_endian=True,
-                                    string_decoder=utf8_escape_decoder).compound
-                self.dict_of_player_data[k.decode()] = nbt_dwellers
-        for k, v in self.leveldb.iterate(start=b'player_server'
-                , end=b'player_server' * 14):
-            if b'player_server' in k:
-                nbt_dwellers = load(v, compressed=False, little_endian=True,
-                                    string_decoder=utf8_escape_decoder).compound
-                self.dict_of_player_data[k.decode()] = nbt_dwellers
-
-    def get_player(self, player_id):
-        if player_id not in self._player:
-            self._player[player_id] = self.Player(self.dict_of_player_data[player_id], player_id, self.world)
-        return self._player[player_id]
-
-    @property
-    def leveldb(self):
-        if hasattr(self.world, "level_wrapper"):
-            return self.world.level_wrapper.level_db
-        else:
-            return self.world
-
-    class Player:
-
-
-        def __init__(self, player_data, player_id, world):
-            self.player_data = player_data
-            self.player_id = player_id
-            self.world = world
-        def _traverse(self, keys):
-            current = self.player_data
-            for key in keys[:-1]:
-                if isinstance(current, (collections.defaultdict, dict, CompoundTag)):
-                    current = current[key]
-                elif isinstance(current, (list, ListTag)):
-                    current = current[key]
-                else:
-                    raise KeyError(f"Invalid key/index during traversal: {key}")
-            return current, keys[-1]
-
-        def __getitem__(self, keys):
-            if isinstance(keys, list) and keys and isinstance(keys[-1], dict) and "Slot" in keys[-1]:
-                # Special inventory-style access with {"Slot": N}
-                slot_target = keys[-1]["Slot"]
-                list_keys = keys[:-1]
-                return self.get_or_create_slot_item(list_keys, slot_target)
-            else:
-                # Normal nested traversal
-                current = self.player_data
-
-                for key in keys:
-
-                    if isinstance(current, (collections.defaultdict, dict, CompoundTag)):
-                        current = current[key]
-                    elif isinstance(current, (list, ListTag)):
-                        current = current[key]
-                    else:
-                        raise KeyError(f"Invalid key/index: {key}")
-                return current
-
-        def __setitem__(self, keys, value):
-
-            current, last_key = self._traverse(keys)
-            current[last_key] = value
-
-        def __delitem__(self, keys):
-            current, last_key = self._traverse(keys)
-            del current[last_key]
-
-        def pop(self, keys, default=None):
-            current, last_key = self._traverse(keys)
-            return current.pop(last_key, default)
-
-        def keys(self, keys=None):
-            if keys is None:
-                return self.player_data.keys()
-            nested = self[keys]
-            if hasattr(nested, 'keys'):
-                return nested.keys()
-            raise TypeError("Target object does not support .keys()")
-
-        def items(self, keys=None):
-            if keys is None:
-                return self.player_data.items()
-            nested = self[keys]
-            if hasattr(nested, 'items'):
-                return nested.items()
-            raise TypeError("Target object does not support .items()")
-
-        @property
-        def leveldb(self):
-            if hasattr(self.world, "level_wrapper"):
-                return self.world.level_wrapper.level_db
-            else:
-                return self.world
-        @property
-        def save_player(self):
-            """Updates NBT data based on the current input fields."""
-
-            nbt = self.player_data
-            raw_nbt = nbt.save_to(compressed=False, little_endian=True,
-                                  string_encoder=utf8_escape_encoder)
-            self.leveldb.put(self.player_id.encode(), raw_nbt)
-            print("Saved to World Updated NBT Data:", self.player_id.encode())
-
-        def get_or_create_slot_item(self, keys, slot_value):
-            """Finds or creates a CompoundTag with Slot=slot_value inside a ListTag."""
-            current = self[keys]
-            if not isinstance(current, ListTag):
-                raise TypeError("Target is not a list")
-
-            # Try to find existing item with Slot == slot_value
-            for item in current:
-                if isinstance(item, CompoundTag) and item.get("Slot") == slot_value:
-                    return item
-
-            # If not found, create and append it
-            new_item = CompoundTag({"Slot": slot_value})
-            current.append(new_item)
-            return new_item
-
 class IconListCtrl(wx.Frame):
     def __init__(self, parent, title, data, slot):
         super().__init__(parent, title=title, size=(1110, 800), style=wx.DEFAULT_FRAME_STYLE | wx.STAY_ON_TOP)
         self.parent = parent
         self.data = data
-        self.inv_slot = slot
+        self.inv_slot = slot[1]
+        self.key_slot = slot
         self.font = wx.Font(11, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         self.SetFont(self.font)
 
@@ -1308,13 +1802,6 @@ class IconListCtrl(wx.Frame):
         self.list_ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_item_click)
         self.list_ctrl.SetForegroundColour((0, 255, 0))
         self.list_ctrl.SetBackgroundColour((0, 0, 0))
-        # self.set_listctrl_spacing(self.list_ctrl, 150, 0)
-
-        # self.catalog_menu = wx.Menu()
-        # self.create_catalog_menu()
-        # self.menu_bar = wx.MenuBar()
-        # self.menu_bar.Append(self.catalog_menu, "Cataloga")
-        # self.SetMenuBar(self.menu_bar)
 
         self.index_to_bedrock = {}
         self.all_items = []
@@ -1338,14 +1825,16 @@ class IconListCtrl(wx.Frame):
 
         self.load_all_items()
         self.Layout()
+
     def on_close(self, event):
         self.HideWithEffect(effect=wx.SHOW_EFFECT_BLEND)
+
     def update_data(self, data):
         self.data = data
 
     def update_slot(self, slot):
-        self.inv_slot = slot
-
+        self.inv_slot = slot[1]
+        self.key_slot = slot
 
     def load_all_items(self):
         self.all_items.clear()
@@ -1380,40 +1869,92 @@ class IconListCtrl(wx.Frame):
 
     def on_item_click(self, event):
 
+        self.editor = self.data
+
         item_index = event.GetIndex()
         namespace = 'minecraft:'
         bedrock_id = self.index_to_bedrock[item_index]
         tag_data = check_set_default_book(bedrock_id)
-        self.Parent.button.SetName("bedrock_id")
-        self.button.SetName(bedrock_id)
-        if tag_data:
-            if self.tag_data.get('tag', None):
-                self.tag_data['tag'] = tag_data
-            else:
-                self.tag_data = CompoundTag({
-                    "Name": StringTag(namespace+bedrock_id),
-                    "Damage": ShortTag(0),
-                    "Count": ByteTag(1),
-                    "Slot": ByteTag(self.inv_slot),
-                    "tag": CompoundTag({
-                        "Damage": ShortTag(0),
-                    })
-                })
-        else:
-            self.tag_data = CompoundTag({
-                "Name": StringTag(namespace+bedrock_id),
-                "Damage": ShortTag(0),
-                "Count": ByteTag(1),
-                "Slot": ByteTag(self.inv_slot),
-                "tag": CompoundTag({
-                    "Damage": ShortTag(0),
-                })
-            })
-        icon = self.data.resources.get_scaled_cache[bedrock_id]
-        display_name = self.data.resources.get_json_data[bedrock_id]['display_name']
-        self.data.update_slot(self.inv_slot, bedrock_id, icon, display_name, self.tag_data)
-        self.HideWithEffect(effect=wx.SHOW_EFFECT_BLEND)
+        self.namespace = 'minecraft:'
+        self.bedrock_id = bedrock_id
+        self.title = self.editor.GetTitle()
 
+        key, slot = self.key_slot
+
+
+        current_nbt = self.editor.selected_player[self.editor.keys]
+        nbt = current_nbt[key]
+        tag_data = check_set_default_book(bedrock_id)
+
+        # Save the slot for later use
+
+        # Initialize default tag structure
+        self.tag_data = CompoundTag({
+            "Name": StringTag(self.namespace + self.bedrock_id),
+            "Damage": ShortTag(0),
+            "Count": ByteTag(1),
+            "Slot": ByteTag(slot),
+            "tag": CompoundTag({
+                "Damage": ShortTag(0),
+            })
+        })
+        self.append = False
+        # Check if this is a container-type item (like a bundle)
+        if any(keyword in bedrock_id for keyword in CONTAINERS):
+
+            if 'bundle' in bedrock_id:
+                self.tag_data['tag']['storage_item_component_content'] = ListTag([
+                    CompoundTag({
+                        "Name": StringTag(''),
+                        "Damage": ShortTag(0),
+                        "Count": ByteTag(0),
+                        "Slot": ByteTag(x),
+                        "tag": CompoundTag({"Damage": ShortTag(0)})
+                    }) for x in range(64)
+                ])
+            else:
+                self.tag_data['tag']["Items"] = ListTag(
+                    []
+                )
+
+        # If tag_data (e.g., for books) is provided, use it to replace the default
+        if tag_data:
+            self.tag_data['tag'] = tag_data
+
+        # Handle known container UI titles
+
+        if any(container_type in self.title for container_type in CONTAINER_TYPES):
+            slot = None
+            if len(nbt) > 0:
+                for i, item in enumerate(nbt):
+                    if item['Slot'].py_int == self.slot:
+                        slot = i
+                        break
+                if slot is None:
+                    self.append = True
+            else:
+                self.append = True
+
+        # Debug info
+        keys = self.editor.keys + [key, slot]
+
+        if self.append:
+            self.editor.selected_player[keys[:-1]].append(self.tag_data)
+        else:
+            self.editor.selected_player[keys] = self.tag_data
+
+
+        icon = self.editor.resources.get_scaled_cache[self.bedrock_id],
+        display_name = self.editor.resources.data[self.bedrock_id]['display_name']
+        button = self.editor.slot_map[(self.key_slot)]
+        button.SetValue(1)
+        button.SetName(self.bedrock_id)
+        button.SetBitmap(icon[0], display_name)
+        button.SetTagData(self.tag_data)
+
+
+
+        self.HideWithEffect(effect=wx.SHOW_EFFECT_BLEND)
 
     def create_catalog_menu(self):
         for category, item_range in categories.items():
@@ -1444,24 +1985,19 @@ class TAGEditor(wx.Frame):
         self._self = _self
         title = _self.Parent.Parent.GetTitle()
         # Determine the slot number, ensuring it is valid
-        slot = abs(_self.slot + 1) if _self.slot < 0 else (
-            0 if _self.slot == 40 and 'Bundle' not in title else _self.slot)
+        key, slot = _self.Get_slot_map_key()
+        keys = _self.editor.keys + [key]
+        current_nbt = _self.editor.selected_player[keys]
+        if key != 'Armor' and key  != 'Offhand':
+            for i, x in enumerate(current_nbt):
+                if x['Slot'].py_int == slot:
+                    slot = i
 
-        current_nbt = _self.editor.selected_player[_self.editor.keys]
-
-        if "Shulker Box" in title or "Dispenser" in title:
-            if len(current_nbt[self.last_key]) > 0:
-                for i, x in enumerate(current_nbt[self.last_key]):
-                    if x['Slot'].py_int == slot:
-                        slot = i
-        current_nbt = current_nbt[_self.last_key][slot]
-        self.nbt_data = current_nbt
-
+        self.nbt_data = current_nbt[slot]
         panel = scrolled.ScrolledPanel(self, style=wx.VSCROLL)
         panel.SetScrollRate(5, 5)
         self.font = wx.Font(20, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-
         snbt_text = self.nbt_to_snbt(self.nbt_data)
 
         self.text_ctrl = wx.TextCtrl(
@@ -1506,53 +2042,86 @@ class TAGEditor(wx.Frame):
                         slot = i
         current_nbt[self._self.last_key][slot] = nbt
 
-        self._self.editor.selected_player.save_player
+        self._self.editor.selected_player.save_player()
         self._self.SetTagData(nbt)
-        self._self.onclick_get_set_tag_data
+        # self._self.onclick_get_set_tag_data
         self._self.Refresh()
 
 class ItemTools:
     def __init__(self, parent):
         self.parent = parent
-
-    def copy_tag(self, _self):
-        CLIP_BOARD['COPY'] = _self.GetTheData
-
-    def paste_tag(self, _self):
-        current_nbt = _self.editor.selected_player[_self.editor.keys]
         self.icon_resources = IconResources()
+    def copy_tag(self, _self):
+        keys = _self.editor.keys + list(_self.Get_slot_map_key())
+        current_nbt = _self.editor.selected_player[keys]
 
-        _, bedrock_id, count, display_name, tag_data = CLIP_BOARD['COPY']
-        slot, _, _, _, _ = _self.GetTheData
-        _self.SetTheData(slot, bedrock_id, count, display_name, tag_data)
-        tag_data['Slot'] = ByteTag(slot)
+        CLIP_BOARD['COPY'] = current_nbt
+
+    def move_tag(self, _self): # Not really need
+        keys = _self.editor.keys + list(_self.Get_slot_map_key())
+        current_nbt = _self.editor.selected_player[keys]
+        print(keys)
+        print(current_nbt)
+
+        copy_nbt = CLIP_BOARD['COPY']
+        print(copy_nbt)
+        bedrock_id = copy_nbt['Name'].py_str.split(':')[1]
+        slot = keys[-1]
+
+        copy_nbt['Slot'] = ByteTag(slot)
+        _self.SetValue(int(copy_nbt['Count']))
         title = _self.Parent.Parent.GetTitle()
 
-        current_nbt[_self.last_key][slot] = tag_data
-
+        display_name = self.icon_resources.get_json_data[bedrock_id]['display_name']
         icon = self.icon_resources.get_scaled_cache[bedrock_id]
         _self.SetBitmap(icon, display_name)
+        _self.editor.selected_player[keys] = copy_nbt
 
-        _self.SetTagData(tag_data)
         _self.button.SetName(bedrock_id)
-        _self.editor.selected_player.save_player
-
-        _self.onclick_get_set_tag_data()
+        _self.editor.selected_player.save_player()
         _self.Layout()
         _self.Refresh()
-    # if "Shulker Box" in title or "Dispenser" in title:
-    #     if len(current_nbt[_self.last_key]) > 0:
-    #         for i, x in enumerate(current_nbt[_self.last_key]):
-    #             if x['Slot'].py_int == slot:
-    #                 slot = i
+
+    def paste_tag(self, _self):
+        keys = _self.editor.keys + list(_self.Get_slot_map_key())
+        current_nbt = _self.editor.selected_player[keys]
+        print(keys)
+        print(current_nbt)
+
+        copy_nbt = CLIP_BOARD['COPY']
+        print(copy_nbt)
+        bedrock_id = copy_nbt['Name'].py_str.split(':')[1]
+        slot = keys[-1]
+
+        ByteTag(slot)
+        copy_the = CompoundTag({
+            "Name": copy_nbt['Name'],
+            "Damage": copy_nbt['Damage'],
+            "Count": copy_nbt['Count'],
+            "Slot": ByteTag(slot),
+            "tag": copy_nbt.get('tag', CompoundTag({}))
+        })
+        _self.SetValue(int(copy_nbt['Count']))
+        title = _self.Parent.Parent.GetTitle()
+
+        display_name = self.icon_resources.get_json_data[bedrock_id]['display_name']
+        icon = self.icon_resources.get_scaled_cache[bedrock_id]
+        _self.SetBitmap(icon, display_name)
+        _self.editor.selected_player[keys] = copy_the
+
+        _self.button.SetName(bedrock_id)
+        _self.editor.selected_player.save_player()
+        _self.Layout()
+        _self.Refresh()
+
     def delete_slot(self, _self):
         _self.bedrock_id = ''
 
         _self.button.SetName('Empty')
         _self.tag_data = CompoundTag({
+            'Name': StringTag(""),
             'Count': ByteTag(0),
             'Damage': ShortTag(0),
-            'Name': StringTag(""),
             'Slot': ByteTag(_self.slot),
             'WasPickedUp': ByteTag(0)})
         _self.SetBitmap(wx.NullBitmap, "Empty")
@@ -1562,12 +2131,15 @@ class ItemTools:
         _self.Layout()
         _self.Refresh()
 
-        _self.onclick_get_set_tag_data()
+        # _self.onclick_get_set_tag_data()
         _self.Layout()
         _self.Refresh()
+
     def make_unbreakable(self, _self):
-        item = _self.GetTheData[-1]
-        tag = item.setdefault('tag', CompoundTag({}))
+        keys = _self.editor.keys + list(_self.Get_slot_map_key())
+        last_data = _self.editor.selected_player[keys]
+
+        tag = last_data.get('tag', CompoundTag({}))
 
         if 'Unbreakable' in tag:
             tag.pop('Unbreakable')
@@ -1575,8 +2147,10 @@ class ItemTools:
             tag['Unbreakable'] = ByteTag(1)
 
     def keep_on_death(self, _self):
-        item = _self.GetTheData[-1]
-        tag = item.setdefault('tag', CompoundTag({}))
+        keys = _self.editor.keys + list(_self.Get_slot_map_key())
+        last_data = _self.editor.selected_player[keys]
+
+        tag = last_data.get('tag', CompoundTag({}))
 
         if 'minecraft:keep_on_death' in tag:
             tag.pop('minecraft:keep_on_death')
@@ -1604,7 +2178,9 @@ class ItemTools:
                 return
 
             # Example of how to modify the current NBT data (assuming the data is structured correctly)
-            current_nbt_data = _self.GetTheData[-1]  # Fetch the NBT data
+            keys = _self.editor.keys + list(_self.Get_slot_map_key())
+            current_nbt_data = _self.editor.selected_player[keys]
+            # current_nbt_data = _self.GetTheData[-1]  # Fetch the NBT data
             if current_nbt_data.get('tag', None):
                 current_nbt_data['tag']['Trim'] = CompoundTag({
                     'Material': StringTag(material_key),
@@ -1622,32 +2198,21 @@ class ItemTools:
             else:
                 current_nbt_data['tag'].pop('customColor', None)
 
-            if -5 < _self.slot < 0:  # for Armor they are -1 -2 -3 -4  in the UI  the index is 0 to 3
-                slot = abs(_self.slot + 1)
-            else:
-                slot = _self.slot
-            if _self.slot == 40:
-                slot = 0
 
-            current_nbt = _self.editor.selected_player[_self.editor.keys]
-            current_nbt[_self.last_key][slot] = current_nbt_data
-
-            _self.editor.selected_player.save_player
+            _self.editor.selected_player.save_player()
+            panel.Close()
         def on_remove_all(evt):
-            for raw_slot in range(-4, 0):
-                idx = abs(raw_slot + 1)
-                entry = _self.editor.selected_player[_self.editor.keys][_self.last_key][idx]
 
-                if 'tag' in entry:
-                    entry['tag'].pop('Trim', None)
-                    entry['tag'].pop('customColor', None)
-                _self.editor.selected_player[_self.editor.keys][_self.last_key][idx] = entry
-                _self.editor.selected_player.save_player
+            if 'tag' in current_nbt_data:
+                current_nbt_data['tag'].pop('Trim', None)
+                current_nbt_data['tag'].pop('customColor', None)
+
+            _self.editor.selected_player.save_player()
             panel.Close()
 
-        _self.onclick_get_set_tag_data()  # Load the data if necessary
-        current_nbt_data = _self.GetTheData[-1]  # Make sure this is getting the current NBT data
+        keys = _self.editor.keys + list(_self.Get_slot_map_key())
 
+        current_nbt_data = _self.editor.selected_player[keys]
         panel = wx.Frame(_self, title="Edit Armor Trim", size=(400, 400),
                          style=wx.DEFAULT_FRAME_STYLE | wx.STAY_ON_TOP)
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -1714,16 +2279,11 @@ class ItemTools:
         # self.onclick_get_set_tag_data()
         title = _self.Parent.Parent.GetTitle()
         # Determine the slot number, ensuring it is valid
-        slot = abs(_self.slot + 1) if _self.slot < 0 else (0 if _self.slot == 40 and 'Bundle' not in title else _self.slot)
 
-        current_nbt = _self.editor.selected_player[_self.editor.keys]
+        keys = _self.editor.keys + list(_self.Get_slot_map_key())
+        current_nbt = _self.editor.selected_player[keys]
 
-        if any(ct in title for ct in CONTAINER_TYPES):
-            if len(current_nbt[_self.last_key]) > 0:
-                for i, x in enumerate(current_nbt[_self.last_key]):
-                    if x['Slot'].py_int == slot:
-                        slot = i
-        firework_data = current_nbt[_self.last_key][slot]
+        firework_data = current_nbt
 
         frame = wx.Frame(_self, title="Edit Fireworks Explosions", size=(600, 400),
                          style=wx.DEFAULT_FRAME_STYLE | wx.STAY_ON_TOP)
@@ -1870,10 +2430,10 @@ class ItemTools:
             })
 
 
-            current_nbt[_self.last_key][slot]['tag'] = firework_tag
+            current_nbt['tag'] = firework_tag
             # nbt = self.editor.selected_player[self.editor.keys]
-            _self.editor.selected_player.save_player
-
+            _self.editor.selected_player.save_player()
+            frame.Close()
         # Buttons
         btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
         add_btn = wx.Button(scroll_panel, label="Add Explosion")
@@ -1942,7 +2502,7 @@ class ItemTools:
 
         def select_best(evt):
             """Select the best enchantments based on the item type."""
-            item_type = get_item_type(_self.GetTheData[1])
+            item_type = get_item_type(current_nbt['Name'].py_str.split(':')[1])
             allowed_ids = valid_enchants.get(item_type, [])
             for ench_id in allowed_ids:
                 name = enchantments[ench_id]
@@ -1962,20 +2522,21 @@ class ItemTools:
                     tag_list.append(CompoundTag({'id': ShortTag(ench_id), 'lvl': ShortTag(lvl)}))
 
             # Retrieve the current NBT data
-            current_nbt = _self.editor.selected_player[_self.editor.keys]
+            keys = _self.editor.keys + list(_self.Get_slot_map_key())
+            current_nbt = _self.editor.selected_player[keys]
 
             title = _self.Parent.Parent.GetTitle()
             # Determine the slot number, ensuring it is valid
-            slot = abs(_self.slot + 1) if _self.slot < 0 else (0 if _self.slot == 40 and 'Bundle' not in title else _self.slot)
-            print(slot, "SLOT")
-
+            slot =  _self.slot
+            print(slot, "SLOT_enchant")
+            panel.Close()
 
             if any(ct in title for ct in CONTAINER_TYPES):
                 if len(current_nbt[_self.last_key]) > 0:
                      for i, x in enumerate(current_nbt[_self.last_key]):
                          if x['Slot'].py_int == slot:
                             slot = i
-            tag = current_nbt[_self.last_key][slot].setdefault('tag', CompoundTag())
+            tag = current_nbt['tag']
 
 
             tag['Damage'] = IntTag(0)
@@ -1984,23 +2545,26 @@ class ItemTools:
             # Save the modified NBT data
             nbt = _self.editor.selected_player[_self.editor.keys]
 
-            _self.editor.selected_player.save_player
+            _self.editor.selected_player.save_player()
 
         # Initial setup and main UI creation
         # self.onclick_get_set_tag_data()
+
         title = _self.Parent.Parent.GetTitle()
         # Determine the slot number, ensuring it is valid
-        slot = abs(_self.slot + 1) if _self.slot < 0 else (0 if _self.slot == 40 and 'Bundle' not in title else _self.slot)
-
-        current_nbt = _self.editor.selected_player[_self.editor.keys]
+        key, slot = _self.Get_slot_map_key()
+        keys = _self.editor.keys + [key]
+        current_nbt = _self.editor.selected_player[keys]
 
         if any(ct in title for ct in CONTAINER_TYPES):
-            if len(current_nbt[_self.last_key]) > 0:
-                for i, x in enumerate(current_nbt[_self.last_key]):
+            if len(current_nbt) > 0:
+                for i, x in enumerate(current_nbt):
                     if x['Slot'].py_int == slot:
                         slot = i
-        current_nbt = current_nbt[_self.last_key][slot]
-        item_type = get_item_type(_self.GetTheData[1])
+                        break
+
+        current_nbt = current_nbt[slot]
+        item_type = get_item_type(current_nbt['Name'].py_str.split(':')[1])
         panel = Frame(_self, title="Edit Enchants", style=wx.DEFAULT_FRAME_STYLE | wx.STAY_ON_TOP)
         panel.SetBackgroundColour(BLACK)
         main_sizer = BoxSizer(VERTICAL)
@@ -2077,18 +2641,14 @@ class ItemTools:
         panel.Fit()
         panel.Show()
 
-    CONTAINERS = {
-        "Shulker Box": ("Items", "shulker"),
-        "Dispenser": ("Items", "dispenser"),
-        "Chest": ("Items", "chest"),
-        "Barrel": ("Items", "barrel"),
-    }
     def open_container(self, event, GetTheData, editor, last_key):
-        slot = GetTheData[0]
         title = self.Parent.Parent.GetTitle()
+
         # Determine the slot number, ensuring it is valid
-        slot = abs(self.slot + 1) if self.slot < 0 else (0 if self.slot == 40 and 'Bundle' not in title else self.slot)
-        current_nbt = self.editor.selected_player[self.editor.keys]
+
+        last_key, slot = self.Get_slot_map_key()
+        keys = self.editor.keys + [last_key]
+        current_nbt = self.editor.selected_player[keys]
 
         if any(ct in title for ct in CONTAINER_TYPES):
             if len(current_nbt[self.last_key]) > 0:
@@ -2096,7 +2656,7 @@ class ItemTools:
                     if x['Slot'].py_int == slot:
                         slot = i
 
-        current_nbt = current_nbt[self.last_key][slot]
+        current_nbt = current_nbt[slot]
 
         CONTAINERS = {
             "bundle": ("storage_item_component_content", "Bundle"),
@@ -2117,45 +2677,19 @@ class ItemTools:
                 keys = editor.keys + [last_key, slot, "tag"]
 
                 # If no tag exists yet, create it with an empty list
-                parent_nbt = editor.selected_player[keys[:-1]]
+                parent_nbt = self.editor.selected_player[keys[:-1]]
                 if not parent_nbt.get("tag", None):
-                    parent_nbt["tag"] = CompoundTag({})
+                    parent_nbt["tag"] = CompoundTag({'Items': ListTag([])})
 
                 tag = parent_nbt["tag"]
-                if not tag.get(list_key, None):
-                    # initialize list of empty slots (64 entries)
-                    empty = [
-                        CompoundTag({
-                            'Count': ByteTag(0),
-                            'Name': StringTag(""),
-                            'Damage': ShortTag(0),
-                            'Slot': ByteTag(i),
-                            'WasPickedUp': ByteTag(0),
-                        })
-                        for i in range(64)
-                    ]
-                    tag[list_key] = ListTag(empty)
-
-                    # Also write the containing Item itself if missing
-                    parent_nbt_tuple = {
-                        'Count': ByteTag(GetTheData[2]),
-                        'Name': StringTag(namespace + GetTheData[1]),
-                        'Damage': ShortTag(0),
-                        'Slot': ByteTag(slot),
-                        'WasPickedUp': ByteTag(0),
-                        'tag': CompoundTag({list_key: tag[list_key]})
-                    }
-                    editor.selected_player[keys[:-1]] = CompoundTag(parent_nbt_tuple)
 
                 # Finally, open the editor
-                InventoryEditor(self, editor.selected_player, keys, title=title)
+                InventoryEditor(self, self.editor.selected_player, keys, title=title)
                 break
 
-    def edit_tag_window(self, event, _self):
-        # Call any method to get or set tag data if needed
-        _self.onclick_get_set_tag_data
 
-        #
+
+    def edit_tag_window(self, event, _self):
 
         # Create the TAGEditor window
         tagedit = TAGEditor(_self, "Snbt Editor", _self,_self.last_key, _self.slot )
@@ -2165,7 +2699,7 @@ class ItemTools:
 
 class IconButton(wx.Panel):
     def __init__(self, parent, bedrock_id, display_name, count, icon_bitmap, slot,
-                 editor,  normal=False, *args, **kw):
+                 editor, *args, **kw):
         super().__init__(parent, *args, **kw)
         self.tools = ItemTools(parent)
         self.font = wx.Font(18, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
@@ -2173,8 +2707,8 @@ class IconButton(wx.Panel):
         self.parent = parent
         self.last_key = ''
         self.tag_data = None
-
-        self.normal = normal
+        self.icon_bitmap = icon_bitmap
+        self.slot_map_key = ()
         self.bedrock_id = bedrock_id
         self.display_name = display_name
         self.count = count
@@ -2184,10 +2718,21 @@ class IconButton(wx.Panel):
         self.current_submenu_index = 0  # Add the attribute here
         self.items_per_page = 0  # Example number, can be modified
         # self.menu_handler = ContextMenuHandler(self, self.editor)
+        self.setup_load_check_button_or_text()
 
-        if bedrock_id and not icon_bitmap:
+
+        # Input box for count
+        self.count_box = wx.TextCtrl(self, value=str(self.count), size=(40, 30), style=wx.TE_PROCESS_ENTER)
+        self.count_box.Bind(wx.EVT_TEXT_ENTER, self.OnTextChange)
+
+        self.sizer.Add(self.button, 0, wx.CENTER)
+        self.sizer.Add(self.count_box, 0, wx.CENTER | wx.TOP, 2)
+
+        self.SetSizer(self.sizer)
+
+    def setup_load_check_button_or_text(self):
+        if self.bedrock_id and not self.icon_bitmap:
             self.button = wx.Button(self, size=(80, 80), label=bedrock_id)
-
             font = self.button.GetFont()
             font.SetPointSize(10)  # Make text smaller
             self.button.SetFont(font)
@@ -2198,43 +2743,32 @@ class IconButton(wx.Panel):
                     bedrock_id += f'{s}_\n' if i != len(split_name)-1 else f'{s}'
 
             self.button.SetLabel(bedrock_id)
-
-
         else:
-            if bedrock_id:
-                self.button = wx.Button(self, size=(80, 80) ,name=bedrock_id)
+            if self.bedrock_id:
+                self.button = wx.Button(self, size=(80, 80) ,name=self.bedrock_id)
             else:
                 self.button = wx.Button(self, size=(80, 80), name="Empty")
         try:
-            valid_bitmap = bool(icon_bitmap and icon_bitmap.IsOk())
+            valid_bitmap = bool(self.icon_bitmap and self.icon_bitmap.IsOk())
         except Exception as e:
             print(f"Bitmap check failed: {e}")
             valid_bitmap = False
 
         if valid_bitmap:
-            self.button.SetBitmap(wx.Bitmap(icon_bitmap))
+            self.button.SetBitmap(wx.Bitmap(self.icon_bitmap))
         else:
             self.button.SetBitmap(wx.NullBitmap)
         self.button.SetToolTip(wx.ToolTip(f"{self.display_name}"))
         self.button.Bind(wx.EVT_LEFT_DOWN, self.on_left_click)
-        if not normal:
-            self.button.Bind(wx.EVT_RIGHT_DOWN, self.on_right_click)
 
-        # Input box for count
-        self.count_box = wx.TextCtrl(self, value=str(self.count), size=(40, 30), style=wx.TE_PROCESS_ENTER)
-        self.count_box.Bind(wx.EVT_TEXT_ENTER, self.OnTextChange)
-
-        self.sizer.Add(self.button, 0, wx.CENTER)
-        self.sizer.Add(self.count_box, 0, wx.CENTER | wx.TOP, 2)
-
-        self.SetSizer(self.sizer)
-        if self.slot < 0:
-            self.count_box.Hide()
+        self.button.Bind(wx.EVT_RIGHT_DOWN, self.on_right_click)
 
     def get_slot(self):
         return self.slot
+
     def set_slot(self, slot):
         self.slot = slot
+
     def OnTextChange(self, event):
         value = self.count_box.GetValue()
 
@@ -2246,19 +2780,20 @@ class IconButton(wx.Panel):
 
         # Get and validate button
         button = event.GetEventObject()
-        self.onclick_get_set_tag_data()
+        # self.onclick_get_set_tag_data()
 
         menu = wx.Menu()
 
         if CLIP_BOARD:
             menu_paste = wx.MenuItem(menu, wx.ID_ANY, "Paste")
             menu.Append(menu_paste)
-        # self.Bind(wx.EVT_MENU, lambda e, idx=wx.ID_ANY: self.tools.paste_tag( e), menu_paste)
+
 
             self.Bind(wx.EVT_MENU, lambda e, btn=self: self.tools.paste_tag(btn), menu_paste)
 
         if button.GetName() != "Empty":
-            last_data = self.GetTheData[-1]
+            keys = self.editor.keys + list(self.Get_slot_map_key())
+            last_data = self.editor.selected_player[keys]
             menu_copy = wx.MenuItem(menu, wx.ID_ANY, "Copy")
             menu.Append(menu_copy)
             # self.Bind(wx.EVT_MENU, lambda e, idx=wx.ID_ANY: self.tools.copy_tag( e), menu_copy)
@@ -2307,7 +2842,7 @@ class IconButton(wx.Panel):
                 menu.Append(unbreakable_item)
                 self.Bind(wx.EVT_MENU, lambda e, _self=self: self.tools.make_unbreakable(_self), unbreakable_item)
 
-            if 'firework' in self.GetTheData[1]:
+            if 'firework' in self.button.GetName():
                 fireworks_item = wx.MenuItem(menu, wx.ID_ANY, "Edit Fireworks")
                 menu.Append(fireworks_item)
                 self.Bind(wx.EVT_MENU, lambda e, _self=self: self.tools.edit_fireworks_data(_self), fireworks_item)
@@ -2334,150 +2869,178 @@ class IconButton(wx.Panel):
         menu.Destroy()
 
     def on_left_click(self, event):
+        self.button = event.GetEventObject()
+
         self.button.SetFocus()
 
-        button = event.GetEventObject()
-        if self.normal:
-            if self.normal == 'Save':
-                current_nbt = self.editor.selected_player[self.editor.keys]
-
-                for child in self.Parent.GetChildren():
-                    if isinstance(child, IconButton) and child.GetTheData[0] != -200:
-                        slot = child.GetTheData[0]
-                        item_name = f"minecraft:{child.GetTheData[1]}" if child.GetTheData[1] else ""
-
-                        if -5 < slot < 0:  # Armor Slots
-                            armor_slot = abs(slot + 1)
-                            current_nbt[child.get_last_key()][armor_slot]['Count'] = ByteTag(1)
-                            current_nbt[child.get_last_key()][armor_slot]['Name'] = StringTag(item_name)
-                            continue
-
-                        if child.get_last_key() == 'Offhand':
-                            current_nbt['Offhand'][0]['Count'] = ByteTag(child.GetTheData[2])
-                            current_nbt['Offhand'][0]['Name'] = StringTag(item_name)
-                            continue
-
-                        if slot >= 0:
-                            found_slot = False
-                            for entry in current_nbt[child.get_last_key()]:
-                                if entry['Slot'].py_int == slot:
-                                    entry['Count'] = ByteTag(child.GetTheData[2])
-                                    entry['Name'] = StringTag(item_name)
-                                    found_slot = True
-                                    break
-
-                            if not found_slot and item_name:
-                                new_item = CompoundTag({
-                                    'Count': ByteTag(child.GetTheData[2]),
-                                    'Damage': ShortTag(0),
-                                    'Name': StringTag(item_name),
-                                    'Slot': ByteTag(slot),
-                                })
-                                if child.GetTheData[-1]:
-                                    new_item["tag"] = child.GetTheData[-1]
-                                current_nbt[child.get_last_key()].append(new_item)
-
-                self.editor.selected_player.save_player  # Assuming this is a method call
-            else:
-                InventoryEditor(self, self.editor.selected_player, [], title='Ender Chest')
+        if isinstance(self.button, wx.Button):
+            self.handle_button_click(self.button)
         else:
-            if not isinstance(button, wx.Button):
-                return  # Ignore clicks not on our custom buttons
-            try:
-                slot, item_id, count, display_name, tag = button.Parent.GetTheData
-            except Exception as e:
-                print(f"Error retrieving data from button: {e}")
-                return
+            return  # Ignore clicks not on our custom buttons
 
-            # self.slot = slot  # Save current slot before anything else
-            # self.button = button  # Save current button
-            self.total_items = []  # Reset for this click
+    def handle_save(self, button):
+        current_nbt = self.editor.selected_player[self.editor.keys]
 
-            # Call this after setting self.slot and self.button if it depends on them
-            self.onclick_get_set_tag_data()
+        for child in self.parent.GetChildren():
+            if isinstance(child, IconButton) and child.GetTheData[0] != -200:
+                print(current_nbt)
 
-            # Generate the menu
-            menu = wx.Menu()
-            menu_item = wx.MenuItem(menu, wx.ID_ANY, "🟦🟦 LARGE MENU 🟦🟦")
-            menu.Append(menu_item)
-            self.Bind(wx.EVT_MENU, lambda e, idx=wx.ID_ANY: self.edit_click(e, idx), menu_item)
-            if slot in armor_item_range:
-                self.total_items = list(armor_item_range[slot])
-            elif slot == 40:
-                off_hand = {
-                    "Arrows": range(937, 950),
-                    "More Arrows": range(950, 979),
-                    "Most_used(may not work)": [980, 1212, 1696, 1044],
-                }
-                for category, item_range in off_hand.items():
-                    self.create_submenu(menu, category, item_range)
-            else:
-                self.add_category_menus(menu)
+        # self.editor.selected_player.save_player()
 
-            if self.total_items:
-                self.update_main_menu(menu)
+    def UnbindButtonMenu(self):
+        self.button.Unbind(wx.EVT_LEFT_DOWN, handler=self.on_left_click)
 
-            # Popup at mouse position
-            screen_pos = wx.GetMousePosition()
-            client_pos = self.ScreenToClient(screen_pos)
-            adjusted_pos = wx.Point(client_pos.x + 10, client_pos.y + 10)
-            self.PopupMenu(menu, adjusted_pos)
-            menu.Destroy()
-            event.Skip(False)
+    def HideButtonValue(self):
+        self.count_box.Hide()
+
+    def handle_button_click(self, button):
+        try:
+            slot, item_id, count, display_name, tag = button.Parent.GetTheData
+        except Exception as e:
+            print(f"Error retrieving data from button: {e}")
+            return
+
+        self.total_items = []  # Reset for this click
+        # self.onclick_get_set_tag_data()  # Assuming you have this method
+        key, slot = self.Get_slot_map_key()
+        # Generate the menu
+        menu = wx.Menu()
+        menu_item = wx.MenuItem(menu, wx.ID_ANY, "🟦🟦 LARGE MENU 🟦🟦")
+        menu.Append(menu_item)
+        self.Bind(wx.EVT_MENU, lambda e, idx=wx.ID_ANY: self.edit_click(e, idx), menu_item)
+
+        # Handle specific slot categories
+        if key == 'Armor':
+            self.total_items = list(armor_item_range[slot])
+        elif key == 'Offhand':
+            self.handle_offhand(menu)
+        else:
+            self.add_category_menus(menu)
+
+        if self.total_items:
+            self.update_main_menu(menu)
+
+        # Show the popup menu near the mouse position
+        self.show_popup_menu(menu)
+
+    def handle_offhand(self, menu):
+        off_hand = {
+            "Arrows": range(937, 950),
+            "More Arrows": range(950, 979),
+            "Most_used(may not work)": [980, 1212, 1696, 1044],
+        }
+        for category, item_range in off_hand.items():
+            self.create_submenu(menu, category, item_range)
+
+    def show_popup_menu(self, menu):
+        screen_pos = wx.GetMousePosition()
+        client_pos = self.ScreenToClient(screen_pos)
+        adjusted_pos = wx.Point(client_pos.x + 10, client_pos.y + 10)
+        self.PopupMenu(menu, adjusted_pos)
+        menu.Destroy()
+
+    def SetName(self, name):
+        self.button.SetName(name)
+
+    def create_submenu(self, menu, category, item_range):
+        submenu = wx.Menu()
+        for item in item_range:
+            menu_item = wx.MenuItem(submenu, wx.ID_ANY, f"Item {item}")
+            submenu.Append(menu_item)
+        menu.AppendSubMenu(submenu, category)
 
     def on_menu_item_selected(self, event, bedrock_id):
         """Handle selection of an item from the menu."""
-        namespace = 'minecraft:'
+        self.namespace = 'minecraft:'
+        self.bedrock_id = bedrock_id
+        self.title = self.editor.GetTitle()
+        self.button.SetName(bedrock_id)
+        key, slot = self.Get_slot_map_key()
+
+
+        current_nbt = self.editor.selected_player[self.editor.keys]
+        nbt = current_nbt[key]
         tag_data = check_set_default_book(bedrock_id)
 
-        # Update the button visually (optional: set icon or label)
-        self.button.SetName(bedrock_id)
+        # Save the slot for later use
 
-        if tag_data:
-            if self.tag_data.get('tag', None):
-                self.tag_data['tag'] = tag_data
-            else:
-                self.tag_data = CompoundTag({
-                    "Name": StringTag(namespace + bedrock_id),
-                    "Damage": ShortTag(0),
-                    "Count": ByteTag(1),
-                    "Slot": ByteTag(self.slot),
-                    "tag": CompoundTag({
-                        "Damage": ShortTag(0),
-                    })
-                })
-        else:
-            self.tag_data = CompoundTag({
-                "Name": StringTag(namespace + bedrock_id),
+
+        # Initialize default tag structure
+        self.tag_data = CompoundTag({
+            "Name": StringTag(self.namespace + self.bedrock_id),
+            "Damage": ShortTag(0),
+            "Count": ByteTag(1),
+            "Slot": ByteTag(self.slot),
+            "tag": CompoundTag({
                 "Damage": ShortTag(0),
-                "Count": ByteTag(1),
-                "Slot": ByteTag(self.slot),
-                "tag": CompoundTag({
-                    "Damage": ShortTag(0),
-                })
             })
+        })
+        self.append = False
+        # Check if this is a container-type item (like a bundle)
+        if any(keyword in bedrock_id for keyword in CONTAINERS):
 
-        self.SetTagData(self.tag_data)
-        self.SetName(bedrock_id)
+            if 'bundle' in bedrock_id:
+                self.tag_data['tag']['storage_item_component_content'] = ListTag([
+                    CompoundTag({
+                        "Name": StringTag(''),
+                        "Damage": ShortTag(0),
+                        "Count": ByteTag(0),
+                        "Slot": ByteTag(x),
+                        "tag": CompoundTag({"Damage": ShortTag(0)})
+                    }) for x in range(64)
+                ])
+            else:
+                self.tag_data['tag']["Items"] = ListTag(
+                    []
+                )
 
-        # 🔥 Propagate to parent display (inventory, grid, etc.)
+        # If tag_data (e.g., for books) is provided, use it to replace the default
+        if tag_data:
+            self.tag_data['tag'] = tag_data
+
+        # Handle known container UI titles
+
+        if any(container_type in self.title for container_type in CONTAINER_TYPES):
+            slot = None
+            if len(nbt) > 0:
+                for i, item in enumerate(nbt):
+                    if item['Slot'].py_int == self.slot:
+                        slot = i
+                        break
+                if slot is None:
+                    self.append = True
+            else:
+                self.append = True
+
+
+        # Debug info
+        keys = self.editor.keys + [ key, slot]
+
+        if self.append:
+            self.editor.selected_player[keys[:-1]].append(self.tag_data)
+        else:
+            self.editor.selected_player[keys] = self.tag_data
+#
         parent = self.GetParent()
         while parent is not None:
             if hasattr(parent, 'update_slot'):
-                if isinstance(parent.selected_player[parent.keys], ListTag):
-                    if len(parent.selected_player[parent.keys]) == 0:
-                        parent.selected_player[parent.keys].append(self.tag_data)
-
                 parent.update_slot(
-                    self.slot,
-                    bedrock_id,
-                    self.editor.resources.get_scaled_cache[bedrock_id],
-                    self.editor.resources.data[bedrock_id]['display_name'],
+                    slot,
+                    self.bedrock_id,
+                    self.editor.resources.get_scaled_cache[self.bedrock_id],
+                    self.editor.resources.data[self.bedrock_id]['display_name'],
                     self.tag_data
                 )
-                break
 
+                break
             parent = parent.GetParent()
+        icon = self.editor.resources.get_scaled_cache[self.bedrock_id],
+        display_name = self.editor.resources.data[self.bedrock_id]['display_name']
+
+        self.SetValue(1)
+        self.SetName(bedrock_id)
+        self.SetBitmap(icon[0], display_name)
+        self.Refresh()
 
     def add_category_menus(self, parent_menu):
         """Add organized category menus from a single dictionary."""
@@ -2574,11 +3137,11 @@ class IconButton(wx.Panel):
 
         parent_menu.AppendSubMenu(submenu, submenu_name)
 
-    def set_last_key(self, last_key):
-        self.last_key = last_key
+    def Get_slot_map_key(self):
+        return self.slot_map_key
 
-    def get_last_key(self):
-        return self.last_key
+    def Set_slot_map_key(self, k,i):
+        self.slot_map_key = (k, i)
 
     def clear_bitmap(self):
 
@@ -2612,114 +3175,16 @@ class IconButton(wx.Panel):
          self.display_name = display_name
          self.tag_data = tag_data
 
-    def onclick_get_set_tag_data(self):
+    def SetValue(self, value):
+        self.count_box.SetValue(str(value))
 
-        if self.slot == -201:
-            return None
-
-        def get_parent_titles_chain(window):
-            titles = []
-            current = window.GetParent()  # Skip current window itself
-            while current:
-                try:
-                    title = current.GetTitle()
-                    if title:
-                        titles.append(title)
-                except AttributeError:
-                    pass
-                current = current.GetParent()
-            return list(reversed(titles))
-
-        TITLE_TO_PATH = {
-            "Bundle": ["tag", "storage_item_component_content"],
-            "Shulker Box": ["tag", "Items"],
-            "Dispenser": ["tag", "Items"],
-            "Chest": ["tag", "Items"],
-            "Barrel": ["tag", "Items"],
-            "Ender Chest": ["EnderChestInventory"],
-        }
-
-        def generate_nbt_keys_from_titles(titles):
-            keys = []
-            for title in titles:
-                path = TITLE_TO_PATH.get(title)
-                if not path:
-                    continue
-
-                # If this is Ender Chest, but we already added
-                # a container path (bundle/shulker/etc.), skip it
-                if title == "Ender Chest" and any(
-                        seg in ("storage_item_component_content", "Items") for seg in keys
-                ):
-                    continue
-
-                keys.extend(path)
-
-            return keys
-        titles = get_parent_titles_chain(self)
-        nbt_keys = generate_nbt_keys_from_titles(titles)
-        total_buttons = 0
-
-        for x in self.Parent.GetChildren():
-            if isinstance(x, IconButton):
-                total_buttons += 1
-        data = self.GetTheData
-        title = self.Parent.Parent.GetTitle()
-        if title == 'Bundle':
-            key = 'storage_item_component_content'
-        elif title == 'Ender Chest':
-            key = 'EnderChestInventory'
-        elif title == 'Shulker Box':
-            key = 'Items'
-        elif title == 'Chest':
-            key = 'Items'
-        elif title == 'Barrel':
-            key = 'Items'
-        elif title == 'Dispenser':
-            key = 'Items'
-        if total_buttons == 43:
-            if self.slot == 40:
-                self.SetTagData(self.editor.selected_player[['Offhand',0]])
-            elif self.slot < 0:
-                self.SetTagData(self.editor.selected_player[['Armor',abs(self.slot + 1)]])
-            elif self.slot >= 0:
-                self.SetTagData(self.editor.selected_player[['Inventory', self.slot]])
-
-
-        elif total_buttons == 28 or total_buttons == 10:
-
-            keys = [x for x in self.editor.keys]
-            keys.append(key)
-
-            for index, tag in enumerate(self.editor.selected_player[keys]):
-                if tag.get("Slot").py_int == self.slot:
-
-                    self.SetTagData(self.editor.selected_player[keys][index])  # Replace
-                    break
-            else:
-
-                if len(data[1]) > 0:
-                    items = ListTag([])
-                    entry = CompoundTag({
-                        "Name": StringTag(data[1]),
-                        "Damage": ShortTag(0),
-                        "Slot": ByteTag(data[0]),
-
-                        "tag": CompoundTag({})
-                    })
-                    self.SetTagData(entry)
-
-                    if isinstance(self.editor.selected_player[keys], ListTag):
-                        self.editor.selected_player[keys].append(entry)
-
-                    else:
-
-                        self.editor.selected_player[keys] = ListTag([entry])
+    def GetValue(self):
+        return ByteTag( int(self.count_box.GetValue()))
 
     def edit_click(self, _, idx):
-        # Edit click might trigger catalog toggle or open a new catalog
+
         self.icon_resources = IconResources()
-        self.icon_resources.toggle_catalog(self, self.editor, self.slot)
+        self.icon_resources.toggle_catalog(self.parent, self.editor,  self.Get_slot_map_key())
 
 class InventoryEditorList(wx.Frame):
 
@@ -2749,6 +3214,7 @@ class InventoryEditorList(wx.Frame):
         self.Centre()
         panel.SetSizer(vbox)
         self.Show()
+
     def on_item_click(self, event):
         selection = self.list_ctrl.GetStringSelection()
         if selection != wx.NOT_FOUND:
