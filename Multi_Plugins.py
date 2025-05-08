@@ -206,6 +206,7 @@ def get_y_range(test_val):
     elif test_val == b'' or 'minecraft:overworld' == test_val:
         return (-64, 319)
 ############# Start Inventory EDITOR
+
 WINDOW = {}
 TAGITEMS = ['firework, bundle, chest, barrel, dispenser, shulker_box',
             'enchanted_book', 'helmet', 'chestplate', 'leggings','boots',
@@ -841,17 +842,30 @@ class IconResources:
         return cls._instance
 
     def __init__(self):
-        if not hasattr(self, '_initialized'):  # Check to avoid reinitialization
+        if not hasattr(self, '_initialized'):
+            def get_resource_path(filename):
+                if hasattr(sys, "_MEIPASS"):
+                    # Running in PyInstaller bundle
+                    return os.path.join(sys._MEIPASS, filename)
+                else:
+                    current_dir = os.path.dirname(os.path.abspath(__file__))
+                    file_path = os.path.join(current_dir, 'item_atlas.json')
+                    return file_path
+
+            # Check to avoid reinitialization
             self._initialized = True
             self.catalog_window = None
             # Initialize the current directory and file path
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            file_path = os.path.join(current_dir, 'item_atlas.json')
+            # current_dir = os.path.dirname(os.path.abspath(__file__))
+            # file_path = os.path.join(current_dir, 'item_atlas.json')
+            #
+            # # Load the icon data from the file
+            # with open(file_path, 'r') as file:
+            #     self.data = json.load(file)
+            json_path = get_resource_path("data/item_atlas.json")
 
-            # Load the icon data from the file
-            with open(file_path, 'r') as file:
-                self.data = json.load(file)
-
+            with open(json_path, "r") as f:
+                self.data = json.load(f)
             self.items_id = []  # List to store item ids
             self.icon_cache = {}  # Cache for item icons
             self.scaled_cache = {}  # Cache for scaled item icons
@@ -863,6 +877,7 @@ class IconResources:
 
             # Remove the 'atlas' key from the data (unnecessary)
             self.data.pop('atlas', None)
+
 
     @property
     def get_items_id(self):
@@ -2738,7 +2753,8 @@ class IconButton(wx.Panel):
             target['Damage'] = source.get('Damage', ShortTag(0))
             target['Count'] = source.get('Count', ByteTag(0))
             target['tag'] = source.get('tag', CompoundTag({}))
-
+            source.pop('Block', None)
+            target.pop('Block', None)
         source_static = True
         target_static = True
 
@@ -2825,19 +2841,39 @@ class IconButton(wx.Panel):
 
         else:
             # Default move/swap logic
-            temp = CompoundTag({})
-            copy_nbt_item_fields(source_item, temp, target_slot)
+            if self._tar_empty:
+                # Move: target was empty
 
-            if target_static:
-                copy_nbt_item_fields(target_item, source_item, source_slot)
-                copy_nbt_item_fields(temp, target_item, target_slot)
+                if target_static:
+                    copy_nbt_item_fields(source_list[source_index], target_list[target_index], target_slot)
+                else:
+                    if not target_list or not target_index:
+                        target_list.append(CompoundTag({}))
+                        target_index = -1
+                    copy_nbt_item_fields(source_list[source_index], target_list[target_index], target_slot)
+
+                # Remove source if needed
+                if source_static:
+                    copy_nbt_item_fields(CompoundTag({}), source_list[source_index], source_slot)
+                else:
+                    source_list.pop(source_index)
+
             else:
-                if not target_list:
-                    target_list.append(CompoundTag({}))
-                    target_index = -1
+                # Swap: target was not empty
+                temp = CompoundTag({})
+                copy_nbt_item_fields(source_list[source_index], temp, target_slot)
 
-                copy_nbt_item_fields(target_item, source_item, source_slot)
-                copy_nbt_item_fields(temp, target_list[target_index], target_slot)
+                if target_static:
+                    copy_nbt_item_fields(target_list[target_index], source_list[source_index], source_slot)
+                    copy_nbt_item_fields(temp, target_list[target_index], target_slot)
+                else:
+                    if not target_list:
+                        target_list.append(CompoundTag({}))
+                        target_index = -1
+
+                    copy_nbt_item_fields(target_list[target_index], source_list[source_index], source_slot)
+                    copy_nbt_item_fields(temp, target_list[target_index], target_slot)
+
 
         # Clear clipboard and refresh
         CLIP_BOARD.clear()
@@ -3513,6 +3549,8 @@ class InventoryEditorList(wx.Frame):
         self.Show()
     def on_close(self, event):
         self.Hide()
+        if __name__ == "__main__":
+            self.world.close()
 
     def on_item_click(self, event):
         selection = self.list_ctrl.GetStringSelection()
