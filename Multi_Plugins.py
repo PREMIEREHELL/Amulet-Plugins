@@ -1499,6 +1499,9 @@ class IconListCtrl(wx.Frame):
         pos = event.GetPosition()
         index = self.list_ctrl.HitTest(pos)[0]
 
+
+        # Convert to screen coordinates
+        screen_pos = event.GetEventObject().ClientToScreen(pos)
         if index == wx.NOT_FOUND:
             return
 
@@ -1513,8 +1516,8 @@ class IconListCtrl(wx.Frame):
 
         self.dragged_index = index
         self.drag_image = wx.DragImage(bmp)
-        self.drag_image.BeginDrag((0, 0), self.list_ctrl, fullScreen=True)
-        self.drag_image.Move(pos)
+        self.drag_image.BeginDrag((30, 30), self.list_ctrl, fullScreen=True)
+        self.drag_image.Move(screen_pos)
         self.drag_image.Show()
 
         self.list_ctrl.CaptureMouse()
@@ -2681,7 +2684,7 @@ class IconButton(wx.Panel):
         test_source = source_editor_keys + [source_key, source_slot]
         test_target = self.editor.keys + [target_key, target_slot]
         if test_target[:len(test_source)] == test_source:
-            print('This is not a valid move' )
+
             CLIP_BOARD.pop('COPY')
             self.dragging = False
             return  # invalid move
@@ -2701,7 +2704,6 @@ class IconButton(wx.Panel):
         if not source_button:
             return
         if not source_button.button.GetBitmap().IsOk():
-            print("Invalid or destroyed source button.")
             return
         self._tar_empty = True
 
@@ -2781,9 +2783,9 @@ class IconButton(wx.Panel):
 
         # Safety check
         if source_index is None:
-            raise ValueError(f"Source slot {source_slot} not found")
-        if target_index is None and target_static:
-            raise ValueError(f"Target slot {target_slot} not found in static list")
+            return# raise ValueError(f"Source slot {source_slot} not found")
+        # if target_index is None and target_static:
+            # raise ValueError(f"Target slot {target_slot} not found in static list")
 
         # Perform MOVE or SWAP
         # Get source and target NBT compounds
@@ -2904,20 +2906,22 @@ class IconButton(wx.Panel):
     def OnMouseMove(self, event):
 
 
-        if self.is_mouse_down and event.Dragging() and event.LeftIsDown():
-            if not self.dragging:
-                self.StartDrag(event)
+        # if self.is_mouse_down and event.Dragging() and event.LeftIsDown():
+        #     if not self.dragging:
+        #         self.StartDrag(event)
 
-        #
+
 
         if (
-                hasattr(self, "drag_image")
+                hasattr(self, "dragging")
                 and self.drag_image is not None
                 and isinstance(self.drag_image, wx.DragImage)
                 and event.Dragging()
                 and event.LeftIsDown()
         ):
-            self.drag_image.Move(event.GetPosition())
+            pos = event.GetPosition()
+
+            self.drag_image.Move(pos)
     def OnMouseDown(self, event):
         self.drag_start_pos = event.GetPosition()
         self.is_mouse_down = True
@@ -2925,6 +2929,7 @@ class IconButton(wx.Panel):
 
         """Handles mouse down event to start the copy or delete logic."""
         pos = event.GetPosition()
+        screen_pos = event.GetEventObject().ClientToScreen(pos)
         button = event.GetEventObject()
         image = button.GetBitmap()
         if not image or not image.IsOk():
@@ -2937,8 +2942,8 @@ class IconButton(wx.Panel):
         self.dragged_index = bedrock_id
         self.dragged_id = bedrock_id
         self.drag_image = wx.DragImage(image)
-        self.drag_image.BeginDrag((0, 0), self.button, fullScreen=True)
-        self.drag_image.Move(pos)
+        self.drag_image.BeginDrag((30, 30), self.button, fullScreen=True)
+        self.drag_image.Move(screen_pos)
         self.drag_image.Show()
         self.copy_tag_and_slot(event)
         self.dragging = True
@@ -2967,14 +2972,18 @@ class IconButton(wx.Panel):
         self.dragged_index = bedrock_id
         self.dragged_id = bedrock_id
         try:
+
+
+            # Convert to screen coordinates
+            screen_pos = event.GetEventObject().ClientToScreen(pos)
             self.drag_image = wx.DragImage(image)
             self.drag_image.BeginDrag((0, 0), button, fullScreen=True)
-            self.drag_image.Move(pos)
+            self.drag_image.Move(screen_pos)
             self.drag_image.Show()
             self.copy_tag_and_slot(event)
             self.dragging = True
         except:
-            print('some error was ignored')
+            # print('some error was ignored')
             pass
     def on_doubble_click(self, event):
         item_name = self.button.GetName()
@@ -3552,6 +3561,7 @@ class InventoryEditorList(wx.Frame):
         if __name__ == "__main__":
             self.world.close()
 
+
     def on_item_click(self, event):
         selection = self.list_ctrl.GetStringSelection()
         if selection != wx.NOT_FOUND:
@@ -3565,6 +3575,113 @@ class InventoryEditorList(wx.Frame):
         if editor in self.open_editors:
             self.open_editors.remove(editor)
         event.Skip()
+
+class MinecraftWorldSelector(wx.Frame):
+    def __init__(self):
+        super().__init__(None, title="Minecraft World Selector", size=(1100, 900))
+        self.font = wx.Font(18, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+        self.SetFont(self.font)
+        self.SetForegroundColour((0, 255, 0))
+        self.SetBackgroundColour(wx.Colour(0, 0, 0, 0))
+        self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
+        panel = wx.ScrolledWindow(self)
+
+        panel.SetScrollRate(10, 10)
+        grid_sizer = wx.GridSizer(0, 4, 5, -80)  # 0 rows, 4 columns, 10px gap
+
+        if os.path.exists(WORLDS_DIR):
+            worlds = []
+            for world_folder in os.listdir(WORLDS_DIR):
+                world_path = os.path.join(WORLDS_DIR, world_folder)
+                if os.path.isdir(world_path):
+                    mod_time = os.path.getmtime(world_path)  # Get modification time
+                    worlds.append((mod_time, world_path))
+
+            # Sort worlds by most recent modification time (descending)
+            worlds.sort(reverse=True, key=lambda x: x[0])
+
+            for _, world_path in worlds:
+                world_name = "Unknown World"
+                icon_path = os.path.join(world_path, "world_icon.jpeg")
+                name_path = os.path.join(world_path, "levelname.txt")
+
+                if os.path.exists(name_path):
+                    with open(name_path, "r", encoding="utf-8") as f:
+                        world_name = f.read().strip()
+
+                world_panel = wx.Panel(panel)
+                world_sizer = wx.BoxSizer(wx.VERTICAL)
+
+                if os.path.exists(icon_path):
+                    image = wx.Image(icon_path, wx.BITMAP_TYPE_JPEG).Scale(128, 128)
+                    bitmap = wx.StaticBitmap(world_panel, bitmap=wx.Bitmap(image))
+
+                    # Bind hover events correctly
+                    bitmap.Bind(wx.EVT_ENTER_WINDOW, self.on_hover)
+                    bitmap.Bind(wx.EVT_LEAVE_WINDOW, self.on_leave)
+                    bitmap.Bind(wx.EVT_LEFT_DOWN, lambda evt, path=world_path: self.on_world_selected(evt, path))
+
+                    world_sizer.Add(bitmap, 0, wx.ALIGN_CENTER | wx.ALL, 5)
+                else:
+                    button = wx.Button(world_panel, label="Select")
+                    button.Bind(wx.EVT_BUTTON, lambda evt, path=world_path: self.on_world_selected(evt, path))
+                    world_sizer.Add(button, 0, wx.ALIGN_CENTER | wx.ALL, 5)
+
+                label = wx.StaticText(world_panel, label=world_name)
+                label.Bind(wx.EVT_ENTER_WINDOW, self.on_hover)
+                label.Bind(wx.EVT_LEAVE_WINDOW, self.on_leave)
+
+                label.SetFont(self.font)
+                label.SetForegroundColour((0, 255, 0))
+                label.SetBackgroundColour(wx.Colour(0, 0, 0, 0))
+                label.SetMinSize((150, 150))
+                world_sizer.Add(label, 0, wx.ALIGN_CENTER | wx.ALL, 5)
+                # label.SetTransparent(0)
+
+                world_panel.SetSizer(world_sizer)
+                grid_sizer.Add(world_panel, 0, wx.EXPAND | wx.ALL, 5)
+
+        panel.SetSizer(grid_sizer)
+        self.Centre()
+        self.Show()
+
+    def on_hover(self, event):
+        obj = event.GetEventObject()
+        parent = obj.GetParent()
+
+        if isinstance(obj, wx.StaticText):
+            obj.Hide()
+            parent.Layout()  # Layout the parent, not the text itself
+            parent.Refresh()
+
+        elif isinstance(obj, wx.StaticBitmap):
+            bmp = obj.GetBitmap()
+            img = bmp.ConvertToImage().Scale(354, 354)
+            obj.SetBitmap(wx.Bitmap(img))
+            parent.Layout()
+            parent.Refresh()
+
+    def on_leave(self, event):
+        obj = event.GetEventObject()
+        parent = obj.GetParent()
+
+        if isinstance(obj, wx.StaticText):
+            obj.Show()
+            parent.Layout()
+            parent.Refresh()
+
+        elif isinstance(obj, wx.StaticBitmap):
+            bmp = obj.GetBitmap()
+            img = bmp.ConvertToImage().Scale(128, 128)
+            obj.SetBitmap(wx.Bitmap(img))
+            parent.Layout()
+            parent.Refresh()
+
+    def on_world_selected(self, event, path):
+        world = LevelDB(path + r"\db")
+        new_window = InventoryEditorList(None, None, world)
+        new_window.Move(self.GetScreenPosition())  # Open next to the parent
+        new_window.Show()
 #############End Inventory Editor
 villager_workstations = {
             "fisherman": "barrel",

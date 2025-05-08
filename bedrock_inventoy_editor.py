@@ -1315,6 +1315,9 @@ class IconListCtrl(wx.Frame):
         pos = event.GetPosition()
         index = self.list_ctrl.HitTest(pos)[0]
 
+
+        # Convert to screen coordinates
+        screen_pos = event.GetEventObject().ClientToScreen(pos)
         if index == wx.NOT_FOUND:
             return
 
@@ -1329,8 +1332,8 @@ class IconListCtrl(wx.Frame):
 
         self.dragged_index = index
         self.drag_image = wx.DragImage(bmp)
-        self.drag_image.BeginDrag((0, 0), self.list_ctrl, fullScreen=True)
-        self.drag_image.Move(pos)
+        self.drag_image.BeginDrag((30, 30), self.list_ctrl, fullScreen=True)
+        self.drag_image.Move(screen_pos)
         self.drag_image.Show()
 
         self.list_ctrl.CaptureMouse()
@@ -2497,7 +2500,7 @@ class IconButton(wx.Panel):
         test_source = source_editor_keys + [source_key, source_slot]
         test_target = self.editor.keys + [target_key, target_slot]
         if test_target[:len(test_source)] == test_source:
-            print('This is not a valid move' )
+
             CLIP_BOARD.pop('COPY')
             self.dragging = False
             return  # invalid move
@@ -2517,7 +2520,6 @@ class IconButton(wx.Panel):
         if not source_button:
             return
         if not source_button.button.GetBitmap().IsOk():
-            print("Invalid or destroyed source button.")
             return
         self._tar_empty = True
 
@@ -2597,9 +2599,9 @@ class IconButton(wx.Panel):
 
         # Safety check
         if source_index is None:
-            raise ValueError(f"Source slot {source_slot} not found")
-        if target_index is None and target_static:
-            raise ValueError(f"Target slot {target_slot} not found in static list")
+            return# raise ValueError(f"Source slot {source_slot} not found")
+        # if target_index is None and target_static:
+            # raise ValueError(f"Target slot {target_slot} not found in static list")
 
         # Perform MOVE or SWAP
         # Get source and target NBT compounds
@@ -2720,20 +2722,22 @@ class IconButton(wx.Panel):
     def OnMouseMove(self, event):
 
 
-        if self.is_mouse_down and event.Dragging() and event.LeftIsDown():
-            if not self.dragging:
-                self.StartDrag(event)
+        # if self.is_mouse_down and event.Dragging() and event.LeftIsDown():
+        #     if not self.dragging:
+        #         self.StartDrag(event)
 
-        #
+
 
         if (
-                hasattr(self, "drag_image")
+                hasattr(self, "dragging")
                 and self.drag_image is not None
                 and isinstance(self.drag_image, wx.DragImage)
                 and event.Dragging()
                 and event.LeftIsDown()
         ):
-            self.drag_image.Move(event.GetPosition())
+            pos = event.GetPosition()
+
+            self.drag_image.Move(pos)
     def OnMouseDown(self, event):
         self.drag_start_pos = event.GetPosition()
         self.is_mouse_down = True
@@ -2741,6 +2745,7 @@ class IconButton(wx.Panel):
 
         """Handles mouse down event to start the copy or delete logic."""
         pos = event.GetPosition()
+        screen_pos = event.GetEventObject().ClientToScreen(pos)
         button = event.GetEventObject()
         image = button.GetBitmap()
         if not image or not image.IsOk():
@@ -2753,8 +2758,8 @@ class IconButton(wx.Panel):
         self.dragged_index = bedrock_id
         self.dragged_id = bedrock_id
         self.drag_image = wx.DragImage(image)
-        self.drag_image.BeginDrag((0, 0), self.button, fullScreen=True)
-        self.drag_image.Move(pos)
+        self.drag_image.BeginDrag((30, 30), self.button, fullScreen=True)
+        self.drag_image.Move(screen_pos)
         self.drag_image.Show()
         self.copy_tag_and_slot(event)
         self.dragging = True
@@ -2783,14 +2788,18 @@ class IconButton(wx.Panel):
         self.dragged_index = bedrock_id
         self.dragged_id = bedrock_id
         try:
+
+
+            # Convert to screen coordinates
+            screen_pos = event.GetEventObject().ClientToScreen(pos)
             self.drag_image = wx.DragImage(image)
             self.drag_image.BeginDrag((0, 0), button, fullScreen=True)
-            self.drag_image.Move(pos)
+            self.drag_image.Move(screen_pos)
             self.drag_image.Show()
             self.copy_tag_and_slot(event)
             self.dragging = True
         except:
-            print('some error was ignored')
+            # print('some error was ignored')
             pass
     def on_doubble_click(self, event):
         item_name = self.button.GetName()
