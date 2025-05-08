@@ -11,6 +11,7 @@ import pickle
 import uuid
 import re
 import wx
+import wx.richtext as rt
 import math
 from math import ceil
 import numpy
