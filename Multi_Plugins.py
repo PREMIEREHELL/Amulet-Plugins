@@ -2647,7 +2647,7 @@ class IconButton(wx.Panel):
                 DRAG_DATA_SOURCE.pop('id', None)
 
     def complete_drag(self, event):
-        def key_from_title(container_title: str) -> list[str] | None:
+        def key_from_title(container_title: str) -> Union[list[str], None]:
             for key, (nbt_key, title) in CONTAINERS.items():
                 if title == container_title:
                     return nbt_key
