@@ -206,6 +206,7 @@ def get_y_range(test_val):
     elif test_val == b'' or 'minecraft:overworld' == test_val:
         return (-64, 319)
 ############# Start Inventory EDITOR
+
 WINDOW = {}
 TAGITEMS = ['firework, bundle, chest, barrel, dispenser, shulker_box',
             'enchanted_book', 'helmet', 'chestplate', 'leggings','boots',
@@ -313,10 +314,10 @@ categories = {
     },
 }
 armor_item_range = {
-    0: list(range(880, 886)) + [1042, 610] + list(range(1347, 1354)),  # "Helmet"
-    1: list(range(886, 892)) + [1043],  # "Chest"
-    2: range(892, 898),  # "Leggings"
-    3: range(898, 904),  # "Boots"
+    0: list(range(882, 888)) + [1044, 609] + list(range(1349, 1356)),  # "Helmet"
+    1: list(range(888, 894)) + [1045],  # "Chest"
+    2: range(894, 900),  # "Leggings"
+    3: range(900, 906),  # "Boots"
 
 
 }

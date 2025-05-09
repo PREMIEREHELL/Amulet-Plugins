@@ -1,7 +1,7 @@
 from leveldb import LevelDB
 from amulet_nbt import *
 import base64
-import numpy as np
+import numpy
 from PIL import Image
 import wx
 import wx.richtext as rt
@@ -131,10 +131,10 @@ categories = {
     },
 }
 armor_item_range = {
-    0: list(range(880, 886)) + [1042, 610] + list(range(1347, 1354)),  # "Helmet"
-    1: list(range(886, 892)) + [1043],  # "Chest"
-    2: range(892, 898),  # "Leggings"
-    3: range(898, 904),  # "Boots"
+    0: list(range(882, 888)) + [1044, 609] + list(range(1349, 1356)),  # "Helmet"
+    1: list(range(888, 894)) + [1045],  # "Chest"
+    2: range(894, 900),  # "Leggings"
+    3: range(900, 906),  # "Boots"
 
 
 }
