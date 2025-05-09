@@ -206,7 +206,6 @@ def get_y_range(test_val):
     elif test_val == b'' or 'minecraft:overworld' == test_val:
         return (-64, 319)
 ############# Start Inventory EDITOR
-
 WINDOW = {}
 TAGITEMS = ['firework, bundle, chest, barrel, dispenser, shulker_box',
             'enchanted_book', 'helmet', 'chestplate', 'leggings','boots',
@@ -220,7 +219,7 @@ CONTAINERS = {
 }
 CONTAINER_TYPES = ["Shulker Box", "Dispenser", "Chest", "Barrel", "Bundle"]
 categories = {
-        "Building Blocks": {
+    "Building Blocks": {
         "Planks": [(0, 9), (11, 12)],
         "Walls": [(13, 38)],
         "Fences": [(39, 51)],
@@ -228,90 +227,89 @@ categories = {
         "Stairs": [(64, 121)],
         "Doors": [(122, 142)],
         "Trapdoors": [(143, 163)],
-        "Glass": [165, 182, 1045, 1193],
+        "Glass": [165, 182, 1047, 1195],
         "Stained_Glass": [(166, 181)],
-        "Glass_Panes": [(184, 199), 1734],
+        "Glass_Panes": [(184, 199), 1736],
         "Wool": [(365, 380)],
         "Carpets": [(381, 396), 705, 707],
         "Concrete": [(413, 428)],
         "Concrete_Powder": [(397, 412)],
         "Terracotta": [(430, 461)],
-        "Bricks": [(264, 267), (269, 271), (276, 278), 281, 344, 349, (357, 359), (361, 362), 465, (759, 762), 1376],
-        "Blackstone": [(272, 273), 506, 513, 1580, 1597],
+        "Bricks": [(264, 267), (269, 271), (276, 278), 281, 344, 349, (357, 359), (361, 362), 465, (759, 762), 1378],
+        "Blackstone": [(272, 273), 506, 513, 1582, 1599],
         "Basalt": [509, (516, 517)],
         "Tuff": [280, 508, 515],
-        "Copper_Blocks": [295, (303, 310), (327, 334), 340, 489, 501, 1365],
-        "Amethyst_Blocks": [720, 1378],
-        "Prismarine": [348, 350, 1379],
+        "Copper_Blocks": [295, (303, 310), (327, 334), 340, 489, 501, 1367],
+        "Amethyst_Blocks": [720, 1380],
+        "Prismarine": [348, 350, 1381],
         "Nether_Bricks": [360],
         "Nylium": [(469, 470)],
     },
     "Natural Blocks": {
-        "Logs": [(522, 543), (562, 565), 742, 1765],
+        "Logs": [(522, 543), (562, 565), 742, 1767],
         "Wood": [544, 546, 548, 550, 552, 554, 556, 558, 560],
         "Stripped_Wood": [545, 547, 549, 551, 553, 555, 557, 559, 561],
         "Leaves": [(568, 578)],
         "Saplings": [(579, 587)],
         "Mushroom_Blocks": [(740, 741)],
-        "Ores": [(483, 488), (490, 492), (494, 500), 1748],
-        "Raw Blocks": [202, (293, 294), (335, 339), (341, 343), 346, (352, 356), 363, 462, (466, 467), 473, (566, 567), 604, 703, 706, 708, 714, 854, (863, 872), 1357, 1564, 1719, (1723, 1724), 1760],
+        "Ores": [(483, 488), (490, 492), (494, 500), 1750],
+        "Raw_Blocks": [202, (293, 294), (335, 339), (341, 343), 346, (352, 356), 363, 462, (466, 467), 473, (566, 567),
+                       604, 703, 706, 708, 714, 856, (865, 874), 1359, 1566, 1721, (1725, 1726), 1762],
     },
     "Rails": {
-        "Rails": [(1555, 1556)],
+        "Rails": [(1557, 1558)],
     },
-    "Water & Fire, Lava": [1762,(1730,1731)],
     "Redstone": {
-        "Redstone Components 1": [(1557, 1558), 1561, (1565, 1579), (1582, 1596), 1598],
-        "Redstone Components 2": [ (1600, 1604), (1606, 1607), 1714, (1755, 1756)],
-        "Lamps": [1304, 1747],
+        "Redstone_Components": [(1559, 1560), 1563, (1567, 1581), (1584, 1598), 1600, (1602, 1606), (1608, 1609), 1716,
+                                (1757, 1758), 1764],
+        "Lamps": [1306, 1749],
     },
     "Farming": {
-        "Crops": [(589, 593), (595, 600), (605, 606), (609, 611), 686, 990, 992, 994, 998, 1754],
-        "Food": [(602, 603), (988, 989), 991, 995],
-        "Animal_Products": [(744, 745), (764, 766), (771, 849), (981, 984), 1752],
+        "Crops": [(589, 593), (595, 600), (605, 606), (609, 611), 686, 992, 994, 996, 1000, 1756],
+        "Food": [(602, 603), (990, 991), 993, 997],
+        "Animal_Products": [(744, 745), (764, 766), (772, 851), (983, 986), 1754],
     },
     "Mob Drops": {
-        "Monster_Drops": [631, 641, 997, (1008, 1015), 1380, (1382, 1384), (1393, 1394), (1401, 1402), 1404, (1407, 1408)],
-        "Heads": [(1347, 1353)],
+        "Monster_Drops": [631, 641, 999, (1010, 1017), 1382, (1384, 1386), (1395, 1396), (1403, 1404), 1406,
+                          (1409, 1410)],
+        "Heads": [(1349, 1355)],
     },
     "Weapons": {
-        "Weapons": [(904, 909)],
+        "Weapons": [(906, 911)],
     },
     "Tools": {
-        "Tools": [(910, 933)],
+        "Tools": [(912, 935)],
     },
     "Armor": {
-        "Armor": [(880, 903), 1042],
+        "Armor": [(882, 905), 1044],
     },
     "Horse_Armor": {
-        "Horse_Armor": [(1036, 1039)],
+        "Horse_Armor": [(1038, 1041)],
     },
     "Fireworks": {
-        "Fireworks": [(1680, 1696)],
-        "Star": [1406, (1697, 1712)],
+        "Fireworks": [(1682, 1698)],
+        "Star": [1408, (1699, 1714)],
     },
     "Containers": {
+        "Shulker_Boxes": [(1264, 1280)],
+        "Bundles": [(1021, 1037)],
+        "Barrel Chests": [1263, (1260, 1262), 1562],
 
-        "Shulker_Boxes": [(1262, 1278)],
-        "Bundles": [(1019, 1035)],
-        "Chests": [(1258, 1260), 1560],
-        "Barrel": [1261],
-        "Dispenser": [1604],
     },
     "Miscellaneous": {
         "Dyes": [(668, 683)],
-        "Buckets": [(1337, 1346)],
-        "Potions": [(1047, 1187)],
-        "Music_Discs": [(1282, 1300)],
-        "Boats": [(1535, 1554)],
-        "Beds": [852, (1196, 1211), 1735],
-        "Signs": [(1306, 1317)],
-        "Hanging_Signs": [(1318, 1329)],
-        "Banners": [(1611, 1637)],
+        "Buckets": [(1339, 1348)],
+        "Potions": [(1049, 1189)],
+        "Music_Discs": [(1284, 1302)],
+        "Boats": [(1537, 1556)],
+        "Beds": [854, (1198, 1213), 1737],
+        "Signs": [(1308, 1319)],
+        "Hanging_Signs": [(1320, 1331)],
+        "Banners": [(1613, 1639)],
         "Spawners": [(752, 753)],
         "Coral": [(622, 626), (632, 636)],
         "Dead_Coral": [(627, 630), (637, 640)],
-        "Enchanted_Books": [(1413, 1534)],
+        "Enchanted_Books": [(1415, 1536)],
     },
 }
 armor_item_range = {
@@ -828,7 +826,7 @@ class PlayersData:
             new_item = CompoundTag({"Slot": slot_value})
             current.append(new_item)
             return new_item
-
+BANNER = {}  # TOP LAYER STENCILS
 class IconResources:
     _instance = None  # Class-level instance reference
 
@@ -1015,7 +1013,7 @@ class IconResources:
         if WINDOW.get('catalog', None) is None:
             self.open_catalog(parent, data, slot)
             poss()
-            self.catalog_window.Show()
+            WINDOW['catalog'].Show()
         else:
             # self.catalog_window.update_data(data)
             # self.catalog_window.update_slot(slot)
@@ -1036,6 +1034,7 @@ class InventoryEditor(wx.Frame):
 
         self.armor_types = ['helmet', 'chestplate', 'leggings', 'boots']
         self.resources = IconResources()
+        BANNER['ICONS'] = self.resources.get_json_data['banner']
         self.parent = parent
         self.selected_player = selected_player
         # self.resources.icon_cache = self.resources.icon_cache
@@ -1574,6 +1573,9 @@ class IconListCtrl(wx.Frame):
         json_data = self.data.resources.get_json_data
 
         for bedrock_id, info in json_data.items():
+            if bedrock_id == 'banner':
+                continue
+
             display_name = info.get('display_name', '')
             bmp = scaled_cache.get(bedrock_id)
             if bmp:
@@ -1666,9 +1668,12 @@ class TAGEditor(wx.Frame):
         nbt = from_snbt(data)
         key, slot = self._self.Get_slot_map_key()
         keys = self._self.editor.keys + [key]
-        # for i, x in enumerate(self._self.editor.selected_player[keys]):
-        #     i += 32
-        #     print(i, x['tag']['Patterns'][0]['Pattern'].py_str)
+        for i, x in enumerate(self._self.editor.selected_player[keys]):
+            i += -7 + 26
+            try:
+                print(i, x['tag']['Patterns'][0]['Pattern'].py_str)
+            except:
+                pass
         current_nbt = self._self.editor.selected_player[keys]
 
         if "Shulker Box" in title or "Dispenser" in title:
@@ -1684,6 +1689,386 @@ class TAGEditor(wx.Frame):
         # self._self.onclick_get_set_tag_data
         self._self.Refresh()
 
+
+# Constants
+
+IMAGE_COUNT = 44
+ORIGINAL_WIDTH = 880 // IMAGE_COUNT
+ORIGINAL_HEIGHT = 40
+PATTERN_WIDTH = 30
+PATTERN_HEIGHT = 50
+PREVIEW_WIDTH = 100
+PREVIEW_HEIGHT = 200
+
+MC_COLORS = [
+    (249, 255, 254),  # White
+    (249, 128, 29),  # Orange
+    (199, 78, 189),  # Magenta
+    (58, 179, 218),  # Light Blue
+    (254, 216, 61),  # Yellow
+    (128, 199, 31),  # Lime
+    (243, 139, 170),  # Pink
+    (71, 79, 82),  # Gray
+    (157, 157, 151),  # Light Gray
+    (22, 156, 156),  # Cyan
+    (137, 50, 184),  # Purple
+    (60, 68, 170),  # Blue
+    (131, 84, 50),  # Brown
+    (94, 124, 22),  # Green
+    (176, 46, 38),  # Red
+    (29, 29, 33)  # Black
+]
+COLOR_NAMES = [
+    "White", "Orange", "Magenta", "Light Blue",
+    "Yellow", "Lime", "Pink", "Gray",
+    "Light Gray", "Cyan", "Purple", "Blue",
+    "Brown", "Green", "Red", "Black"
+]
+
+MC_COLORS = list(reversed(MC_COLORS))
+COLOR_NAMES = list(reversed(COLOR_NAMES))
+PATTERN_KEY_TO_NAME = {
+    0: ("base", "Base 1"),
+    1: ("base", "Base 2"),
+    2: ("bo", "bordure"),
+    3: ("bri", "field masoned"),
+    4: ("mc", "roundel"),
+    5: ("cre", "Creeper Charger"),
+    6: ("cr", "saltire"),
+    7: ("cbo", "bordure indented"),
+    8: ("ld", "per bend inverted"),
+    9: ("rud", "per bend sinister inverted"),
+    10: ("flo", "Flower Charge"),
+    11: ("gra", "gradient"),
+    12: ("hh", "per fess"),
+    13: ("vh", "per pale"),
+    14: ("moj", "white thing"),
+    15: ("mr", "lozenge"),
+    16: ("sku", "Skull Charge"),
+    17: ("ss", "paly"),
+    18: ("bl", "Base dextor canton"),
+    19: ("br", "Base Sinister canton"),
+    20: ("tl", "Chief Dextor Canton"),
+    21: ("tr", "Chief Sinsiter Canton"),
+    22: ("sc", "Cross"),
+    23: ("bs", "Bass fess"),
+    24: ("cs", "Pale"),
+    25: ("dls", "Bend Sinister"),
+    26: ("drs", "Bend"),
+    27: ("ls", "Pale Dexter"),
+    28: ("ms", "Fess"),
+    29: ("rs", "Pale Sinsiter"),
+    30: ("ts", "Chief Fess"),
+    31: ("bts", "base indented"),
+    32: ("tts", "chief inented"),
+    33: ("bt", "Chevron"),
+    34: ("tt", "Inverted chevron"),
+    35: ("lud", "per bend sinister"),
+    36: ("rd", "per bend"),
+    37: ("gru", "base gradient"),
+    38: ("hhb", "per fess inverted"),
+    39: ("vhr", "per pale inverted"),
+    40: ("glb", "globe"),
+    41: ("pig", "snout"),
+    42: ("flw", "Flow"),
+    43: ("gus", "guster"),
+}
+
+class BannerSelector(wx.Frame):
+    def __init__(self, parent, _self):
+        super().__init__(None, title="Banner Selector", size=(545, 560),style=wx.DEFAULT_FRAME_STYLE | wx.STAY_ON_TOP)
+        self._self = _self
+        self.parent = parent
+        self.panel = wx.Panel(self)
+        self.nbt_data = None
+        self.damage_color = None
+        self.selected_pattern_button = None
+        # Main sizer
+        self.layered_selection = []
+
+
+        self.main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        # Left panel for patterns and colors
+        self.left_panel = wx.Panel(self.panel)
+        self.left_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # Pattern selection
+        self.pattern_panel = wx.ScrolledWindow(self.left_panel, size=(550, 250))
+        self.pattern_panel.SetScrollRate(10, 10)
+        self.pattern_sizer = wx.GridSizer(rows=0, cols=7, vgap=5, hgap=5)
+        self.pattern_panel.SetSizer(self.pattern_sizer)
+        # self.pattern_panel.SetForegroundColour((100,255,100))
+        # # self.pattern_panel.SetForegroundColour((0, 0, 0))
+        self.left_sizer.Add(self.pattern_panel, 1, wx.EXPAND | wx.ALL, 5)
+
+        # Color selection
+        self.color_panel = wx.Panel(self.left_panel)
+        self.color_sizer = wx.GridSizer(rows=2, cols=8, vgap=2, hgap=2)
+        self.color_buttons = []
+        for i in range(16):
+            btn = wx.Button(self.color_panel, size=(40, 40))
+            btn.SetBackgroundColour(wx.Colour(*MC_COLORS[i]))
+            btn.SetToolTip(COLOR_NAMES[i])
+            btn.Bind(wx.EVT_BUTTON, lambda evt, idx=i: self.on_color_select(idx))
+            self.color_sizer.Add(btn, 0, wx.EXPAND)
+            self.color_buttons.append(btn)
+        self.color_panel.SetSizer(self.color_sizer)
+        self.left_sizer.Add(self.color_panel, 0, wx.ALIGN_CENTER | wx.ALL, 5)
+
+        self.left_panel.SetSizer(self.left_sizer)
+        self.main_sizer.Add(self.left_panel, 1, wx.EXPAND)
+
+        # Right panel for preview and NBT
+        self.right_panel = wx.Panel(self.panel)
+        self.right_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # Preview
+        self.preview_bitmap = wx.StaticBitmap(self.right_panel, size=(PREVIEW_WIDTH, PREVIEW_HEIGHT))
+        self.right_sizer.Add(self.preview_bitmap, 0, wx.ALIGN_CENTER | wx.ALL, 10)
+
+        # Base color selection label
+        self.base_color_label = wx.StaticText(self.right_panel, label="Base Color:")
+        self.right_sizer.Add(self.base_color_label, 0, wx.ALL, 5)
+
+        # Base color preview
+        self.base_color_preview = wx.Panel(self.right_panel, size=(50, 50))
+        self.base_color_preview.SetBackgroundColour(wx.Colour(*MC_COLORS[0]))
+        self.right_sizer.Add(self.base_color_preview, 0, wx.ALL, 5)
+
+        # NBT output
+        self.nbt_output = wx.TextCtrl(self.right_panel, style=wx.TE_MULTILINE | wx.TE_READONLY, size=(200, 150))
+        self.right_sizer.Add(self.nbt_output, 0, wx.EXPAND | wx.ALL, 5)
+
+        # Buttons
+        button_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.build_button = wx.Button(self.right_panel, label="Save")
+        self.clear_button = wx.Button(self.right_panel, label="Clear Layers")
+        self.undo_button = wx.Button(self.right_panel, label="Undo Last")
+
+        self.build_button.Bind(wx.EVT_BUTTON, self.on_save)
+        self.clear_button.Bind(wx.EVT_BUTTON, self.on_clear_layers)
+        self.undo_button.Bind(wx.EVT_BUTTON, self.on_undo_pattern)
+
+        button_sizer.Add(self.build_button, 0, wx.ALL, 5)
+        button_sizer.Add(self.clear_button, 0, wx.ALL, 5)
+        button_sizer.Add(self.undo_button, 0, wx.ALL, 5)
+
+        self.right_sizer.Add(button_sizer, 0, wx.ALIGN_CENTER)
+
+        self.right_panel.SetSizer(self.right_sizer)
+        self.main_sizer.Add(self.right_panel, 0, wx.EXPAND)
+
+        self.panel.SetSizer(self.main_sizer)
+
+        # Initialize
+        self.selected_pattern_index = None
+        self.layered_selection = []
+        self.base_color_index = 0  # Default to White
+        self.load_images()
+        self.display_patterns()
+        self.status_bar = self.CreateStatusBar(2)
+        self.status_bar.SetStatusWidths([-3, -1])
+        self.update_status_bar()
+
+    def on_undo_pattern(self, event):
+        if self.layered_selection:
+            # Remove the last added pattern
+            self.layered_selection.pop()
+            self.update_preview()
+            self.SetStatusText("Last pattern removed", 0)
+        else:
+            self.SetStatusText("No patterns to undo", 0)
+
+    def load_images(self):
+        banner = base64.b64decode(BANNER['ICONS'])
+        buffer = io.BytesIO(banner)
+        base = wx.Image()
+        # base.LoadFile(buffer, wx.BITMAP_TYPE_PNG)
+        base = Image.open(buffer)
+        self.base_images = []
+        self.pattern_images = []
+
+        for i in range(IMAGE_COUNT):
+            # Load and resize the image
+            img = base.crop((i * ORIGINAL_WIDTH, 0, (i + 1) * ORIGINAL_WIDTH, ORIGINAL_HEIGHT))
+            img = img.resize((PATTERN_WIDTH, PATTERN_HEIGHT), Image.NEAREST)
+
+            # Convert to black while maintaining transparency
+            img = img.convert("RGBA")
+            data = numpy.array(img)
+
+            # Set all non-transparent pixels to black (29, 29, 33)
+            mask = data[:, :, 3] > 0
+            data[mask, 0] = 255  # R
+            data[mask, 1] = 255  # G
+            data[mask, 2] = 255  # B
+
+            # Alpha channel remains unchanged
+
+            black_img = Image.fromarray(data)
+            self.base_images.append(black_img)
+            self.pattern_images.append(black_img)
+
+    def display_patterns(self):
+        """Display patterns with proper ordering and black background"""
+        self.pattern_panel.SetBackgroundColour(wx.RED)
+
+        # Create buttons in the correct order (0-42)
+        for pattern_idx in (PATTERN_KEY_TO_NAME.keys()):
+            if pattern_idx < 2:
+                continue
+
+            img = self.pattern_images[pattern_idx]
+            rgba_img = img.convert('RGBA')
+            data = numpy.array(rgba_img)
+
+            # Create black background for transparent areas
+            background = Image.new('RGBA', img.size, (0, 0, 0, 255))
+            composite = Image.alpha_composite(background, rgba_img)
+
+            # Create bitmap with black background
+            bmp = wx.Bitmap.FromBufferRGBA(*composite.size, numpy.array(composite))
+
+            # Create button with tooltip showing pattern name
+            btn = wx.BitmapButton(
+                self.pattern_panel,
+                id=pattern_idx,
+                bitmap=bmp,
+                size=(PATTERN_WIDTH, PATTERN_HEIGHT)
+            )
+            btn.SetBackgroundColour(wx.BLACK)
+            btn.SetToolTip(PATTERN_KEY_TO_NAME[pattern_idx][1])
+            btn.Bind(wx.EVT_BUTTON, self.on_select_pattern)
+            self.pattern_sizer.Add(btn, 0, wx.ALL, 1)
+
+        self.pattern_panel.Layout()
+        self.pattern_panel.Refresh()
+
+    def on_select_pattern(self, event):
+        # Reset previous selection if exists
+        if self.selected_pattern_button:
+            self.selected_pattern_button.SetBackgroundColour(wx.Colour(0, 0, 0))  # Black
+            self.selected_pattern_button.Refresh()
+
+        # Set new selection
+        self.selected_pattern_index = event.GetId()
+        self.selected_pattern_button = event.GetEventObject()
+        self.selected_pattern_button.SetBackgroundColour(wx.Colour(255, 255, 0))  # Yellow highlight
+        self.selected_pattern_button.Refresh()
+
+    def on_color_select(self, color_index):
+        if self.selected_pattern_index is None:
+            # Set base color
+            self.base_color_index = color_index
+            self.base_color_preview.SetBackgroundColour(wx.Colour(*MC_COLORS[color_index]))
+            self.base_color_preview.Refresh()
+        else:
+            # Add pattern layer
+            self.layered_selection.append((self.selected_pattern_index, color_index))
+
+            # Reset selection after color is chosen
+            if self.selected_pattern_button:
+                self.selected_pattern_button.SetBackgroundColour(wx.Colour(0, 0, 0))
+                self.selected_pattern_button.Refresh()
+            self.selected_pattern_index = None
+            self.selected_pattern_button = None
+
+        self.update_preview()
+
+    def apply_color_filter(self, img, color):
+        """Apply color while preserving transparency"""
+        img = img.convert('RGBA')
+        data = numpy.array(img)
+
+        # Only modify non-transparent pixels
+        mask = data[:, :, 3] > 0
+        data[mask, :3] = color  # Set RGB for non-transparent pixels
+        # Leave alpha channel as is
+
+        return Image.fromarray(data)
+
+    def update_preview(self):
+        # Create blank canvas
+        preview = Image.new("RGBA", (PREVIEW_WIDTH, PREVIEW_HEIGHT), (0, 0, 0, 0))
+
+        # Apply base color to a solid rectangle (no pattern)
+        base_color = MC_COLORS[self.base_color_index]
+        base_layer = Image.new("RGBA", (PREVIEW_WIDTH, PREVIEW_HEIGHT), (*base_color, 255))
+        preview = Image.alpha_composite(preview, base_layer)
+
+        # Apply each pattern layer
+        for pattern_idx, color_idx in self.layered_selection:
+            pattern_img = self.pattern_images[pattern_idx].resize((PREVIEW_WIDTH, PREVIEW_HEIGHT))
+            colored_pattern = self.apply_color_filter(pattern_img, MC_COLORS[color_idx])
+            preview = Image.alpha_composite(preview, colored_pattern)
+
+        # Convert to wx bitmap and display
+        wx_img = wx.Bitmap.FromBufferRGBA(PREVIEW_WIDTH, PREVIEW_HEIGHT, preview.tobytes())
+        self.preview_bitmap.SetBitmap(wx_img)
+        self.nbt_output.SetValue(self.generate_bedrock_nbt())
+        self.panel.Layout()
+        self.update_status_bar()
+
+    def update_status_bar(self):
+        if not self.layered_selection:
+            self.SetStatusText("No patterns added", 0)
+        else:
+            last_pattern_idx, last_color_idx = self.layered_selection[-1]
+            pattern_name = PATTERN_KEY_TO_NAME[last_pattern_idx][1]
+            color_name = COLOR_NAMES[last_color_idx]
+            self.SetStatusText(f"Last: {pattern_name} ({color_name})", 0)
+        self.SetStatusText(f"Total: {len(self.layered_selection)} layers", 1)
+
+    def generate_bedrock_nbt(self):
+        """Generate proper Bedrock NBT data with correct pattern names"""
+        base_color = COLOR_NAMES[self.base_color_index].lower().replace(" ", "_")
+
+        patterns = ListTag([])
+        for pattern_idx, color_idx in self.layered_selection:
+            if pattern_idx in PATTERN_KEY_TO_NAME:
+                pattern_code = PATTERN_KEY_TO_NAME[pattern_idx][0]
+                color_name = COLOR_NAMES[color_idx].lower().replace(" ", "_")
+                patterns.append( CompoundTag({
+                    "Color": IntTag(color_idx),
+                    "Pattern": StringTag(pattern_code)
+                }))
+        self.damage_color = ShortTag(self.base_color_index)
+        self.nbt_data = CompoundTag({
+            "Patterns": patterns,
+            "Type": IntTag(0),  # Default banner type
+        })
+
+        return self.nbt_data.to_snbt(2)
+
+    def on_save(self, event):
+        print(self.nbt_data, self.damage_color )
+        _self = self._self
+        key, slot = _self.Get_slot_map_key()
+        keys = _self.editor.keys + [key,slot]
+        current_nbt = _self.editor.selected_player[keys]
+        if not current_nbt.get('tag', None):
+            current_nbt['tag'] = CompoundTag({})
+        if 'shield' in current_nbt['Name'].py_str:
+
+            current_nbt['tag']['Patterns'] = self.nbt_data['Patterns']
+            current_nbt['tag']['Type'] = self.nbt_data['Type']
+            current_nbt['tag']['Base'] =  self.damage_color
+        else:
+            current_nbt['Damage'] = self.damage_color
+            current_nbt['tag']['Patterns'] = self.nbt_data['Patterns']
+            current_nbt['tag']['Type'] = self.nbt_data['Type']
+        print(current_nbt)
+
+    def on_clear_layers(self, event):
+        self.layered_selection = []
+        # Clear any pattern selection
+        if self.selected_pattern_button:
+            self.selected_pattern_button.SetBackgroundColour(wx.Colour(0, 0, 0))
+            self.selected_pattern_button.Refresh()
+            self.selected_pattern_index = None
+            self.selected_pattern_button = None
+        self.update_preview()
 COLOR_CODES = {
     "Dark Aqua": ("§3", wx.Colour(0, 139, 139)),
     "Gold": ("§6", wx.Colour(255, 215, 0)),
@@ -1922,6 +2307,36 @@ class BedrockNameTagAndLoreEditor(wx.Frame):
             if wx_color == color:
                 return code
         return ""
+class ColorChoiceDialog(wx.Dialog):
+    def __init__(self, parent, label="block"):
+        super().__init__(parent, title=f"Choose a {label.lower()} color")
+        self.selected_index = None
+
+        panel = wx.Panel(self)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        grid_sizer = wx.GridSizer(rows=4, cols=4, hgap=5, vgap=5)
+
+        for i in range(16):
+            btn = wx.Button(panel, size=(40, 40))
+            btn.SetBackgroundColour(wx.Colour(*MC_COLORS[i]))
+            btn.SetToolTip(COLOR_NAMES[i])
+            btn.Bind(wx.EVT_BUTTON, self.make_on_color_select(i))
+            grid_sizer.Add(btn, 0, wx.EXPAND)
+
+        panel.SetSizer(grid_sizer)
+        sizer.Add(panel, 0, wx.ALL | wx.CENTER, 10)
+        self.SetSizerAndFit(sizer)
+
+    def make_on_color_select(self, idx):
+        def handler(event):
+            self.selected_index = idx
+            self.EndModal(wx.ID_OK)
+        return handler
+
+    def get_selection(self):
+        if self.selected_index is not None:
+            return COLOR_NAMES[self.selected_index]
+        return None
 class ItemTools:
     def __init__(self, parent):
         self.parent = parent
@@ -2231,11 +2646,11 @@ class ItemTools:
             listbox = wx.ListBox(parent_panel, style=wx.LB_SINGLE)
 
             def add_color(evt=None):
-                dlg = wx.SingleChoiceDialog(parent_panel, f"Choose a {label.lower()} color", "Colors",
-                                            list(colors.values()))
+                dlg = ColorChoiceDialog(parent_panel, label="Block")
                 if dlg.ShowModal() == wx.ID_OK:
-                    choice = dlg.GetStringSelection()
-                    listbox.Append(choice)
+                    choice = dlg.get_selection()
+                    if choice:
+                        listbox.Append(choice)
                 dlg.Destroy()
 
             def remove_color(evt=None):
@@ -2597,6 +3012,11 @@ class ItemTools:
 
         # Show the editor window
         tagedit.Show(True)
+
+    def banner_editor(self, event, _self):
+        banner_select = BannerSelector(self, _self)
+        banner_select.Show(True)
+
 class IconButton(wx.Panel):
     def __init__(self, parent, bedrock_id, display_name, count, icon_bitmap, slot,
                  editor, *args, **kw):
@@ -3026,6 +3446,10 @@ class IconButton(wx.Panel):
 
             item_name = self.button.GetName()
 
+            if any(t in item_name for t in ["shield", "banner"]) and 'pattern' not in item_name:
+                banner = wx.MenuItem(menu, wx.ID_ANY, "Edit Banner")
+                menu.Append(banner)
+                self.Bind(wx.EVT_MENU, lambda e, _self=self: self.tools.banner_editor(e, _self), banner)
             if any(t in item_name for t in ["helmet", "leggings", "chestplate", "boots"]):
                 trim_item = wx.MenuItem(menu, wx.ID_ANY, "Edit Armor Trims")
                 menu.Append(trim_item)
@@ -3047,7 +3471,7 @@ class IconButton(wx.Panel):
             if any(t in item_name for t in [
                                                "pickaxe", "axe", "shovel", "hoe", "trident",
                                                "helmet", "leggings", "chestplate", "boots",
-                                               "chainmail", "sword", "elytra", "mace", "brush", 'shield'
+                                               "chainmail", "sword", "elytra", "mace", "brush", 'shield', 'bow',
                                            ] + list(enchantments.values())):
                 enchant_item = wx.MenuItem(menu, wx.ID_ANY, "Edit Enchants")
                 menu.Append(enchant_item)
@@ -3098,10 +3522,6 @@ class IconButton(wx.Panel):
         self.dragging = False
         event.Skip()
 
-
-
-
-
          # Finalize move or swap
         if getattr(self, "drag_image", None):
             self.drag_image.Hide()
@@ -3118,8 +3538,6 @@ class IconButton(wx.Panel):
                 self.ReleaseMouse()
             except Exception:
                 pass
-
-
 
         self.dragged_bitmap = None
         self.dragged_id = None
@@ -3219,9 +3637,9 @@ class IconButton(wx.Panel):
 
     def handle_offhand(self, menu):
         off_hand = {
-            "Arrows": range(937, 950),
+            "Arrows": range(939, 950),
             "More Arrows": range(950, 979),
-            "Most_used(may not work)": [980, 1212, 1696, 1044],
+            "Most_used(may not work)": [982, 1214, 1696, 1046],
         }
         for category, item_range in off_hand.items():
             self.create_submenu(menu, category, item_range)
@@ -3575,113 +3993,6 @@ class InventoryEditorList(wx.Frame):
         if editor in self.open_editors:
             self.open_editors.remove(editor)
         event.Skip()
-
-class MinecraftWorldSelector(wx.Frame):
-    def __init__(self):
-        super().__init__(None, title="Minecraft World Selector", size=(1100, 900))
-        self.font = wx.Font(18, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
-        self.SetFont(self.font)
-        self.SetForegroundColour((0, 255, 0))
-        self.SetBackgroundColour(wx.Colour(0, 0, 0, 0))
-        self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
-        panel = wx.ScrolledWindow(self)
-
-        panel.SetScrollRate(10, 10)
-        grid_sizer = wx.GridSizer(0, 4, 5, -80)  # 0 rows, 4 columns, 10px gap
-
-        if os.path.exists(WORLDS_DIR):
-            worlds = []
-            for world_folder in os.listdir(WORLDS_DIR):
-                world_path = os.path.join(WORLDS_DIR, world_folder)
-                if os.path.isdir(world_path):
-                    mod_time = os.path.getmtime(world_path)  # Get modification time
-                    worlds.append((mod_time, world_path))
-
-            # Sort worlds by most recent modification time (descending)
-            worlds.sort(reverse=True, key=lambda x: x[0])
-
-            for _, world_path in worlds:
-                world_name = "Unknown World"
-                icon_path = os.path.join(world_path, "world_icon.jpeg")
-                name_path = os.path.join(world_path, "levelname.txt")
-
-                if os.path.exists(name_path):
-                    with open(name_path, "r", encoding="utf-8") as f:
-                        world_name = f.read().strip()
-
-                world_panel = wx.Panel(panel)
-                world_sizer = wx.BoxSizer(wx.VERTICAL)
-
-                if os.path.exists(icon_path):
-                    image = wx.Image(icon_path, wx.BITMAP_TYPE_JPEG).Scale(128, 128)
-                    bitmap = wx.StaticBitmap(world_panel, bitmap=wx.Bitmap(image))
-
-                    # Bind hover events correctly
-                    bitmap.Bind(wx.EVT_ENTER_WINDOW, self.on_hover)
-                    bitmap.Bind(wx.EVT_LEAVE_WINDOW, self.on_leave)
-                    bitmap.Bind(wx.EVT_LEFT_DOWN, lambda evt, path=world_path: self.on_world_selected(evt, path))
-
-                    world_sizer.Add(bitmap, 0, wx.ALIGN_CENTER | wx.ALL, 5)
-                else:
-                    button = wx.Button(world_panel, label="Select")
-                    button.Bind(wx.EVT_BUTTON, lambda evt, path=world_path: self.on_world_selected(evt, path))
-                    world_sizer.Add(button, 0, wx.ALIGN_CENTER | wx.ALL, 5)
-
-                label = wx.StaticText(world_panel, label=world_name)
-                label.Bind(wx.EVT_ENTER_WINDOW, self.on_hover)
-                label.Bind(wx.EVT_LEAVE_WINDOW, self.on_leave)
-
-                label.SetFont(self.font)
-                label.SetForegroundColour((0, 255, 0))
-                label.SetBackgroundColour(wx.Colour(0, 0, 0, 0))
-                label.SetMinSize((150, 150))
-                world_sizer.Add(label, 0, wx.ALIGN_CENTER | wx.ALL, 5)
-                # label.SetTransparent(0)
-
-                world_panel.SetSizer(world_sizer)
-                grid_sizer.Add(world_panel, 0, wx.EXPAND | wx.ALL, 5)
-
-        panel.SetSizer(grid_sizer)
-        self.Centre()
-        self.Show()
-
-    def on_hover(self, event):
-        obj = event.GetEventObject()
-        parent = obj.GetParent()
-
-        if isinstance(obj, wx.StaticText):
-            obj.Hide()
-            parent.Layout()  # Layout the parent, not the text itself
-            parent.Refresh()
-
-        elif isinstance(obj, wx.StaticBitmap):
-            bmp = obj.GetBitmap()
-            img = bmp.ConvertToImage().Scale(354, 354)
-            obj.SetBitmap(wx.Bitmap(img))
-            parent.Layout()
-            parent.Refresh()
-
-    def on_leave(self, event):
-        obj = event.GetEventObject()
-        parent = obj.GetParent()
-
-        if isinstance(obj, wx.StaticText):
-            obj.Show()
-            parent.Layout()
-            parent.Refresh()
-
-        elif isinstance(obj, wx.StaticBitmap):
-            bmp = obj.GetBitmap()
-            img = bmp.ConvertToImage().Scale(128, 128)
-            obj.SetBitmap(wx.Bitmap(img))
-            parent.Layout()
-            parent.Refresh()
-
-    def on_world_selected(self, event, path):
-        world = LevelDB(path + r"\db")
-        new_window = InventoryEditorList(None, None, world)
-        new_window.Move(self.GetScreenPosition())  # Open next to the parent
-        new_window.Show()
 #############End Inventory Editor
 villager_workstations = {
             "fisherman": "barrel",
@@ -18122,6 +18433,7 @@ class MultiTools(wx.Panel, DefaultOperationUI):
                               f"Added enable disable hardcore button in Set player data for bedrock\n"
                               f"________________List of recent changes___________________________\n"
                               f"v:8 Added Drag and drop to Inventory Editor and some bug fixes\n",
+                              f"v:8 Added Banner tools ad updated fierwork editor\n",
                               "The Plugin has Been Updated", wx.OK | wx.ICON_INFORMATION)
 
 
