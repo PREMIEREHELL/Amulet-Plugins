@@ -986,7 +986,10 @@ class InventoryEditor(wx.Frame):
             self.scroll_panel.Refresh()
 
     def save_button(self, event):
-
+        def find_key_by_value(dictionary, target_value):
+            for key, value in dictionary.items():
+                if value == target_value:
+                    return key
         for x in self.slot_map.values():
 
             key, slot = x.Get_slot_map_key()
@@ -1002,10 +1005,19 @@ class InventoryEditor(wx.Frame):
             )
 
             if item_index is None:
-                # print(f"Slot {slot_id} not found in {current_keys}")
-                continue  # or handle this gracefully
 
-            # Now it's safe to assign the value
+                continue
+
+            #banner id patch
+            colors = [key.lower() for key in list(custom_color_dict.keys())[1:]]
+            item_name = current[item_index]['Name'].py_str
+            if 'banner' in item_name:
+                for color in colors:
+                    if color in item_name:
+                        item_name.replace(color+'_', "")
+                        key_val = find_key_by_value(color_dict,color)
+                        current[item_index]['Damage'] = ShortTag(key_val)
+                        current[item_index]['Name'] = StringTag(item_name.replace(color+"_", ""))
             current[item_index]['Count'] = x.GetValue()
 
             if x.GetValue().py_int == 0:
