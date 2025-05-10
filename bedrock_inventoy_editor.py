@@ -3387,17 +3387,18 @@ class IconButton(wx.Panel):
     def setup_load_check_button_or_text(self):
 
         if self.bedrock_id and not self.icon_bitmap:
-            self.button = wx.Button(self, size=(80, 80), label=bedrock_id)
+
+            self.button = wx.Button(self, size=(80, 80), label=self.bedrock_id)
             font = self.button.GetFont()
             font.SetPointSize(10)  # Make text smaller
             self.button.SetFont(font)
-            split_name = bedrock_id.split('_')
-            bedrock_id = ''
+            split_name = self.bedrock_id.split('_')
+
             for i,s in enumerate(split_name): # Manual wrapping
                 if len(s) > 0:
-                    bedrock_id += f'{s}_\n' if i != len(split_name)-1 else f'{s}'
+                    self.bedrock_id += f'{s}_\n' if i != len(split_name)-1 else f'{s}'
 
-            self.button.SetLabel(bedrock_id)
+            self.button.SetLabel(self.bedrock_id)
         else:
             if self.bedrock_id:
                 self.button = wx.Button(self, size=(80, 80) ,name=self.bedrock_id)
