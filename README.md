@@ -4,10 +4,10 @@ Welcome to **Amulet-Plugins**, where I share tools and plugins for **Minecraft e
 
 Currently available:
 
-- **Inventory Editor**: Quickly manage your in-game inventory—add, remove, or customize items with ease.
-- **Village Editor**: Modify villager trades, inventories, and village data efficiently.
+- **Inventory Editor**: Quickly manage your in-game inventory—add, remove, or customize items with ease.  
+- **Village Editor**: Modify villager trades, inventories, and village data efficiently.  
 
- More videos comeing to explain how to use the plugins
+More videos are coming soon to explain how to use the plugins.  
 
 Click the thumbnail to watch a preview:
 
