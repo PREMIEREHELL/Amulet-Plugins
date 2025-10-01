@@ -95,7 +95,9 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
         self._force_blending = wx.Button(self, label="Force \n Blending", size=(100, 40))
         self._force_blending.Bind(wx.EVT_BUTTON, self._force_blening_window)
         self._force_relighting = wx.Button(self, label="Force\n Relighting", size=(100, 40))
+        self._find_chunks = wx.Button(self, label="Find\n Chunks", size=(100, 40))
         self._force_relighting.Bind(wx.EVT_BUTTON, self.force_relighting)
+        self._find_chunks.Bind(wx.EVT_BUTTON, self.find_chunks)
         self._delete_unselected_chunks.Bind(wx.EVT_BUTTON, self.delete_unselected)
 
         self._run_button = wx.Button(self, label="Set \n Selection Boxs", size=(60, 50))
@@ -215,9 +217,11 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
 
             self.box_mid = wx.GridSizer(1, 3, 1, -11)
             self.box_mid.Add(self._force_relighting)
+            self._find_chunks.Hide()
         else:
             self._force_relighting.Hide()
-            self.box_mid = wx.GridSizer(1, 2, 1, 1)
+            self.box_mid = wx.GridSizer(1, 3, 1, 1)
+            self.box_mid.Add(self._find_chunks)
         self.box_mid.Add(self._delete_unselected_chunks)
         self.box_mid.Add(self._force_blending)
 
@@ -239,6 +243,14 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
 
         self.Layout()
         self.Thaw()
+    def find_chunks(self, _):
+        self.all_chunks = [x for x in self.world.level_wrapper.all_chunk_coords(self.canvas.dimension)]
+        for xx, zz in self.all_chunks:
+            chunkkey = self.get_dim_chunkkey(xx, zz)
+            print(self.level_db.get(chunkkey + b'6', None))
+
+
+
 
     def force_relighting(self, _):
         self._gsel(_)
@@ -267,7 +279,7 @@ class MultiForcedBlending(wx.Panel, DefaultOperationUI):
                         if self.raw_data.has_chunk(cx % 32, cz % 32):
                             nbt_data = self.raw_data.get_chunk_data(cx % 32, cz % 32)
                             nbt_data.pop('isLightOn', None)
-                            
+
                             self.raw_data.put_chunk_data(cx % 32, cz % 32, nbt_data)
                         self.raw_data.save()
             self.world.save()
