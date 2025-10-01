@@ -45,96 +45,93 @@ categories = {
         "Stairs": [(64, 121)],
         "Doors": [(122, 142)],
         "Trapdoors": [(143, 163)],
-        "Glass": [165, 182, 1047, 1195],
-        "Stained_Glass": [(166, 181)],
-        "Glass_Panes": [(184, 199), 1736],
+        "Glass": [165, 182, 1073, 1221, 1773],
+        "Stained_Glass": [(166, 181), 1771],
+        "Glass_Panes": [(184, 199), 1772, 1774],
         "Wool": [(365, 380)],
         "Carpets": [(381, 396), 705, 707],
         "Concrete": [(413, 428)],
         "Concrete_Powder": [(397, 412)],
         "Terracotta": [(430, 461)],
-        "Bricks": [(264, 267), (269, 271), (276, 278), 281, 344, 349, (357, 359), (361, 362), 465, (759, 762), 1378],
-        "Blackstone": [(272, 273), 506, 513, 1582, 1599],
+        "Bricks": [(264, 267), (269, 271), (276, 278), 281, 344, 349, (357, 359), (361, 362), 465, (759, 762), 1412],
+        "Blackstone": [(272, 273), 506, 513, 1616, 1633],
         "Basalt": [509, (516, 517)],
         "Tuff": [280, 508, 515],
-        "Copper_Blocks": [295, (303, 310), (327, 334), 340, 489, 501, 1367],
-        "Amethyst_Blocks": [720, 1380],
-        "Prismarine": [348, 350, 1381],
+        "Copper_Blocks": [(295, 298), 340],
+        "Amethyst_Blocks": [720, 1414],
+        "Prismarine": [348, 350, 1415],
         "Nether_Bricks": [360],
         "Nylium": [(469, 470)],
     },
     "Natural Blocks": {
-        "Logs": [(522, 543), (562, 565), 742, 1767],
+        "Logs": [(522, 543), (562, 565), 742, 1794, 1809],
         "Wood": [544, 546, 548, 550, 552, 554, 556, 558, 560],
         "Stripped_Wood": [545, 547, 549, 551, 553, 555, 557, 559, 561],
         "Leaves": [(568, 578)],
         "Saplings": [(579, 587)],
         "Mushroom_Blocks": [(740, 741)],
-        "Ores": [(483, 488), (490, 492), (494, 500), 1750],
-        "Raw_Blocks": [202, (293, 294), (335, 339), (341, 343), 346, (352, 356), 363, 462, (466, 467), 473, (566, 567),
-                       604, 703, 706, 708, 714, 856, (865, 874), 1359, 1566, 1721, (1725, 1726), 1762],
+        "Ores": [(483, 492), (494, 501), 1791],
+        "Raw_Blocks": [202, (293, 294), (335, 339), (341, 343), 346, (352, 356), 363, 462, (466, 467), 473, (566, 567), 604, 703, 706, 708, 714, 857, (866, 875), 1393, 1600, 1755, (1759, 1760), 1815],
     },
     "Rails": {
-        "Rails": [(1557, 1558)],
+        "Rails": [(1591, 1592)],
     },
     "Redstone": {
-        "Redstone_Components": [(1559, 1560), 1563, (1567, 1581), (1584, 1598), 1600, (1602, 1606), (1608, 1609), 1716,
-                                (1757, 1758), 1764],
-        "Lamps": [1306, 1749],
+        "Redstone_Components": [(1593, 1594), 1597, (1601, 1615), (1618, 1632), 1634, (1636, 1640), (1642, 1643), 1750, (1806, 1808), 1818],
+        "Lamps": [1340, 1790],
     },
     "Farming": {
-        "Crops": [(589, 593), (595, 600), (605, 606), (609, 611), 686, 992, 994, 996, 1000, 1756],
-        "Food": [(602, 603), (990, 991), 993, 997],
-        "Animal_Products": [(744, 745), (764, 766), (772, 851), (983, 986), 1754],
+        "Crops": [(589, 593), (595, 600), (605, 606), (609, 611), 686, 1002, 1004, 1006, 1010, (1799, 1801)],
+        "Food": [(602, 603), (1000, 1001), 1003, 1007],
+        "Animal_Products": [(744, 745), (764, 766), (772, 852), (993, 996), 1797],
     },
     "Mob Drops": {
-        "Monster_Drops": [631, 641, 999, (1010, 1017), 1382, (1384, 1386), (1395, 1396), (1403, 1404), 1406,
-                          (1409, 1410)],
-        "Heads": [(1349, 1355)],
+        "Monster_Drops": [631, 641, 1009, (1020, 1027), 1416, (1418, 1420), (1429, 1430), (1437, 1438), 1440, (1443, 1444)],
+        "Heads": [(1383, 1389)],
     },
     "Weapons": {
-        "Weapons": [(906, 911)],
+        "Weapons": [(911, 917)],
     },
     "Tools": {
-        "Tools": [(912, 935)],
+        "Tools": [(918, 945)],
     },
     "Armor": {
-        "Armor": [(882, 905), 1044],
+        "Armor": [(883, 910), 1070],
     },
     "Horse_Armor": {
-        "Horse_Armor": [(1038, 1041)],
+        "Horse_Armor": [(1064, 1067)],
     },
     "Fireworks": {
-        "Fireworks": [(1682, 1698)],
-        "Star": [1408, (1699, 1714)],
+        "Fireworks": [(1716, 1732)],
+        "Star": [1442, (1733, 1748)],
     },
     "Containers": {
-        "Shulker_Boxes": [(1264, 1280)],
-        "Bundles": [(1021, 1037)],
-        "Barrel Chests": [1263, (1260, 1262), 1562],
-
+        "Shulker_Boxes": [(1290, 1306)],
+        "Bundles": [(1047, 1063)],
+        "Chests": [(1286, 1288), 1596],
+        "Barrel": [1289],
     },
     "Miscellaneous": {
         "Dyes": [(668, 683)],
-        "Buckets": [(1339, 1348)],
-        "Potions": [(1049, 1189)],
-        "Music_Discs": [(1284, 1302)],
-        "Boats": [(1537, 1556)],
-        "Beds": [854, (1198, 1213), 1737],
-        "Signs": [(1308, 1319)],
-        "Hanging_Signs": [(1320, 1331)],
-        "Banners": [(1613, 1639)],
+        "Buckets": [(1373, 1382)],
+        "Potions": [(1075, 1215)],
+        "Music_Discs": [(1318, 1336)],
+        "Boats": [(1571, 1590)],
+        "Beds": [855, (1224, 1239), 1764, 1777],
+        "Signs": [(1342, 1353), 1820],
+        "Hanging_Signs": [(1354, 1365)],
+        "Banners": [(1647, 1673)],
         "Spawners": [(752, 753)],
         "Coral": [(622, 626), (632, 636)],
         "Dead_Coral": [(627, 630), (637, 640)],
-        "Enchanted_Books": [(1415, 1536)],
+        "Enchanted_Books": [(1449, 1570)],
     },
 }
 armor_item_range = {
-    0: list(range(882, 888)) + [1044, 609] + list(range(1349, 1356)),  # "Helmet"
-    1: list(range(888, 894)) + [1045],  # "Chest"
-    2: range(894, 900),  # "Leggings"
-    3: range(900, 906),  # "Boots"
+    0: list(range(883, 890)) + [1070, 610] + list(range(1383, 1390)),  # "Helmet"
+    1: list(range(890, 897)) + [1071],  # "Chest"
+    2: range(897, 904),  # "Leggings"
+    3: range(904, 911),  # "Boots"
 
 
 }
@@ -329,7 +326,7 @@ valid_enchants = {
             "elytra": [17,26,27,28],
             "leggings": [0, 1, 3, 4, 5, 37, 17, 26, 27, 28],
             "boots": [0, 1, 2, 3, 4, 5, 7, 25, 36, 17, 26, 27, 28],
-            "sword": [9, 10, 11, 12, 13, 14, 16, 17, 26, 27, 28],
+            "sword": [9, 10, 11, 12, 13, 14, 17, 26, 27, 28],
             "axe": [9, 10, 11, 13, 14, 15, 16, 17, 18, 26, 27, 28],
             "pickaxe": [15, 16, 17, 18, 26, 27, 28],
             "shovel": [15, 16, 17, 18, 26, 27, 28],
@@ -888,7 +885,12 @@ class InventoryEditor(wx.Frame):
         file_menu.Append(self.items_id, "Items Menu\tCtrl+I", "Show items")
         self.Bind(wx.EVT_MENU, self.on_items_menu, id=self.items_id)
 
-        # 3. Custom ID using NewIdRef (Clear All)
+        # 3. Set Game mode
+        self.game_mode = wx.NewIdRef()
+        file_menu.Append(self.game_mode, "Set Game model\tCtrl+Shift+G", "Set Game mode")
+        self.Bind(wx.EVT_MENU, self._game_mode, id=self.game_mode)
+
+        # 4. Custom ID using NewIdRef (Clear All)
         self.clear_id = wx.NewIdRef()
         file_menu.Append(self.clear_id, "Clear All\tCtrl+Shift+C", "Clear everything")
         self.Bind(wx.EVT_MENU, self.on_clear_all, id=self.clear_id)
@@ -901,6 +903,7 @@ class InventoryEditor(wx.Frame):
             (wx.ACCEL_CTRL, ord('O'), wx.ID_OPEN),  # Open
             (wx.ACCEL_CTRL, ord('I'), self.items_id),  # Items Menu
             (wx.ACCEL_CTRL | wx.ACCEL_SHIFT, ord('C'), self.clear_id),  # Clear All
+            (wx.ACCEL_CTRL | wx.ACCEL_SHIFT, ord('G'), self.game_mode), #Game mode
         ])
         self.SetAcceleratorTable(accel_tbl)
         # Layout sections
@@ -916,6 +919,11 @@ class InventoryEditor(wx.Frame):
         # self.Move(self.GetPosition())
         self.Show()
 
+    def _game_mode(self, event):
+        self.gm = self.selected_player[[]]
+        self.gm['PlayerGameMode'] = ByteTag(4)
+        self.selected_player.save_player()
+        print(self.gm.get('PlayerGameMode'))
 
     def on_open(self, event):
         with wx.FileDialog(self, "Open NBT file", wildcard="NBT files (*.nbt)|*.nbt",
@@ -947,6 +955,7 @@ class InventoryEditor(wx.Frame):
 
             print(f"Saving file to: {pathname}")
             # TODO: Save your NBT file here
+
     def on_items_menu(self, event):
         self.icon_resources = IconResources()
         self.icon_resources.toggle_catalog(self.parent, self, None)
