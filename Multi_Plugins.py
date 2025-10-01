@@ -18447,7 +18447,7 @@ class MultiTools(wx.Panel, DefaultOperationUI):
                               f"Added enable disable hardcore button in Set player data for bedrock\n"
                               f"________________List of recent changes___________________________\n"
                               f"v:8 Added Drag and drop to Inventory Editor and some bug fixes\n"
-                              f"v:8 Added Banner tools ad updated fierwork editor\n",
+                              f"v:8 Added Banner tools ad updated fierwork editor\n"
                               f"v:9 Added in new items for bedrock inventoy editor\n",
                               "The Plugin has Been Updated", wx.OK | wx.ICON_INFORMATION)
 
