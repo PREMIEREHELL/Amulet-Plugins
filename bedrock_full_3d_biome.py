@@ -109,7 +109,7 @@ biome_id_to_name = {
 def biomes_dict_to_numpy_arrays(biomes: dict[int, tuple[numpy.ndarray, numpy.ndarray]]
                                 ) -> dict[int, numpy.ndarray]:
     """
-    Convert your decode_full_3d_biomes() output (palette, indices) into a dict
+    Convert decode_full_3d_biomes() output (palette, indices) into a dict
     cy -> 16x16x16 numpy array of actual biome IDs in x,y,z order.
     """
     out = {}
@@ -165,7 +165,7 @@ def numpy_arrays_to_biomes_bytes(arrays: dict[int, numpy.ndarray]) -> bytes:
             # vectorized mapping of flat -> indices
             indices_flat = numpy.fromiter((mapping[int(v)] for v in flat), dtype=numpy.uint32)
             indices = indices_flat.reshape((16, 16, 16))
-            # use existing encoder (keeps your bit-packing logic)
+            # use existing encoder
             packed = _encode_packed_array(indices, min_bit_size=1, biome=True)
             parts.append(packed)
             parts.append(struct.pack('<I', len(palette_vals)))
@@ -217,7 +217,7 @@ def _encode_packed_array(arr: numpy.ndarray, min_bit_size=1, biome=False) -> byt
 @staticmethod
 def _decode_packed_array(data: bytes) -> Tuple[bytes, int, Optional[numpy.ndarray]]:
     """
-    Parse a packed array as documented here
+               Parse a packed array as documented here
     https://gist.github.com/Tomcc/a96af509e275b1af483b25c543cfbf37
 
     :param data: The data to parse
@@ -386,7 +386,7 @@ class BIOME(wx.Panel, DefaultOperationUI):
 
     def set_biome(self, _):
         # read raw chunk
-        # gather selections and subchunk locations (same as your original approach)
+        # gather selections and subchunk locations
         sub_chunk_locations = [x for x in self.canvas.selection.selection_group.sub_chunk_locations()]
         selections = [x for x in self.canvas.selection.selection_group.blocks]
         name_to_biome_id = {v: k for k, v in biome_id_to_name.items()}
