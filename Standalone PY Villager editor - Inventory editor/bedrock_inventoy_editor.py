@@ -16,13 +16,76 @@ import sys  # for making embedded exe
 from typing import Union
 # import wx
 import wx.lib.scrolledpanel as scrolled
+from pathlib import Path
 # Use importlib.resources to load the embedded tem_atlas.json
 
+def get_all_bedrock_worlds_paths():
+    world_paths = []
 
+    local_appdata = os.getenv('LOCALAPPDATA')
+    if local_appdata:
+        uwp_base = Path(local_appdata) / "Packages" / "Microsoft.MinecraftUWP_8wekyb3d8bbwe" / \
+                   "LocalState" / "games" / "com.mojang" / "minecraftWorlds"
+        if uwp_base.exists():
+            world_paths.append(uwp_base)
 
-APPDATA = os.getenv('LOCALAPPDATA')
-WORLDS_DIR = os.path.join(APPDATA, "Packages", "Microsoft.MinecraftUWP_8wekyb3d8bbwe", "LocalState", "games",
-                          "com.mojang", "minecraftWorlds")
+    roaming_appdata = os.getenv('APPDATA')
+    if roaming_appdata:
+        users_base = Path(roaming_appdata) / "Minecraft Bedrock" / "Users"
+        if users_base.exists():
+            for user_dir in users_base.iterdir():
+                if user_dir.is_dir() and user_dir.name.lower() != "shared":
+                    user_worlds = user_dir / "games" / "com.mojang" / "minecraftWorlds"
+                    if user_worlds.exists():
+                        world_paths.append(user_worlds)
+
+    world_paths = list(dict.fromkeys(world_paths))
+    return world_paths
+def select_world_path(paths):
+    """Show a small wxPython window to select one world path."""
+    app = wx.App(False)
+
+    # Extract user or folder ID to show in the list
+    labels = [path.parent.parent.parent.name for path in paths]
+
+    dialog = wx.SingleChoiceDialog(
+        None,
+        message="Select a Minecraft user/worlds folder:",
+        caption="Select World Path",
+        choices=labels,
+        style=wx.CHOICEDLG_STYLE
+    )
+
+    selected_path = None
+    if dialog.ShowModal() == wx.ID_OK:
+        idx = dialog.GetSelection()
+        selected_path = paths[idx]
+
+    dialog.Destroy()
+    app.MainLoop()
+    return selected_path
+def get_bedrock_world_path():
+    paths = get_all_bedrock_worlds_paths()
+
+    if not paths:
+        raise FileNotFoundError("No Minecraft Bedrock world directories found.")
+    elif len(paths) > 1:
+        # Let user select one if there are more than 3
+        selected = select_world_path(paths)
+        if selected:
+            return selected
+        else:
+            raise RuntimeError("No selection made.")
+    else:
+        # If 3 or fewer, just pick the first automatically
+        return paths[0]
+
+selected_world_dir = get_bedrock_world_path()
+WORLDS_DIR =  selected_world_dir
+#C:\Users\MrHell\AppData\Roaming\Minecraft Bedrock\Users\285047525809754534\games\com.mojang\minecraftWorlds
+# APPDATA = os.getenv('LOCALAPPDATA')
+# WORLDS_DIR = os.path.join(APPDATA, "Packages", "Microsoft.MinecraftUWP_8wekyb3d8bbwe", "LocalState", "games",
+#                           "com.mojang", "minecraftWorlds")
 
 WINDOW = {}
 TAGITEMS = ['firework, bundle, chest, barrel, dispenser, shulker_box',
@@ -1091,7 +1154,13 @@ class InventoryEditor(wx.Frame):
                 if item_name == 'banner':
                     item_name = f'{color_dict.get(damage, "white")}_{item_name}'
                 elif item_name in data_damage_tag_list_of:
+
                     item_name = f"{item_name}:{damage}"
+
+                    if str(item_name) in "goat_horn:0":
+
+                        item_name = 'goat_horn'
+
 
                 if item.get('tag'):
                     for k, v in item['tag'].items():
@@ -1497,7 +1566,6 @@ class TAGEditor(wx.Frame):
         panel.Layout()
 
         self.Show()
-
 
     def on_save(self, event):
         title = self._self.Parent.Parent.GetTitle()
@@ -2174,6 +2242,7 @@ class ColorChoiceDialog(wx.Dialog):
         if self.selected_index is not None:
             return COLOR_NAMES[self.selected_index]
         return None
+
 class ItemTools:
     def __init__(self, parent):
         self.parent = parent
@@ -3812,11 +3881,11 @@ class InventoryEditorList(wx.Frame):
         self.Centre()
         panel.SetSizer(vbox)
         self.Show()
+
     def on_close(self, event):
         self.Hide()
         if __name__ == "__main__":
             self.world.close()
-
 
     def on_item_click(self, event):
         selection = self.list_ctrl.GetStringSelection()
@@ -3826,7 +3895,6 @@ class InventoryEditorList(wx.Frame):
             inventory_editor.Bind(wx.EVT_CLOSE, lambda evt, ed=inventory_editor: self._on_editor_close(evt, ed))
             inventory_editor.Show(True)
             self.open_editors.append(inventory_editor)
-
     def _on_editor_close(self, event, editor):
         if editor in self.open_editors:
             self.open_editors.remove(editor)
