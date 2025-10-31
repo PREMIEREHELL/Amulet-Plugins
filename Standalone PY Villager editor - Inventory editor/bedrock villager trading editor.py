@@ -6,10 +6,84 @@ import collections
 import os
 import sys
 import json
-APPDATA = os.getenv('LOCALAPPDATA')
-WORLDS_DIR = os.path.join(APPDATA, "Packages", "Microsoft.MinecraftUWP_8wekyb3d8bbwe", "LocalState", "games",
-                          "com.mojang", "minecraftWorlds")
+from pathlib import Path
+def get_all_bedrock_worlds_paths():
+    world_paths = []
 
+    local_appdata = os.getenv('LOCALAPPDATA')
+    if local_appdata:
+        uwp_base = Path(local_appdata) / "Packages" / "Microsoft.MinecraftUWP_8wekyb3d8bbwe" / \
+                   "LocalState" / "games" / "com.mojang" / "minecraftWorlds"
+        if uwp_base.exists():
+            world_paths.append(uwp_base)
+
+    roaming_appdata = os.getenv('APPDATA')
+    if roaming_appdata:
+        users_base = Path(roaming_appdata) / "Minecraft Bedrock" / "Users"
+        if users_base.exists():
+            for user_dir in users_base.iterdir():
+                if user_dir.is_dir() and user_dir.name.lower() != "shared":
+                    user_worlds = user_dir / "games" / "com.mojang" / "minecraftWorlds"
+                    if user_worlds.exists():
+                        world_paths.append(user_worlds)
+
+    world_paths = list(dict.fromkeys(world_paths))
+    return world_paths
+def select_world_path(paths):
+    """Show a small wxPython window to select one world path."""
+    app = wx.App(False)
+
+    # Extract user or folder ID to show in the list
+    labels = [path.parent.parent.parent.name for path in paths]
+
+    dialog = wx.SingleChoiceDialog(
+        None,
+        message="Select a Minecraft user/worlds folder:",
+        caption="Select World Path",
+        choices=labels,
+        style=wx.CHOICEDLG_STYLE
+    )
+
+    selected_path = None
+    if dialog.ShowModal() == wx.ID_OK:
+        idx = dialog.GetSelection()
+        selected_path = paths[idx]
+
+    dialog.Destroy()
+    app.MainLoop()
+    return selected_path
+def get_bedrock_world_path():
+    paths = get_all_bedrock_worlds_paths()
+
+    if not paths:
+        raise FileNotFoundError("No Minecraft Bedrock world directories found.")
+    elif len(paths) > 1:
+        # Let user select one if there are more than 3
+        selected = select_world_path(paths)
+        if selected:
+            return selected
+        else:
+            raise RuntimeError("No selection made.")
+    else:
+        # If 3 or fewer, just pick the first automatically
+        return paths[0]
+
+selected_world_dir = get_bedrock_world_path()
+WORLDS_DIR =  selected_world_dir
+categories = { # This will sort both menu options
+
+    "Construction": range(0, 466),
+    "Equipment": range(880, 937), #Sheild 980
+    "Items": range(1196, 1718),
+    "Nature": range(466, 880),
+    "Tools": range(910, 935),
+    "Weapons": list(range(904, 915)),
+    "Special Weapons": range(934, 937),
+    "Arrows": range(937, 979),
+    "Unlisted Bedrock": range(1718, 1766),
+    "Fast Ready Special": range(1041, 1045),
+    #"Ready": range(0, 0), #some how this happen bottom is visable no submenu I like it
+}
 class MinecraftWorldSelector(wx.Frame):
     def __init__(self):
         super().__init__(None, title="Minecraft World Selector", size=(1100, 900))
@@ -111,10 +185,8 @@ class MinecraftWorldSelector(wx.Frame):
             parent.Layout()
             parent.Refresh()
 
-
     def on_world_selected(self, event, path):
         ListWindow(path)
-
 class GetVillagerData():
     def __init__(self, path):
         self.world = amulet.level.load_level( path)
@@ -165,8 +237,6 @@ class GetVillagerData():
 
 
         return self.list_of_villager_data
-
-
 class ListWindow(wx.Frame):
     def __init__(self, path):
         super().__init__(None, title="wxPython List Example", size=(660, 800))
@@ -206,21 +276,6 @@ class ListWindow(wx.Frame):
             DetailWindow(self, item_text, recipes, self.display_map[item_text],
             self.loaded_villager[self.display_map[item_text]], self.world)
 
-
-categories = { # This will sort both menu options
-
-    "Construction": range(0, 466),
-    "Equipment": range(880, 937), #Sheild 980
-    "Items": range(1196, 1718),
-    "Nature": range(466, 880),
-    "Tools": range(910, 935),
-    "Weapons": list(range(904, 915)),
-    "Special Weapons": range(934, 937),
-    "Arrows": range(937, 979),
-    "Unlisted Bedrock": range(1718, 1766),
-    "Fast Ready Special": range(1041, 1045),
-    #"Ready": range(0, 0), #some how this happen bottom is visable no submenu I like it
-}
 class IconListCtrl(wx.Frame):
     def __init__(self, parent, title, data, icon_cache, on_select):
         """
@@ -308,7 +363,49 @@ class IconListCtrl(wx.Frame):
             index = self.list_ctrl.InsertItem(self.list_ctrl.GetItemCount(), display_name, icon_index)
             self.index_to_bedrock[index] = bedrock_id
 
-
+enchantments = {
+    8: "Aqua Affinity",
+    11: "Bane of Arthropods",
+    3: "Blast Protection",
+    32: "Channeling",
+    27: "Curse of Binding",
+    28: "Curse of Vanishing",
+    7: "Depth Strider",
+    15: "Efficiency",
+    2: "Feather Falling",
+    13: "Fire Aspect",
+    1: "Fire Protection",
+    21: "Flame",
+    18: "Fortune",
+    25: "Frost Walker",
+    29: "Impaling",
+    22: "Infinity",
+    12: "Knockback",
+    14: "Looting",
+    31: "Loyalty",
+    23: "Luck of the Sea",
+    24: "Lure",
+    26: "Mending",
+    33: "Multishot",
+    34: "Piercing",
+    19: "Power",
+    4: "Projectile Protection",
+    0: "Protection",
+    20: "Punch",
+    35: "Quick Charge",
+    6: "Respiration",
+    30: "Riptide",
+    9: "Sharpness",
+    16: "Silk Touch",
+    10: "Smite",
+    36: "Soul Speed",
+    5: "Thorns",
+    17: "Unbreaking",
+    37: "Swift Sneak",
+    40: "Breach",
+    39: "Density",
+    38: "Wind Burst"
+}
 class DetailWindow(wx.Frame):
     def __init__(self, parent, title, recipes, key, villager_data, world):
         super().__init__(parent, title=f"Details - {title}", size=(1400, 900))
@@ -321,6 +418,9 @@ class DetailWindow(wx.Frame):
         self.icon_cache = {}
         self.items_id = []
         self.input_buttons = {}
+        self.recipe_sizers = {}
+        self.sell_sizers = {}
+        self.sell_sizers_parent = {}
         script_dir = os.path.dirname(os.path.abspath(__file__))  # this if for py to exe
 
         # Load tem_atlas.json using importlib.resources
@@ -365,29 +465,34 @@ class DetailWindow(wx.Frame):
         main_vbox.Add(top_panel, 0, wx.EXPAND)
 
         # --- Scrollable panel for recipes ---
-        scroll_panel = wx.ScrolledWindow(self, style=wx.VSCROLL)
-        scroll_panel.SetScrollRate(5, 5)
+        self.scroll_panel = wx.ScrolledWindow(self, style=wx.VSCROLL)
+        self.scroll_panel.SetScrollRate(5, 5)
 
-        recipes_grid = wx.FlexGridSizer(cols=3, hgap=15, vgap=15)
+        recipes_grid = wx.FlexGridSizer(cols=3, hgap=1, vgap=1)
         recipes_grid.AddGrowableCol(0, 1)
         recipes_grid.AddGrowableCol(1, 1)
         recipes_grid.AddGrowableCol(2, 1)
         print(self.villager_data[0]['data'].to_snbt(2))
         for i, recipe in enumerate(self.recipes):
-            box = wx.StaticBox(scroll_panel, label=f"Recipe {i + 1}")
+            box = wx.StaticBox(self.scroll_panel, label=f"Recipe {i + 1}")
             recipe_sizer = wx.StaticBoxSizer(box, wx.VERTICAL)
 
             grid = wx.FlexGridSizer(cols=2, hgap=10, vgap=5)
             grid.AddGrowableCol(1, 1)
 
+            # Create a dedicated row_sizer for the sell item
+            sell_row_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            self.sell_sizers[i] = sell_row_sizer  # now guaranteed to exist
+
             for key, value in recipe.items():
-                self._add_key_value(scroll_panel, grid, key, value, path=[i])
+                self._add_key_value(self.scroll_panel, grid, key, value, path=[i])
 
             recipe_sizer.Add(grid, 1, wx.EXPAND | wx.ALL, 5)
+            recipe_sizer.Add(sell_row_sizer, 0, wx.EXPAND | wx.ALL, 2)  # add sell row to recipe UI
             recipes_grid.Add(recipe_sizer, 1, wx.EXPAND)
 
-        scroll_panel.SetSizer(recipes_grid)
-        main_vbox.Add(scroll_panel, 1, wx.EXPAND | wx.ALL, 5)
+        self.scroll_panel.SetSizer(recipes_grid)
+        main_vbox.Add(self.scroll_panel, 1, wx.EXPAND | wx.ALL, 5)
         self.SetSizer(main_vbox)
         self.Centre()
         self.Show()
@@ -421,40 +526,64 @@ class DetailWindow(wx.Frame):
         return icon_cache
     # -------------------- KEY/VALUE GUI --------------------
     def _add_key_value(self, parent, sizer, key, value, path):
-        """Adds a label + value, recursive for CompoundTag/ListTag, with optional icon button that opens IconListCtrl."""
-        label = wx.StaticText(parent, label=f"{'  ' * (len(path) - 1)}{key}:")
+        """Adds a label + value, recursive for CompoundTag/ListTag, with optional icon button or enchantment drop-down."""
+        if key == "WasPickedUp":
+            return
+        label = wx.StaticText(parent, label=f"{'' * (len(path) - 1)}{key}:")
         sizer.Add(label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 5)
 
         if isinstance(value, CompoundTag):
-            sub_grid = wx.FlexGridSizer(cols=2, hgap=5, vgap=2)
+            sub_grid = wx.FlexGridSizer(cols=2, hgap=2, vgap=1)
             sub_grid.AddGrowableCol(1, 1)
             for n_key, n_value in value.items():
                 self._add_key_value(parent, sub_grid, n_key, n_value, path + [key])
             sizer.Add(sub_grid, 1, wx.EXPAND)
 
         elif isinstance(value, ListTag):
-            sub_grid = wx.FlexGridSizer(cols=2, hgap=5, vgap=2)
+            sub_grid = wx.FlexGridSizer(cols=2, hgap=2, vgap=1)
             sub_grid.AddGrowableCol(1, 1)
             for idx, n_value in enumerate(value):
-                self._add_key_value(parent, sub_grid, str(idx), n_value, path + [key])
+                # Pass integer index directly for ListTag
+                self._add_key_value(parent, sub_grid, idx, n_value, path + [key])
             sizer.Add(sub_grid, 1, wx.EXPAND)
 
         else:
-            # Row sizer for TextCtrl + optional icon button
             row_sizer = wx.BoxSizer(wx.HORIZONTAL)
-
-            val_str = str(value)
-            char_width = 8
-            min_width = 70
-            max_width = 250
-            width = min(max_width, max(min_width, len(val_str) * char_width))
-            ctrl = wx.TextCtrl(parent, value=val_str, size=(width, -1))
-            row_sizer.Add(ctrl, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 5)
-
             path_tuple = tuple(path + [key])
+
+            # --- Special handling for enchantments ---
+            if key == "id" and "ench" in path:
+                try:
+                    ench_id = int(str(value))
+                except (ValueError, TypeError):
+                    ench_id = None
+                ench_choices = [f"{k}: {v}" for k, v in enchantments.items()]
+                default_val = f"{ench_id}: {enchantments.get(ench_id, 'Unknown')}" if ench_id in enchantments else ""
+                ctrl = wx.ComboBox(
+                    parent,
+                    value=default_val,
+                    choices=ench_choices,
+                    style=wx.CB_DROPDOWN,
+                    size=(200, -1)
+                )
+            else:
+                # Regular TextCtrl for all other fields
+                if isinstance(value, (ByteTag, ShortTag, IntTag, FloatTag, StringTag)):
+                    display_value = str(value)
+                else:
+                    display_value = str(value)
+                char_width = 8
+                min_width = 70
+                max_width = 250
+                width = min(max_width, max(min_width, len(display_value) * char_width))
+                ctrl = wx.TextCtrl(parent, value=display_value, size=(width, -1))
+
+            row_sizer.Add(ctrl, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 1)
             self.input_fields[path_tuple] = ctrl
 
+            # --- Icon button for items ---
             btn = None
+            val_str = str(value)
             if "minecraft:" in val_str:
                 item_id = val_str.replace("minecraft:", "")
                 icon_image = self.icon_cache.get(item_id)
@@ -469,9 +598,58 @@ class DetailWindow(wx.Frame):
 
             if btn:
                 self.input_buttons[path_tuple] = btn
+            if "sell" in path and key.lower() == "name":
+                # Row sizer for this sell item
+                self.sell_sizers[path[0]] = row_sizer
+                self.sell_sizers_parent[path[0]] = sizer  # <-- save parent sizer
+
+                # Add Enchant button next to item name
+                add_ench_btn = wx.Button(parent, label="Add Enchant")
+                add_ench_btn.Bind(wx.EVT_BUTTON, lambda e, ri=path[0]: self._add_enchant_for_item(ri))
+                row_sizer.Add(add_ench_btn, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 5)
 
             sizer.Add(row_sizer, 1, wx.EXPAND | wx.ALL, 2)
+
     # -------------------- OPEN ICON WINDOW --------------------
+    def _add_enchant_for_item(self, recipe_index):
+        scroll_panel = self.scroll_panel
+        item_row_sizer = self.sell_sizers.get(recipe_index)
+        parent_sizer = self.sell_sizers_parent.get(recipe_index)
+
+        if not item_row_sizer or not parent_sizer:
+            print("Missing row or parent sizer for recipe", recipe_index)
+            return
+
+        recipe = self.recipes[recipe_index].get("sell", {})
+        tag = recipe.setdefault("tag", CompoundTag({}))
+        ench_list = tag.setdefault("ench", ListTag([]))
+
+        new_ench = CompoundTag({"id": ShortTag(34), "lvl": ShortTag(1)})
+        ench_list.append(new_ench)
+        new_index = len(ench_list) - 1
+
+        # Check if enchant sizer exists
+        ench_sizer_attr = f"sell_ench_sizer_{recipe_index}"
+        ench_sizer_obj = getattr(self, ench_sizer_attr, None)
+        if ench_sizer_obj is None:
+            # Create sizer below the item row
+            ench_sizer_obj = wx.FlexGridSizer(cols=2, hgap=2, vgap=1)
+            ench_sizer_obj.AddGrowableCol(1, 1)
+            parent_sizer.Add(wx.StaticText(scroll_panel, label="ench:"), 0, wx.ALL, 2)
+            parent_sizer.Add(ench_sizer_obj, 0, wx.EXPAND | wx.ALL, 2)
+            setattr(self, ench_sizer_attr, ench_sizer_obj)
+
+        # Add the new enchant row like loaded ones
+        self._add_key_value(scroll_panel, ench_sizer_obj, new_index, new_ench,
+                            [recipe_index, "sell", "tag", "ench"])
+
+        # Refresh layouts
+        ench_sizer_obj.Layout()
+        parent_sizer.Layout()
+        scroll_panel.FitInside()
+        scroll_panel.Layout()
+        scroll_panel.Refresh()
+
     def _open_icon_window(self, path):
         """Open IconListCtrl and update callback for the selected slot."""
         IconListCtrl(
@@ -547,15 +725,23 @@ class DetailWindow(wx.Frame):
 
         for path, text_ctrl in self.input_fields.items():
             value = text_ctrl.GetValue()
+            if len(path) >= 2 and path[-1] == "id" and "ench" in path:
+                clean_val = value.split()[0].strip("(): ")
+                try:
+                    value = int(clean_val)
+                except ValueError:
+                    value = clean_val
             i, *keys = path
             current_level = self.recipes[i]
 
             for key in keys[:-1]:
                 if isinstance(current_level, ListTag):
-                    key = int(key)
+                    key = int(key)  # convert key to integer
                     current_level = current_level[key]
                 else:
+                    print(keys)
                     if key not in current_level or not isinstance(current_level[key], (CompoundTag, ListTag)):
+                        # if the next level should be CompoundTag for dict-like entries
                         current_level[key] = CompoundTag({})
                     current_level = current_level[key]
 
