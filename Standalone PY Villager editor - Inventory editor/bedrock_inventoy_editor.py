@@ -34,10 +34,9 @@ def get_all_bedrock_worlds_paths():
         users_base = Path(roaming_appdata) / "Minecraft Bedrock" / "Users"
         if users_base.exists():
             for user_dir in users_base.iterdir():
-                if user_dir.is_dir() and user_dir.name.lower() != "shared":
-                    user_worlds = user_dir / "games" / "com.mojang" / "minecraftWorlds"
-                    if user_worlds.exists():
-                        world_paths.append(user_worlds)
+                user_worlds = user_dir / "games" / "com.mojang" / "minecraftWorlds"
+                if user_worlds.exists():
+                    world_paths.append(user_worlds)
 
     world_paths = list(dict.fromkeys(world_paths))
     return world_paths
