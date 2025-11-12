@@ -454,7 +454,8 @@ max_levels_java = {
     "minecraft:swift_sneak": 3,
     "minecraft:breach": 4,
     "minecraft:density": 5,
-    "minecraft:wind_burst": 3
+    "minecraft:wind_burst": 3,
+    "minecraft:sweeping_edge": 3
 }
 java_enchant_map = {
     "minecraft:protection": "Protection",
@@ -467,6 +468,7 @@ java_enchant_map = {
     "minecraft:depth_strider": "Depth Strider",
     "minecraft:aqua_affinity": "Aqua Affinity",
     "minecraft:sharpness": "Sharpness",
+    "minecraft:sweeping_edge": "Sweeping Edge",
     "minecraft:smite": "Smite",
     "minecraft:bane_of_arthropods": "Bane of Arthropods",
     "minecraft:knockback": "Knockback",
@@ -564,6 +566,7 @@ valid_enchants_java = {
         "minecraft:knockback",
         "minecraft:fire_aspect",
         "minecraft:looting",
+        "minecraft:sweeping_edge",
         "minecraft:unbreaking",
         "minecraft:mending",
         "minecraft:binding_curse",
@@ -1027,7 +1030,7 @@ class IconListCtrl(wx.Frame):
                                      'has_trail': ByteTag(0), 'has_twinkle':
                                          ByteTag(0)})], 10), 'flight_duration': ByteTag(1)})}))
                     elif 'firework_star' in self.item_id:
-                        color = firework_star_colors[self.item_id] # replace for lookup
+                        color = firework_star_colors[self.item_id]
                         hovered_window.GetParent().set_components(
                             CompoundTag({'minecraft:firework_explosion':
                                 CompoundTag({'has_trail': ByteTag(0), 'shape': StringTag("small_ball"),
@@ -2246,6 +2249,7 @@ class ItemTools:
 
         def on_save(event):
             result["text"] = text_ctrl.GetValue()
+            parent.set_components(from_snbt(text_ctrl.GetValue()))
             dialog.EndModal(wx.ID_OK)
 
         def on_cancel(event):
@@ -2364,7 +2368,6 @@ class ItemTools:
         if not components:
             components = CompoundTag({})
         existing_enchants = components.get("minecraft:enchantments", None)
-
 
         if not isinstance(existing_enchants, CompoundTag):
             existing_enchants = CompoundTag()
@@ -2930,7 +2933,6 @@ class DropMenu:
     # ──────────────────────────────────────────────
     # Menu Creation Helpers
     # ──────────────────────────────────────────────
-
     def build_menu_items(self, menu, item_ids):
         """Create and append menu items (with icons) to the given menu."""
         for item_id in item_ids:
@@ -2951,7 +2953,6 @@ class DropMenu:
                 lambda e, bid=item_name: self.on_item_selected(e, bid),
                 menu_item
             )
-
     def build_menu_items_from_id(self, menu, item_ids):
         for item_name in item_ids:
             # Safety check in case the ID isn't in resources
@@ -2971,7 +2972,6 @@ class DropMenu:
                 lambda e, bid=item_name: self.on_item_selected(e, bid),
                 menu_item
             )
-
     def expand_ids(self, id_ranges):
         """Expand a list of IDs or (start, end) tuples into a flat list of IDs."""
         expanded = []
@@ -4279,6 +4279,8 @@ class InventoryFrame(wx.Frame):
         lookup_id = item_id  # Default lookup key
 
         # --- Handle component-based variations (e.g., Goat Horns) ---
+        if 'shulker_box' in item_id and '_shulker_box' not in item_id:
+            lookup_id = '_:undyed_shulker_box'
         if item.get('components'):
             button.set_components(item['components'])
 
@@ -4294,8 +4296,12 @@ class InventoryFrame(wx.Frame):
             if 'firework_rocket' in item_id:
                 comp = item['components']
                 firework_colors_rev = {v: k for k, v in firework_colors.items()}
-                value = comp["minecraft:fireworks"]['explosions'][0]['colors'][0]
+                if comp["minecraft:fireworks"].get('explosions', None):
+                    value = comp["minecraft:fireworks"]['explosions'][0]['colors'][0]
+                else:
+                    value = ""
                 if firework_colors_rev.get(value, None):
+                    value = comp["minecraft:fireworks"]['explosions'][0]['colors'][0]
                     lookup_id = '_:' + firework_colors_rev.get(value, None)
                 else:
                     lookup_id = '_:firework_rocket'
@@ -4349,6 +4355,7 @@ class InventoryFrame(wx.Frame):
                 potion_value = comp["minecraft:potion_contents"]['potion'].py_str  # e.g., 'minecraft:night_vision'
                 # print(potion_value, '<<<<<<<', java_to_potion.get(potion_value, "None"))
                 lookup_id = '_:'+java_to_potion.get(potion_value, "None")  # e.g., 'potion:5'
+
 
                 # --- Handle bed variants using your mapping dict ---
         elif item_id in bed_icons:
