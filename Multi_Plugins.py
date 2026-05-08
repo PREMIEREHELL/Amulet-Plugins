@@ -837,33 +837,66 @@ class IconResources:
     def __init__(self):
         if not hasattr(self, '_initialized'):
             def get_resource_path(filename):
+                # Try likely locations so the plugin still works whether the
+                # atlas sits beside the script, inside a data folder, or in a
+                # PyInstaller bundle.
+                candidates = []
+                filename = Path(filename)
+
                 if hasattr(sys, "_MEIPASS"):
-                    # Running in PyInstaller bundle
-                    return os.path.join(sys._MEIPASS, filename)
+                    base_dir = Path(sys._MEIPASS)
+                    candidates.extend([
+                        base_dir / filename,
+                        base_dir / filename.name,
+                        base_dir / "data" / filename.name,
+                    ])
                 else:
-                    current_dir = os.path.dirname(os.path.abspath(__file__))
-                    file_path = os.path.join(current_dir, 'item_atlas.json')
-                    return file_path
+                    current_dir = Path(__file__).resolve().parent
+                    candidates.extend([
+                        current_dir / filename,
+                        current_dir / filename.name,
+                        current_dir / "data" / filename.name,
+                        current_dir.parent / filename.name,
+                        current_dir.parent / "data" / filename.name,
+                        current_dir.parent.parent / filename.name,
+                        current_dir.parent.parent / "data" / filename.name,
+                    ])
+
+                for candidate in candidates:
+                    if candidate.exists():
+                        return str(candidate)
+
+                return None
+
+            def load_remote_json():
+                remote_url = "https://raw.githubusercontent.com/PREMIEREHELL/Amulet-Plugins/main/item_atlas.json"
+                try:
+                    response = urllib.request.urlopen(remote_url, timeout=10)
+                    if response.status == 200:
+                        return json.loads(response.read().decode("utf-8"))
+                except Exception:
+                    pass
+                return None
 
             # Check to avoid reinitialization
             self._initialized = True
             self.catalog_window = None
-            # Initialize the current directory and file path
-            # current_dir = os.path.dirname(os.path.abspath(__file__))
-            # file_path = os.path.join(current_dir, 'item_atlas.json')
-            #
-            # # Load the icon data from the file
-            # with open(file_path, 'r') as file:
-            #     self.data = json.load(file)
-            json_path = get_resource_path("data/item_atlas.json")
-
-            with open(json_path, "r") as f:
-                self.data = json.load(f)
             self.items_id = []  # List to store item ids
             self.icon_cache = {}  # Cache for item icons
             self.scaled_cache = {}  # Cache for scaled item icons
             self.scaled_cache32 = {}
             self.icon_list_window = None  # Placeholder for the icon list window (not currently used)
+
+            # Load the icon data from the file, or fall back to the remote copy.
+            json_path = get_resource_path("data/item_atlas.json")
+            if json_path is not None:
+                with open(json_path, "r", encoding="utf-8") as f:
+                    self.data = json.load(f)
+            else:
+                self.data = load_remote_json() or {"atlas": "", "banner": {}}
+
+            self.data.setdefault("banner", {})
+            self.data.setdefault("atlas", "")
 
             # Load the icon cache from the data
             self.load_icon_cache(self.data)
@@ -902,21 +935,34 @@ class IconResources:
 
         def load_base64_imagefile(data):
             """Decodes and loads the base64-encoded image from the atlas data."""
-            atlas_data = base64.b64decode(data['atlas'])
-            buffer = io.BytesIO(atlas_data)
-            atlas_image = wx.Image()
-            atlas_image.LoadFile(buffer, wx.BITMAP_TYPE_PNG)
-            return atlas_image
+            atlas_blob = data.get('atlas') if isinstance(data, dict) else None
+            if not atlas_blob:
+                return None
+            try:
+                atlas_data = base64.b64decode(atlas_blob)
+                buffer = io.BytesIO(atlas_data)
+                atlas_image = wx.Image()
+                atlas_image.LoadFile(buffer, wx.BITMAP_TYPE_PNG)
+                return atlas_image
+            except Exception:
+                return None
 
         # Load the atlas image (either from base64 or direct file path)
+        atlas_image = None
         if isinstance(atlas, dict):
             atlas_image = load_base64_imagefile(atlas)
-        else:
-            atlas_image = wx.Image(atlas, wx.BITMAP_TYPE_PNG)
+        elif atlas:
+            try:
+                atlas_image = wx.Image(atlas, wx.BITMAP_TYPE_PNG)
+            except Exception:
+                atlas_image = None
+
+        if atlas_image is None or not atlas_image.IsOk():
+            return
 
         # Extract icons from the atlas and add to the cache
         for item_id, data in self.data.items():
-            if "icon_position" in data:
+            if isinstance(data, dict) and "icon_position" in data:
                 x, y = data["icon_position"]["x"], data["icon_position"]["y"]
                 icon_image = atlas_image.GetSubImage(wx.Rect(x, y, 32, 32))
                 self.icon_cache[item_id] = icon_image
@@ -2248,15 +2294,21 @@ class BedrockNameTagAndLoreEditor(wx.Frame):
             ctrl.SetStyle(start, end, fmt)
 
     def on_generate(self, event):
-        name_text = self.process_richtext(self.name_input, single_line=True)
-        lore_lines = self.process_richtext(self.lore_input, single_line=False)
+        name_text = self.process_richtext(self.name_input, single_line=True) or ""
+        lore_lines = self.process_richtext(self.lore_input, single_line=False) or []
+
+        if isinstance(lore_lines, str):
+            lore_lines = [lore_lines] if lore_lines else []
 
         data = CompoundTag({"display": CompoundTag ({
                 "Name": StringTag(name_text),
                 "Lore": ListTag([StringTag(x) for x in lore_lines])
             })})
 
-        self.preview.SetLabel(name_text + "\n" + "\n".join(lore_lines))
+        preview_text = name_text
+        if lore_lines:
+            preview_text += "\n" + "\n".join(lore_lines)
+        self.preview.SetLabel(preview_text)
 
 
         self.nbt_data['tag']['display'] = data['display']
@@ -2304,7 +2356,9 @@ class BedrockNameTagAndLoreEditor(wx.Frame):
                 current_line = self.apply_obfuscation(current_line)
             result.append(current_line)
 
-        return result[0] if single_line else result
+        if single_line:
+            return result[0] if result else ""
+        return result
 
     def apply_obfuscation(self, text):
         return ''.join(random.choice([c.upper(), c.lower()]) if c.isalpha() else c for c in text)
@@ -3063,33 +3117,51 @@ class IconButton(wx.Panel):
 
     def on_hover_leave(self, event):
         self.panel_leave = True
+        try:
+            if hasattr(self, "button") and self.button:
+                try:
+                    if self.button.HasCapture():
+                        self.button.ReleaseMouse()
+                except Exception:
+                    pass
+                try:
+                    self.parent.SetFocus()
+                except Exception:
+                    pass
+                self.button.Refresh()
+                self.button.Update()
+        except Exception:
+            pass
+        self.Refresh()
+        self.Update()
+        event.Skip()
+
     def on_hover_enter(self, event):
         self.panel_leave = False
 
         if CLIP_BOARD.get('SLOT_SOURCE'):
             key, slot_number = self.Get_slot_map_key()
             keys = self.editor.keys + [key]
-            current_nbt_list = self.editor.selected_player[keys]
+            _ = self.editor.selected_player[keys]
 
             CLIP_BOARD['SLOT_TARGET'] = (key, slot_number)
           #  print(key, slot_number, 'HOVER', CLIP_BOARD['SLOT_SOURCE'])
 
             if CLIP_BOARD.get('COPY'):
                 self.complete_drag(event)
-
+                event.Skip()
                 return
-            self.Layout()
-            self.Refresh()
-
 
         drag_id = DRAG_DATA_SOURCE.get('id')
         if drag_id:
             ctrl_down = wx.GetKeyState(wx.WXK_CONTROL)
-            shift_down = wx.GetKeyState(wx.WXK_SHIFT)
+            _shift_down = wx.GetKeyState(wx.WXK_SHIFT)
             self.on_menu_item_selected(event, drag_id)
 
-            if not (ctrl_down):
+            if not ctrl_down:
                 DRAG_DATA_SOURCE.pop('id', None)
+
+        event.Skip()
 
     def complete_drag(self, event):
         def key_from_title(container_title: str) -> Union[list[str], None]:
@@ -17896,17 +17968,21 @@ class BlendingWindow(wx.Frame):
         return int.from_bytes(n.to_bytes(byte_count, 'little', signed=False), 'little', signed=True)
 
 class CustomToolTip(wx.PopupWindow):
-    def __init__(self, parent=None, btn=None, text=None, font_size=None):
+    def __init__(self, parent=None, btn=None, text=None, font_size=None, delay_ms=250):
         super().__init__(parent)  # Initialize wx.PopupWindow
         self.SetBackgroundColour(wx.Colour(255, 255, 225))  # Light yellow background
         self.parent = parent
         self.font_size = font_size
         self.text = text
+        self.delay_ms = delay_ms
+        self._popup_timer = None
+        self._pending_button = btn
         self._create_ui()
 
         # Bind event handlers
         btn.Bind(wx.EVT_ENTER_WINDOW, self.on_mouse_enter)
         btn.Bind(wx.EVT_LEAVE_WINDOW, self.on_mouse_leave)
+        btn.Bind(wx.EVT_KILL_FOCUS, self.on_mouse_leave)
 
     def _create_ui(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -17919,18 +17995,61 @@ class CustomToolTip(wx.PopupWindow):
         sizer.Add(label, 0, wx.ALL, 5)
         self.SetSizerAndFit(sizer)
 
+    def _cancel_timer(self):
+        if self._popup_timer is not None:
+            try:
+                self._popup_timer.Stop()
+            except Exception:
+                pass
+            self._popup_timer = None
+
+    def _clamp_popup_position(self, btn):
+        btn_rect = btn.GetScreenRect()
+        popup_w, popup_h = self.GetBestSize()
+        screen_w, screen_h = wx.GetDisplaySize()
+
+        margin = 8
+        x = btn_rect.GetRight() + margin
+        y = btn_rect.GetTop() + max(0, (btn_rect.GetHeight() - popup_h) // 2)
+
+        if x + popup_w > screen_w:
+            x = btn_rect.GetLeft() - popup_w - margin
+        if x < 0:
+            x = 0
+
+        if y + popup_h > screen_h:
+            y = max(0, screen_h - popup_h - margin)
+        if y < 0:
+            y = 0
+
+        return wx.Point(x, y)
+
     def Popup(self, pos):
         self.Position(pos, wx.Size(-1, -1))
         self.Show()
         self.Raise()
 
+    def _show_popup_for_button(self, btn):
+        if not btn or not btn.IsShownOnScreen():
+            return
+        try:
+            pos = self._clamp_popup_position(btn)
+            self.Popup(pos)
+        finally:
+            self._popup_timer = None
+
     def on_mouse_enter(self, event):
         btn = event.GetEventObject()
-        pos = btn.ClientToScreen(wx.Point(btn.GetSize().GetWidth(), 0))
-        self.Popup(pos)
+        self._cancel_timer()
+        self.Hide()
+        self._pending_button = btn
+        self._popup_timer = wx.CallLater(self.delay_ms, self._show_popup_for_button, btn)
+        event.Skip()
 
     def on_mouse_leave(self, event):
+        self._cancel_timer()
         self.Hide()
+        event.Skip()
 
 class Tools(wx.Frame):
     def __init__(self, parent, world, canvas, *args, **kw):
